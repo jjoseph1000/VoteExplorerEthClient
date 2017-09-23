@@ -1,0 +1,28 @@
+diff a/src/VoteExplorer/Views/ShareholderVoting/Confirm.cshtml b/src/VoteExplorer/Views/ShareholderVoting/Confirm.cshtml	(rejected hunks)
+@@ -165,10 +165,25 @@
+                     }, 5000);                    
+                 }
+ 
+-
++                if (voteSubmissionStatus == "VotesConfirmed")
++                {
++                    var serviceURL = '/api/VoteOnBlockchain/@Model.VoteSubmissionId';
++
++                    $.ajax({
++                        type: "GET",
++                        url: serviceURL,
++                        contentType: "application/json; charset=utf-8",
++                        dataType: "json",
++                        success: voteOnBlockchainSuccessFunc,
++                        error: errorDontDisplayFunc
++                    });                    
++                }
+ 
+             });
+ 
++            function voteOnBlockchainSuccessFunc(data, status) {
++            }
++
+             function GetVoteSubmissionStatus()
+             {
+                 var serviceURL = '/api/GetVoteSubmissionStatus/' + voteSubmissionId;

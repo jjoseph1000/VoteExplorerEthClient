@@ -1,0 +1,571 @@
+﻿
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - VoteExplorer</title>
+
+    <environment names="Development">
+        <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
+        <link rel="stylesheet" href="~/css/site.css" />
+        <link rel="stylesheet" href="~/lib/kendo-ui/styles/kendo.common.min.css" />
+        <link rel="stylesheet" href="~/lib/kendo-ui/styles/kendo.silver.min.css" />
+        <script src="~/lib/jquery/dist/jquery.js"></script>
+        <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
+        <script src="~/js/site.js" asp-append-version="true"></script>
+        <script src="~/lib/kendo-ui/js/kendo.all.min.js"></script>
+        <script src="~/lib/kendo-ui/js/kendo.aspnetmvc.min.js"></script>
+        <link href="~/app.css" rel="stylesheet">
+        <script src="~/lib/web3/dist/web3.min.js"></script>
+        <script src="~/lib/crypto-js/crypto-js.js"></script>
+    </environment>
+    <environment names="Staging,Production">
+        <link rel="stylesheet" href="https://ajax.aspnetcdn.com/ajax/bootstrap/3.3.6/css/bootstrap.min.css"
+              asp-fallback-href="~/lib/bootstrap/dist/css/bootstrap.min.css"
+              asp-fallback-test-class="sr-only" asp-fallback-test-property="position" asp-fallback-test-value="absolute" />
+        <link rel="stylesheet" href="~/css/site.min.css" asp-append-version="true" />
+        <link rel="stylesheet"
+              href="https://kendo.cdn.telerik.com/2017.1.118/styles/kendo.common.min.css"
+              asp-fallback-href="~/lib/kendo-ui/styles/kendo.common.min.css"
+              asp-fallback-test-class="k-common-test-class"
+              asp-fallback-test-property="opacity" asp-fallback-test-value="0" />
+
+        <link rel="stylesheet"
+              href="https://kendo.cdn.telerik.com/2017.1.118/styles/kendo.silver.min.css"
+              asp-fallback-href="~/lib/kendo-ui/styles/kendo.silver.min.css"
+              asp-fallback-test-class="k-theme-test-class"
+              asp-fallback-test-property="opacity" asp-fallback-test-value="0" />
+
+        <script src="https://ajax.aspnetcdn.com/ajax/jquery/jquery-2.2.0.min.js"
+                asp-fallback-src="~/lib/jquery/dist/jquery.min.js"
+                asp-fallback-test="window.jQuery">
+        </script>
+        <script src="https://ajax.aspnetcdn.com/ajax/bootstrap/3.3.6/bootstrap.min.js"
+                asp-fallback-src="~/lib/bootstrap/dist/js/bootstrap.min.js"
+                asp-fallback-test="window.jQuery && window.jQuery.fn && window.jQuery.fn.modal">
+        </script>
+        <script src="~/js/site.min.js" asp-append-version="true"></script>
+        <script src="https://kendo.cdn.telerik.com/2017.1.118/js/kendo.all.min.js"
+                asp-fallback-src="~/lib/kendo-ui/js/kendo.all.min.js"
+                asp-fallback-test="window.kendo">
+        </script>
+        <script src="https://kendo.cdn.telerik.com/2017.1.118/js/kendo.aspnetmvc.min.js"
+                asp-fallback-src="~/lib/kendo-ui/js/kendo.aspnetmvc.min.js"
+                asp-fallback-test="kendo.data.transports['aspnetmvc-ajax']">
+        </script>
+
+    </environment>
+
+    <!-- Bootstrap -->
+    <link href="~/vendors/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="~/vendors/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+    <!-- NProgress -->
+    <link href="~/vendors/nprogress/nprogress.css" rel="stylesheet">
+    <!-- iCheck -->
+    <link href="~/vendors/iCheck/skins/flat/green.css" rel="stylesheet">
+    <!-- Custom Theme Style -->
+    <link href="~/build/css/custom.min.css" rel="stylesheet">
+</head>
+<body class="nav-md" style="padding-top:0px;">    
+    <div class="container body">
+        <div class="main_container">
+            <div class="col-md-3 left_col">
+                <div class="left_col scroll-view">
+                    <div class="navbar nav_title" style="border: 0;">
+                        <a href="index.html" class="site_title"><i class="fa fa-check-square-o"></i> <span>SHO</span></a>
+                    </div>
+                    <div class="clearfix"></div>
+                    <!-- menu profile quick info -->
+                    <div class="profile clearfix">
+                        <div class="profile_pic">
+                            <img src="~/images/img.jpg" alt="..." class="img-circle profile_img">
+                        </div>
+                        <div class="profile_info">
+                            <span>Welcome,</span>
+                            <h2>Shareholder</h2>
+                        </div>
+                    </div>
+                    <!-- /menu profile quick info -->
+                    <br />
+                    <!-- sidebar menu -->
+                    <div id="sidebar-menu" class="main_menu_side hidden-print main_menu">
+                        <div class="menu_section">
+                            <h3>VOTING MENU</h3>
+                            <ul class="nav side-menu">
+                                <li>
+                                    <a href="/ShareholderVoting/en/Index/0"><i class="fa fa-edit"></i> Vote </a>
+
+                                </li>
+                                <li>
+                                    <a href="/Observer/en/IndexRealtime/SH"><i class="fa fa-edit"></i> View Results </a>
+                                </li>
+                                <li>
+                                    <a href="/ShareholderVoting/en/Login"><i class="fa fa-power-off"></i> Logout </a>
+
+                                </li>
+                            </ul>
+                            <h3>VOTE SUBMISSION STATUS</h3>
+                            <ul class="nav side-menu">
+                                <li>
+                                    <a><span id="voteSubmissionStatus1"></span></a>
+                                </li>
+                                <li>
+                                    
+                                    <div class="demo-section k-content box" style="width:230px;background-color:white;visibility:hidden;" id="voteStatusBox1">
+                                        <div id="voteStatus1">
+                                            <div class="loading1">
+                                                <div class="loadingInfo1">
+                                                    <h7>Processing Question <span class="currentQuestionNum1">0</span> of <span class="totalQuestionNum1"></span></h7>
+                                                    <div class="statusContainer1">
+                                                        <span class="chunkStatus1">0</span> of 3 Tasks Complete<br />
+                                                    </div>
+                                                    <div>
+                                                        <small><span class="blockchainMessage"></span></small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <p>
+                                                <div style="float:left;width:170px;" id="loadingProgressBar1"></div>
+                                            </p>
+                                            <p>
+                                                <div style="float:left;width:170px;" id="totalProgressBar1"></div><div style="float:left;"> &nbsp; <span class="loadingStatus1">0%</span></div>
+                                            </p>
+
+                                        </div>
+                                    </div>
+                                </li>
+
+                            </ul>
+                        </div>
+                    </div>
+                    <!-- /sidebar menu -->
+                    <!-- /menu footer buttons -->
+                    <div class="sidebar-footer hidden-small">
+                        <a data-toggle="tooltip" data-placement="top" title="Voting" href="~/ShareholderVoting/en/Index">
+                            <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
+                        </a>
+                        <a data-toggle="tooltip" target="_blank" data-placement="top" title="Proxy Disclosures" href="http://www.shell.com/investors/retail-shareholder-information/annual-general-meeting/_jcr_content/par/textimage_1328904083.stream/1492595235065/09f2af788de91bf1e7a360e95ec7d6455e5c4774fa4ce3e60cab195955e779e9/2017-notice-of-meeting-shell-agm.pdf">
+                            <span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>
+                        </a>
+                        <a data-toggle="tooltip" data-placement="top" title="Help" href="~/ShareholderVoting/en/Help">
+                            <span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
+                        </a>
+                        <a data-toggle="tooltip" data-placement="top" title="Logout" href="~/ShareholderVoting/en/Login">
+                            <span class="glyphicon glyphicon-off" aria-hidden="true"></span>
+                        </a>
+                    </div>
+                    <!-- /menu footer buttons -->
+                </div>
+            </div>
+            <!-- top navigation -->
+            <div class="top_nav">
+                <div class="nav_menu">
+                    <nav>
+                        <div class="nav toggle">
+                            <a id="menu_toggle"><i class="fa fa-bars"></i></a>
+                        </div>
+
+                        <div class="nav toggle" style="padding-left: 50px;">
+                            <strong>Token:&nbsp;</strong>
+                        </div>
+                        <div class="nav toggle" style="padding-left: 30px;">
+                            [<span id="tokenSymbol"></span>]
+                        </div>
+                        <div class="nav toggle" style="padding-left: 20px;">
+                          <strong>Balance:</strong>
+                        </div>
+                        <div class="nav toggle" style="padding-left: 10px;">
+                            <span id="balance"></span>
+                        </div>
+
+                        <ul class="nav navbar-nav navbar-right" style="width:30%;">
+                            <li class="">
+                                <a href="javascript:;" class="user-profile dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                                    <img src="~/images/img.jpg" alt="">Shareholder
+                                    <span class=" fa fa-angle-down"></span>
+                                </a>
+                                <ul class="dropdown-menu dropdown-usermenu pull-right">
+                                    </a>
+                            </li>
+                            <li><a target="_blank" href="http://www.shell.com/investors/retail-shareholder-information/annual-general-meeting/_jcr_content/par/textimage_1328904083.stream/1492595235065/09f2af788de91bf1e7a360e95ec7d6455e5c4774fa4ce3e60cab195955e779e9/2017-notice-of-meeting-shell-agm.pdf"> Download Proxy Disclosures</a></li>
+                            <li><a href="~/ShareholderVoting/en/Help"> Help</a></li>
+                            <li><a href="~/ShareholderVoting/en/Login"><i class="fa fa-sign-out pull-right"></i> Log Out</a></li>
+                        </ul>
+                        </li>
+
+
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+            <!-- /top navigation -->
+            <!-- page content -->
+            
+                @RenderBody()
+                <!-- /page content -->
+                <!-- footer content -->
+                <footer>
+                    <div class="pull-right">
+                        Shareholder Voting by <a href="https://thebcilabs.com">BCI Labs</a>
+                    </div>
+                    <div class="clearfix"></div>
+                </footer>
+                <!-- /footer content -->
+            </div>
+    </div>
+    <script src="~/vendors/fastclick/lib/fastclick.js"></script>
+    <!-- NProgress -->
+    <script src="~/vendors/nprogress/nprogress.js"></script>
+    <!-- bootstrap-progressbar -->
+    <script src="~/vendors/bootstrap-progressbar/bootstrap-progressbar.min.js"></script>
+
+    <!-- Custom Theme Scripts -->
+    <script src="~/build/js/custom.min.js"></script>
+    @RenderSection("scripts", required: false)
+    <script>
+        // toggle small or large menu 
+        $MENU_TOGGLE.on('click', function () {
+            console.log('clicked - menu toggle');
+
+            if ($BODY.hasClass('nav-md')) {
+                if (voteSubmissionStatus != "VoteCoinsPendingTransfer") {
+                    $SIDEBAR_MENU.find('li.active ul').hide();
+                    $SIDEBAR_MENU.find('li.active').addClass('active-sm').removeClass('active');
+                    $BODY.toggleClass('nav-md nav-sm');
+                }
+            } else {
+                $SIDEBAR_MENU.find('li.active-sm ul').show();
+                $SIDEBAR_MENU.find('li.active-sm').addClass('active').removeClass('active-sm');
+                $BODY.toggleClass('nav-md nav-sm');
+            }
+
+            $('.dataTable').each(function () { $(this).dataTable().fnDraw(); });
+        });
+
+        function numberWithCommas(x) {
+            return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+
+        var accounts;
+        var account;
+
+        var voteSessionABI;
+        var voteSessionContract;
+        var deployedVotingSession;
+        var votingTokenABI;
+        var votingTokenContract;
+        var deployedVotingToken;
+
+        var currentTokenName;
+        var currentTokenSymbol;
+        var sessionValues;
+        var voteSubmission;
+        window.App = {
+            start: function () {
+
+            }
+        }
+
+        var voteSubmissionId = "";
+        var voteSubmissionStatus;
+        var ethVoteSubmissionStatus;
+
+        $(document).ready(function () {
+            var interval = setInterval(function () {
+                if (typeof web3 === "undefined") {
+                } else {
+                    clearInterval(interval);
+                    loadPage();
+                }
+            }, 500);
+        });
+
+        function loadPage() {
+            var self = this;
+            web3.eth.getAccounts(function (err, accs) {
+                if (err != null) {
+                    alert("There was an error fetching your accounts.");
+                    return;
+                }
+                if (accs.length == 0) {
+                    alert("Couldn't get any accounts! Make sure your Ethereum client is configured correctly.");
+                    return;
+                }
+
+                accounts = accs;
+                account = accounts[0];
+                web3.eth.defaultAccount = account;
+                voteSessionABI = "[ { \"constant\": false, \"inputs\": [ { \"name\": \"voteToken\", \"type\": \"address\" } ], \"name\": \"setVoteTokenAddress\", \"outputs\": [ { \"name\": \"setTokenId\", \"type\": \"bool\" } ], \"payable\": false, \"type\": \"function\" }, { \"constant\": false, \"inputs\": [ { \"name\": \"votedAddress\", \"type\": \"address\" }, { \"name\": \"voteSessionId\", \"type\": \"string\" }, { \"name\": \"transactionId\", \"type\": \"string\" } ], \"name\": \"setVoteTransactionId\", \"outputs\": [ { \"name\": \"Result\", \"type\": \"bool\" } ], \"payable\": false, \"type\": \"function\" }, { \"constant\": false, \"inputs\": [ { \"name\": \"indexVoter\", \"type\": \"uint256\" }, { \"name\": \"voterAddress\", \"type\": \"address\" } ], \"name\": \"getVoteAnswersByAddress\", \"outputs\": [ { \"name\": \"indexVoter1\", \"type\": \"uint256\" }, { \"name\": \"voter\", \"type\": \"address\" }, { \"name\": \"voteSessionId\", \"type\": \"string\" }, { \"name\": \"voteAnswers\", \"type\": \"string\" }, { \"name\": \"blockNumber\", \"type\": \"uint256\" }, { \"name\": \"balance\", \"type\": \"uint256\" } ], \"payable\": false, \"type\": \"function\" }, { \"constant\": false, \"inputs\": [ { \"name\": \"voterIndex\", \"type\": \"uint256\" } ], \"name\": \"getVoteAnswersByIndex\", \"outputs\": [ { \"name\": \"indexVoter1\", \"type\": \"uint256\" }, { \"name\": \"voter\", \"type\": \"address\" }, { \"name\": \"voteSessionId\", \"type\": \"string\" }, { \"name\": \"voteAnswers\", \"type\": \"string\" }, { \"name\": \"blockNumber\", \"type\": \"uint256\" }, { \"name\": \"balance\", \"type\": \"uint256\" } ], \"payable\": false, \"type\": \"function\" }, { \"constant\": false, \"inputs\": [], \"name\": \"totalVoters\", \"outputs\": [ { \"name\": \"totalVoters\", \"type\": \"uint256\" } ], \"payable\": false, \"type\": \"function\" }, { \"constant\": false, \"inputs\": [], \"name\": \"getLastVoteSessionId\", \"outputs\": [ { \"name\": \"voteSessionId1\", \"type\": \"string\" } ], \"payable\": false, \"type\": \"function\" }, { \"constant\": false, \"inputs\": [], \"name\": \"getVoteAnswers\", \"outputs\": [ { \"name\": \"indexVoter1\", \"type\": \"uint256\" }, { \"name\": \"voter\", \"type\": \"address\" }, { \"name\": \"voteSessionId\", \"type\": \"string\" }, { \"name\": \"voteAnswers\", \"type\": \"string\" }, { \"name\": \"blockNumber\", \"type\": \"uint256\" }, { \"name\": \"balance\", \"type\": \"uint256\" } ], \"payable\": false, \"type\": \"function\" }, { \"constant\": false, \"inputs\": [ { \"name\": \"questionIndex\", \"type\": \"uint256\" } ], \"name\": \"getQuestionByIndex\", \"outputs\": [ { \"name\": \"questionIndex1\", \"type\": \"uint256\" }, { \"name\": \"questionId\", \"type\": \"string\" }, { \"name\": \"questionTextRows\", \"type\": \"uint256\" }, { \"name\": \"boardRecommendation\", \"type\": \"string\" }, { \"name\": \"isActive\", \"type\": \"uint256\" } ], \"payable\": false, \"type\": \"function\" }, { \"constant\": false, \"inputs\": [ { \"name\": \"questionId\", \"type\": \"string\" }, { \"name\": \"questionTextRows\", \"type\": \"uint256\" }, { \"name\": \"questionText\", \"type\": \"bytes32\" }, { \"name\": \"boardRecommendation\", \"type\": \"string\" }, { \"name\": \"isActive\", \"type\": \"uint256\" } ], \"name\": \"insertUpdateQuestion\", \"outputs\": [ { \"name\": \"insertupdate\", \"type\": \"bool\" } ], \"payable\": false, \"type\": \"function\" }, { \"constant\": true, \"inputs\": [ { \"name\": \"x\", \"type\": \"bytes32\" } ], \"name\": \"bytes32ToString\", \"outputs\": [ { \"name\": \"\", \"type\": \"string\" } ], \"payable\": false, \"type\": \"function\" }, { \"constant\": false, \"inputs\": [ { \"name\": \"questionId\", \"type\": \"string\" }, { \"name\": \"questionTextRow\", \"type\": \"uint256\" } ], \"name\": \"getQuestionTextByRow\", \"outputs\": [ { \"name\": \"questionid\", \"type\": \"string\" }, { \"name\": \"row\", \"type\": \"uint256\" }, { \"name\": \"textLine\", \"type\": \"bytes32\" } ], \"payable\": false, \"type\": \"function\" }, { \"constant\": false, \"inputs\": [ { \"name\": \"questionId\", \"type\": \"string\" }, { \"name\": \"questionTextRow\", \"type\": \"uint256\" }, { \"name\": \"questionText\", \"type\": \"bytes32\" } ], \"name\": \"addQuestionTextRow\", \"outputs\": [ { \"name\": \"success\", \"type\": \"bool\" } ], \"payable\": false, \"type\": \"function\" }, { \"constant\": false, \"inputs\": [], \"name\": \"totalQuestions\", \"outputs\": [ { \"name\": \"totalQuestions\", \"type\": \"uint256\" } ], \"payable\": false, \"type\": \"function\" }, { \"constant\": false, \"inputs\": [ { \"name\": \"source\", \"type\": \"string\" } ], \"name\": \"stringToBytes32\", \"outputs\": [ { \"name\": \"result\", \"type\": \"bytes32\" } ], \"payable\": false, \"type\": \"function\" }, { \"constant\": false, \"inputs\": [], \"name\": \"getVoteTokenAddress\", \"outputs\": [ { \"name\": \"VoteToken\", \"type\": \"address\" } ], \"payable\": false, \"type\": \"function\" }, { \"constant\": false, \"inputs\": [ { \"name\": \"voteSessionId\", \"type\": \"string\" }, { \"name\": \"selectedAnswers\", \"type\": \"string\" } ], \"name\": \"vote\", \"outputs\": [ { \"name\": \"Result\", \"type\": \"bool\" } ], \"payable\": false, \"type\": \"function\" }, { \"inputs\": [], \"payable\": false, \"type\": \"constructor\" } ]";
+                voteSessionContract = web3.eth.contract(JSON.parse(voteSessionABI));
+                votingTokenABI = "[{\"constant\":true,\"inputs\":[],\"name\":\"name\",\"outputs\":[{\"name\":\"\",\"type\":\"string\"}],\"payable\":false,\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_spender\",\"type\":\"address\"},{\"name\":\"_value\",\"type\":\"uint256\"}],\"name\":\"approve\",\"outputs\":[{\"name\":\"success\",\"type\":\"bool\"}],\"payable\":false,\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"decimals\",\"outputs\":[{\"name\":\"\",\"type\":\"uint8\"}],\"payable\":false,\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"_totalSupply\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_from\",\"type\":\"address\"},{\"name\":\"_to\",\"type\":\"address\"},{\"name\":\"_value\",\"type\":\"uint256\"}],\"name\":\"transferfrom\",\"outputs\":[{\"name\":\"success\",\"type\":\"bool\"}],\"payable\":false,\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"_owner\",\"type\":\"address\"}],\"name\":\"balanceOf\",\"outputs\":[{\"name\":\"balance\",\"type\":\"uint256\"}],\"payable\":false,\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"symbol\",\"outputs\":[{\"name\":\"\",\"type\":\"string\"}],\"payable\":false,\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_to\",\"type\":\"address\"},{\"name\":\"_value\",\"type\":\"uint256\"}],\"name\":\"transfer\",\"outputs\":[{\"name\":\"success\",\"type\":\"bool\"}],\"payable\":false,\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"_owner\",\"type\":\"address\"},{\"name\":\"_spender\",\"type\":\"address\"}],\"name\":\"allowance\",\"outputs\":[{\"name\":\"remaining\",\"type\":\"uint256\"}],\"payable\":false,\"type\":\"function\"},{\"inputs\":[],\"payable\":false,\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"name\":\"_from\",\"type\":\"address\"},{\"indexed\":true,\"name\":\"_to\",\"type\":\"address\"},{\"indexed\":false,\"name\":\"_value\",\"type\":\"uint256\"}],\"name\":\"Transfer\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"name\":\"_owner\",\"type\":\"address\"},{\"indexed\":true,\"name\":\"_spender\",\"type\":\"address\"},{\"indexed\":false,\"name\":\"_value\",\"type\":\"uint256\"}],\"name\":\"Approval\",\"type\":\"event\"}]";
+                votingTokenContract = web3.eth.contract(JSON.parse(votingTokenABI));
+
+                var serviceURL = '/api/GetSessionVariables';
+                $.ajax({
+                    type: "GET",
+                    url: serviceURL,
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function (data, status) {
+                        console.log(data);
+                        deployedVotingToken = votingTokenContract.at(data.voteTokenAddress);
+                        deployedVotingSession = voteSessionContract.at(data.contractNumber);
+
+
+                        deployedVotingToken.balanceOf.call(account,function (error, balance) {
+                            console.log("token name =" + balance);
+                            var decimals = parseInt(data.voteTokenDecimal);
+                            var formattedBalance = parseFloat(balance).toFixed(decimals).toLocaleString();
+                            var balanceWithCommas = numberWithCommas(formattedBalance);
+                            $("#balance").text(balanceWithCommas);
+                            $("#tokenName").text(data.voteTokenName);
+                            $("#tokenSymbol").text(data.voteTokenSymbol);
+                            voteSubmission = data.voteSubmission;
+                           
+                            GetVoteSubmissionStatusEth();
+                            var interval = setInterval(function () {
+                                if (ethVoteSubmissionStatus == "Votes Pending") {
+                                    GetVoteSubmissionStatusEth();
+                                } else {
+                                    clearInterval(interval);
+                                }
+                            }, 4000);
+
+                            //ethVoteSubmissionStatus = "Votes Pending";
+
+                        })
+                    },
+                    error: function (result) {
+                        alert("Error");
+                    }
+                });
+
+                pageLoad();
+            });
+
+            $("#voteStatus1").show();
+            $("#voteStatusBox1").css('visibility', 'hidden');//.hide();
+
+            var serviceURL = '/api/GetCurrentVoteSubmissionId';
+
+            $.ajax({
+                type: "GET",
+                url: serviceURL,
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function (data, status) {
+                    voteSubmissionId = data.id;
+                    //$("#voteSubmissionStatus1").text(data.voteSubmissionStatus);
+
+                    if (voteSubmissionId != "") {
+                        voteSubmissionStatus = "VoteCoinsPendingTransfer";
+                        //$("#voteSubmissionStatus1").text("Votes Pending");
+
+                        //var interval = setInterval(function () {
+                        //    if (voteSubmissionStatus == "VoteCoinsPendingTransfer") {
+
+                        //        GetVoteSubmissionStatus();
+                        //    } else {
+                        //        clearInterval(interval);
+                        //    }
+                        //}, 4000);
+                    }
+                    else {
+                    }
+                },
+                error: errorFunc
+            });
+
+            $("#loadingProgressBar1").kendoProgressBar({
+                type: "chunk",
+                chunkCount: 3,
+                min: 0,
+                max: 3,
+                orientation: "horizontal",
+            });
+
+            $("#totalProgressBar1").kendoProgressBar({
+                orientation: "horizontal",
+                showStatus: false,
+                animation: false,
+                change: function (e) {
+                    $(".loadingStatus1").text(e.value + "%");
+                }
+            });
+
+        };
+        
+        function GetVoteSubmissionStatusEth()
+        {
+            deployedVotingSession.getLastVoteSessionId.call(function (error, voteSessionId) {
+                console.log("v = " + voteSessionId);
+                if (voteSubmission != "") {
+                    if (voteSessionId != "") {
+                        if (voteSubmission._id == voteSessionId) {
+                            ethVoteSubmissionStatus = "Submitted Successfully";
+                            var serviceURL = '/api/DeleteVoteSubmissionById/' + voteSessionId;
+
+                            $.ajax({
+                                type: "GET",
+                                url: serviceURL,
+                                contentType: "application/json; charset=utf-8",
+                                dataType: "json",
+                                success: function (data, status) {
+                                },
+                                error: errorFunc
+                            });
+                        }
+                        else {
+                            ethVoteSubmissionStatus = "Votes Pending";
+                        }
+                    }
+                    else {
+                        ethVoteSubmissionStatus = "Votes Pending";
+                    }
+                }
+                else {
+                    if (voteSessionId != "") {
+                        ethVoteSubmissionStatus = "Submitted Successfully";
+                    }
+                    else {
+                        ethVoteSubmissionStatus = "No Votes Submitted";
+                    }
+                }
+                $("#voteSubmissionStatus1").text(ethVoteSubmissionStatus);
+            });
+
+
+        }
+
+        function GetVoteSubmissionStatus() {
+            var serviceURL = '/api/GetVoteSubmissionStatus/' + voteSubmissionId;
+
+            $.ajax({
+                type: "GET",
+                url: serviceURL,
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function (data, status) {
+                    $(".totalQuestionNum1").text(data.voteSelections.length);
+                    if (data.voteSubmissionStatus == "2") {
+                        var percentage = parseInt((parseInt(data.currentQuestionBeingProcessedNumber) / parseInt(data.voteSelections.length)) * 100 + .5);
+
+                        $(".currentQuestionNum1").text(data.currentQuestionBeingProcessedNumber);
+
+                        var pb = $("#totalProgressBar1").data("kendoProgressBar");
+                        pb.value(percentage);
+
+                        var total = $("#loadingProgressBar1").data("kendoProgressBar");
+                        total.value(data.blockChainStage);
+
+                        $(".chunkStatus1").text(data.blockChainStage);
+
+                        $(".blockchainMessage").text(data.blockChainProcessingMessage);
+                        $("#voteStatusBox1").css('visibility', 'visible');//.show();
+                        //$("#voteSubmissionStatus1").text("");
+
+                        console.log(data.currentQuestionBeingProcessedNumber + '/' + data.voteSelections.length);
+
+                        if ($BODY.hasClass('nav-sm')) {
+                            $SIDEBAR_MENU.find('li.active-sm ul').show();
+                            $SIDEBAR_MENU.find('li.active-sm').addClass('active').removeClass('active-sm');
+                            $BODY.toggleClass('nav-md nav-sm');
+                        }
+
+
+                        $('.dataTable').each(function () { $(this).dataTable().fnDraw(); });
+
+                    }
+                    else {
+                        voteSubmissionStatus = "VoteCoinsTransferred";
+                        $("#voteStatusBox1").css('visibility', 'hidden');//.hide();
+                        $("#voteStatus1").hide();
+                        //$("#voteSubmissionStatus1").text("Submitted Successfully");
+                    }
+                },
+                error: errorFunc
+            });
+        }        
+
+        function onComplete(e) {
+            var total = $("#loadingProgressBar1").data("kendoProgressBar");
+            total.value(total.value() + 1);
+
+            if (total.value() < total.options.max) {
+                $(".chunkStatus1").text(total.value());
+                $(".loadingInfo1").text(itemsToLoad[total.value()]);
+
+                //load();
+            }
+        }
+
+        //var interval = setInterval(function () {
+        //    if (pb.value() < 100) {
+        //        pb.value(pb.value() + 1);
+        //    } else {
+        //        clearInterval(interval);
+        //    }
+        //}, 78);
+
+        function onTotalComplete(e) {
+            $(".loadingInfo1").text("All Votes Have Been Successfully Cast");
+            $(".statusContainer1").hide();
+        }
+
+        function errorFunc(result) {
+            for (var propertyName in result) {
+
+                //alert(propertyName);
+            }
+
+
+            alert("error");
+        }
+
+    </script>
+    <style>
+        .demo-section {
+            overflow: auto;
+        }
+
+        .k-progressbar {
+            width: 500px;
+            height: 20px;
+        }
+
+        #loadingProgressBar1 {
+            margin-top: 10px;
+        }
+
+        .loading1 {
+            float: left;
+        }
+
+        .loadingInfo1 {
+            float: left;
+            margin: 5px 0 0 5px;
+        }
+
+        .reloadButton {
+            display: none;
+            margin-top: 10px;
+        }
+
+        .box {
+            width: 130px;
+            height: 50px;
+            border: 1px solid black;
+            position: relative;
+            text-align: center;
+            background: #ccc;
+            vertical-align: middle;
+            display: table-cell;
+            color: black;
+        }
+
+    </style>
+
+</body>
+</html>

@@ -1,0 +1,613 @@
+﻿
+@{
+    Layout = "/Views/shared/_OriginalLayout.cshtml";
+}
+
+<div class="demo-section k-content">
+    <div id="example1">
+        <div class="demo-section k-content" style="width:600px;">
+            <div id="loadingProgressBar"></div>
+            <div id="totalProgressBar"></div>
+            <div class="loading">
+                <div class="loadingInfo">
+                    <h4>Acquired Address From Vanity Generator</h4>
+                    <div class="statusContainer">
+                        <span class="chunkStatus">0</span> of 3 Tasks Complete<br />
+                        <p>
+                            Loaded: <span class="loadingStatus">0%</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            $(document).ready(function () {
+                $("#loadingProgressBar").kendoProgressBar({
+                    type: "chunk",
+                    chunkCount: 3,
+                    min: 0,
+                    max: 3,
+                    orientation: "horizontal",
+                });
+
+                $("#totalProgressBar").kendoProgressBar({
+                    orientation: "horizontal",
+                    showStatus: false,
+                    animation: false,
+                });
+
+                load();
+
+
+
+        });
+
+        function onChange(e) {
+            $(".loadingStatus").text(e.value + "%");
+        }
+
+        function onComplete(e) {
+            var total = $("#loadingProgressBar").data("kendoProgressBar");
+            total.value(total.value() + 1);
+
+            if (total.value() < total.options.max) {
+                $(".chunkStatus").text(total.value() );
+                $(".loadingInfo h4").text(itemsToLoad[total.value()]);
+
+                load();
+            }
+        }
+
+        //var interval = setInterval(function () {
+        //    if (pb.value() < 100) {
+        //        pb.value(pb.value() + 1);
+        //    } else {
+        //        clearInterval(interval);
+        //    }
+        //}, 78);
+
+        function onTotalComplete(e) {
+            $(".loadingInfo h4").text("All Votes Have Been Successfully Cast");
+            $(".statusContainer").hide();
+        }
+
+        function load() {
+            var pb = $("#totalProgressBar").data("kendoProgressBar");
+            pb.value(35);
+
+            var total = $("#loadingProgressBar").data("kendoProgressBar");
+            total.value(2);
+        }
+
+        $(".reloadButton").click(function () {
+            $(this).hide();
+            $(".statusContainer").show();
+
+            $("#totalProgressBar").data("kendoProgressBar").value(0);
+            $("#loadingProgressBar").data("kendoProgressBar").value(0);
+            $(".loadingInfo h4").text(itemsToLoad[0]);
+            $(".chunkStatus").text(1);
+
+            load();
+        });
+
+        var itemsToLoad = ["Acquired Address From Vanity Generator", "Imported Private Key", "Sent Coins to Public Address"];
+
+        function Dialog_initopen(e) {
+            $("#totalProgressBar").kendoProgressBar({
+                type: "chunk",
+                chunkCount: 3,
+                min: 0,
+                max: 3,
+                orientation: "horizontal",
+                complete: onTotalComplete
+            });
+
+            $("#loadingProgressBar").kendoProgressBar({
+                orientation: "horizontal",
+                showStatus: false,
+                animation: false,
+                change: onChange,
+                complete: onComplete
+            });
+
+            load();
+
+        }
+
+
+
+        </script>
+        <style>
+            .demo-section {
+                overflow: auto;
+            }
+
+            .k-progressbar {
+                width: 500px;
+                height: 20px;
+            }
+
+            #loadingProgressBar {
+                margin-top: 10px;
+            }
+
+            .loading {
+                float: left;
+            }
+
+            .loadingInfo {
+                float: left;
+                margin: 20px 0 0 30px;
+            }
+
+            .reloadButton {
+                display: none;
+                margin-top: 10px;
+            }
+        </style>
+
+    </div>
+
+    <div id="example">
+        <div style="font-size: x-large;">
+            <p style="text-align:left;">
+                This text is left aligned
+                <span style="float:right;">This text is right aligned</span>
+            </p>
+
+        </div>
+
+        <table id="dgCompletedProposals">
+
+            <thead>
+                <tr>
+                    <th style="visibility:hidden;display:none;">
+
+
+                    </th>
+
+                    <th>
+
+                    </th>
+                    <th>
+
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td colspan="2"></td>
+                </tr>
+            </tbody>
+        </table>
+        <script id="rowTemplate" type="text/x-kendo-tmpl">
+            <tr style="border-width:1px; border:solid" data-uid="#: quid #">
+                <td style="visibility:hidden;display:none;">
+                    #: quid #|
+                </td>
+                <td class="details">
+                    #: text #
+                </td>
+                <td class="voteChoice">
+                    <span style="padding-left: 50px;" id="boardRecommendation_#: quid #">
+                        BOARD RECOMMENDATION: FOR
+                    </span>
+                    <span id="youVoted_#: quid #" >
+                        YOUR VOTE: 
+                    </span>
+                    <div>
+                            <ul id="selectChoice_#: quid #">
+                                <li onclick="Choice_Onclick('confirmationChoiceBox_#: quid #','FOR')">
+                                    FOR
+                                </li>
+                                <li onclick="Choice_Onclick('confirmationChoiceBox_#: quid #','AGAINST')">
+                                    AGAINST
+                                </li>
+                                <li onclick="Choice_Onclick('confirmationChoiceBox_#: quid #','ABSTAIN')">
+                                    ABSTAIN
+                                </li>
+                            </ul>
+                        <div class="box" id="confirmationChoiceBox_#: quid #" style="float:left;">
+                            
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </script>
+        <script id="altRowTemplate" type="text/x-kendo-tmpl">
+            <tr class="k-alt" data-uid="#: quid #">
+                <td style="visibility:hidden;display:none;">
+                    #: quid #|
+
+                </td>
+
+                <td class="details">
+
+                    #: text #
+                </td>
+                <td class="voteChoice">
+                    <span style="padding-left: 50px;"  id="boardRecommendation_#: quid #">
+                        BOARD RECOMMENDATION: FOR
+                    </span>
+                    <span id="youVoted_#: quid #" >
+                        YOUR VOTE: 
+                    </span>
+                    <div>
+                            <ul id="selectChoice_#: quid #">
+                                <li onclick="Choice_Onclick('confirmationChoiceBox_#: quid #','FOR')">
+                                    FOR
+                                </li>
+                                <li onclick="Choice_Onclick('confirmationChoiceBox_#: quid #','AGAINST')">
+                                    AGAINST
+                                </li>
+                                <li onclick="Choice_Onclick('confirmationChoiceBox_#: quid #','ABSTAIN')">
+                                    ABSTAIN
+                                </li>
+                            </ul>
+                        <div class="box" id="confirmationChoiceBox_#: quid #" style="float:left;">
+                            
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </script>
+        <script>
+            var openQuestionsJson;
+
+               $(document).ready(function() {
+
+                   var serviceURL = '/api/_GetCompletedQuestions';
+
+                   $.ajax({
+                       type: "GET",
+                       url: serviceURL,
+                       contentType: "application/json; charset=utf-8",
+                       dataType: "json",
+                       success: successFuncCompleted,
+                       error: errorFunc
+                   });
+                   
+                   $("#btnReset").kendoButton();
+
+                   $("#btnSubmit").kendoButton();
+
+                   $("#btnGoBack").kendoButton();
+
+                   $("#btnConfirm").kendoButton();
+
+                   $("#btnChangeVote").kendoButton();
+
+                   $("#btnConfirm").click(function () {
+                       var dialog = $('#dialog');
+
+                       dialog.kendoDialog({
+                           width: "570px",
+                           title: "Vote Submission",
+                           closable: true,
+                           modal: true,
+                           content: "",
+                           close: VoteCompleted,
+                           initOpen: Dialog_initopen
+                       });
+
+                       dialog.data("kendoDialog").open();
+
+                   });
+
+                   function VoteCompleted(e)
+                   {
+                       $("html, body").animate({ scrollTop: 0 }, "slow");
+                       ShowVoteCompletionScreen();
+                   }
+                   //
+                   $("#btnReset").click(function () {
+                       for (var x = 0; x < openQuestionsJson.length; x++) {
+                           //$("#selectChoice_" + openQuestionsJson[x].quid).data('kendoMobileButtonGroup').index = -1;
+                           //$("#selectChoice_" + openQuestionsJson[x].quid).find('.k-state-active').removeClass('k-state-active');
+                           $("#confirmationChoiceBox_" + openQuestionsJson[x].quid).html("");
+
+                           var buttongroup = $("#selectChoice_" + openQuestionsJson[x].quid).data("kendoMobileButtonGroup");
+
+                           // selects by jQuery object
+                           buttongroup.select(buttongroup.element.children().eq(0));
+                           // selects by index
+                           buttongroup.select(4);
+
+                       }
+
+                       $("html, body").animate({ scrollTop: 0 }, "slow");
+                   });
+
+                   $("#btnChangeVote").click(function () {
+                       for (var x = 0; x < openQuestionsJson.length; x++) {
+                           //$("#selectChoice_" + openQuestionsJson[x].quid).data('kendoMobileButtonGroup').index = -1;
+                           //$("#selectChoice_" + openQuestionsJson[x].quid).find('.k-state-active').removeClass('k-state-active');
+                           $("#confirmationChoiceBox_" + openQuestionsJson[x].quid).html("");
+
+                           var buttongroup = $("#selectChoice_" + openQuestionsJson[x].quid).data("kendoMobileButtonGroup");
+
+                           // selects by jQuery object
+                           buttongroup.select(buttongroup.element.children().eq(0));
+                           // selects by index
+                           buttongroup.select(4);
+
+                       }
+
+                       $("html, body").animate({ scrollTop: 0 }, "slow");
+                   });
+
+                   $("#btnSubmit").click(function () {
+                       $("html, body").animate({ scrollTop: 0 }, "slow");
+
+                       ShowConfirmationScreen();
+
+                   });
+
+                   $("#btnGoBack").click(function () {
+                       $("html, body").animate({ scrollTop: 0 }, "slow");
+
+                       ShowVoteScreen();
+                   });
+
+
+               });
+
+                          
+
+                       
+               function Choice_Onclick(choiceId,ChoiceValue)
+               {
+                   
+                   var characters = Object.keys($("#selectChoice_0"));
+                   $("#" + choiceId).html(ChoiceValue);
+               }
+
+               function successFuncCompleted(data, status) {
+                   openQuestionsJson = data;
+
+                   $("#dgCompletedProposals").kendoGrid({
+                       dataSource: {
+                           type: "json",
+                           data: openQuestionsJson
+                       },
+                       rowTemplate: kendo.template($("#rowTemplate").html()),
+                       altRowTemplate: kendo.template($("#altRowTemplate").html())
+                   });
+
+                   ShowVoteScreen();
+
+                   ////
+                   for (var x = 0; x < openQuestionsJson.length; x++) {
+                       $("#selectChoice_" + openQuestionsJson[x].quid).kendoMobileButtonGroup({
+                           select: function (e) {
+                           },
+                           index: -1
+                       });
+
+                   }
+                   ////
+               }
+
+               function successFunc(data, status) {
+
+
+               }
+
+               function ShowVoteScreen()
+               {
+                   for (var x = 0; x < openQuestionsJson.length; x++) {
+                       $("#boardRecommendation_" + openQuestionsJson[x].quid).show();
+                       $("#youVoted_" + openQuestionsJson[x].quid).hide();
+                       $("#confirmationChoiceBox_" + openQuestionsJson[x].quid).hide();
+                       $("#selectChoice_" + openQuestionsJson[x].quid).show();
+                   }
+                   $("#btnReset").show();
+                   $("#btnSubmit").show();
+
+                   $("#btnGoBack").hide();
+                   $("#btnConfirm").hide();
+
+                   $("#buttonsPanel").show();
+                   $("#ChangeVotePanel").hide();
+               }
+
+               function ShowConfirmationScreen() {
+                   for (var x = 0; x < openQuestionsJson.length; x++) {
+                       $("#boardRecommendation_" + openQuestionsJson[x].quid).hide();
+                       $("#youVoted_" + openQuestionsJson[x].quid).show();
+                       $("#confirmationChoiceBox_" + openQuestionsJson[x].quid).show();
+                       $("#selectChoice_" + openQuestionsJson[x].quid).hide();
+                   }
+
+                   $("#btnReset").hide();
+                   $("#btnSubmit").hide();
+
+                   $("#btnGoBack").show();
+                   $("#btnConfirm").show();
+
+                   $("#buttonsPanel").show();
+                   $("#ChangeVotePanel").hide();
+               }
+
+               function ShowVoteCompletionScreen() {
+                   for (var x = 0; x < openQuestionsJson.length; x++) {
+                       $("#boardRecommendation_" + openQuestionsJson[x].quid).hide();
+                       $("#youVoted_" + openQuestionsJson[x].quid).show();
+                       $("#confirmationChoiceBox_" + openQuestionsJson[x].quid).show();
+                       $("#selectChoice_" + openQuestionsJson[x].quid).hide();
+                   }
+
+                   $("#buttonsPanel").hide();
+                   $("#ChangeVotePanel").show();
+               }
+
+
+               function errorFunc() {
+                   alert('error');
+               }
+
+               function getAnsId(value) {
+                   return value.split(')')[0];
+               }
+
+               function getAnsText(value) {
+                   return value.split(')')[1];
+               }
+
+        </script>
+        <style>
+            .box {
+                width: 130px;
+                height: 50px;
+                border: 1px solid black;
+                position: relative;
+                text-align: center;
+                background: #ccc;
+                vertical-align: middle;
+                display: table-cell;
+                color: black;
+                padding-top: 30px;
+                font-size: 20px;
+            }
+
+            .details {
+                width: 600px;
+            }
+
+            .voteChoice {
+                width: 500px;
+            }
+
+            .employeeID {
+                width: 190px;
+            }
+
+            .k-grid-header .k-header {
+                padding: 10px 20px;
+            }
+
+            .k-grid td {
+                padding: 20px;
+                border-bottom-width: 1px;
+                border-bottom-style: solid;
+                border-bottom-color: black;
+            }
+
+            .k-grid table {
+                width: auto;
+            }
+
+            .k-grid .k-alt td {
+            }
+
+            .km-widget.km-buttongroup {
+                float:left;
+                margin: 5 auto;
+                border:0px;
+            }
+
+            .km-widget km-buttongroup k-widget k-button-group
+            {
+                border:0px;
+            }
+
+            .k-button 
+            {
+                font-size:28px;
+                border: solid;
+                border-width: 1px;
+                width: 135px;
+            }
+
+            .btnConfirmation
+            {
+                font-size:28px;
+                border: solid;
+                border-width: 1px;
+                width: 425px;
+
+            }
+
+            .btnChangeVote
+            {
+                font-size:28px;
+                border: solid;
+                border-width: 1px;
+                width: 585px;
+
+            }
+
+            html .k-grid tr:hover {
+              background: transparent;
+            }
+ 
+            html .k-grid tr.k-alt:hover {
+              background: transparent;
+            }
+
+            .buttonsPanel
+            {
+                height: 100px;
+                border: solid;
+                border-width: 1px;
+                padding-top: 20px;
+            }
+
+            .completedVoteButtonPanel
+            {
+                height: 110px;
+                border: solid;
+                border-width: 1px;
+                padding-top: 20px;
+
+            }
+
+            .resetPanel
+            {
+                float:left;
+                padding-left: 30px;
+            }
+
+            .submitPanel
+            {
+                float:right;
+                padding-right: 30px;
+            }
+
+        </style>
+    </div>
+    <div style="position:relative; height:30px;">
+
+    </div>
+
+    <div style="width:100%;position:relative;" id="buttonsPanel" class="buttonsPanel">
+        <div id="resetPanel" class="resetPanel">
+            <a id="btnReset" class="btnConfirmation">RESET VOTE</a>
+            <a id="btnGoBack" class="btnConfirmation">GO BACK</a>
+        </div>
+        <div id="submitPanel" class="submitPanel">
+            <a id="btnSubmit" class="k-primary btnConfirmation" >SUBMIT VOTE</a>
+            <a id="btnConfirm" class="k-primary btnConfirmation">CONFIRM VOTE SELECTION</a>
+        </div>
+
+    </div>
+    <div style="width:100%;position:relative;" id="ChangeVotePanel" class="completedVoteButtonPanel">
+        <div style="text-align: center;">
+            <a id="btnChangeVote" class="btnChangeVote">CLICK HERE TO CHANGE YOUR VOTE</a>
+            <p>You can change your vote as often as you like before the voting deadline</p>
+        </div>
+    </div>
+
+    </div>
+<div id="dialog">
+</div>
+
+
+@* All initialization scripts are rendered to the bottom of the page, see _Layout.cshtml *@
+@section scripts {
+    @Html.Kendo().DeferredScripts()
+}
+
+

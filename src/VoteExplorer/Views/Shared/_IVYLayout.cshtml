@@ -1,0 +1,331 @@
+﻿
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - VoteExplorer</title>
+    <environment names="Development">
+        <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
+        <link rel="stylesheet" href="~/css/site.css" />
+        <link rel="stylesheet" href="~/lib/kendo-ui/styles/kendo.common.min.css" />
+        <link rel="stylesheet" href="~/lib/kendo-ui/styles/kendo.silver.min.css" />
+        <script src="~/lib/jquery/dist/jquery.js"></script>
+        <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
+        <script src="~/js/site.js" asp-append-version="true"></script>
+        <script src="~/lib/kendo-ui/js/kendo.all.min.js"></script>
+        <script src="~/lib/kendo-ui/js/kendo.aspnetmvc.min.js"></script>
+    </environment>
+    <environment names="Staging,Production">
+        <link rel="stylesheet" href="https://ajax.aspnetcdn.com/ajax/bootstrap/3.3.6/css/bootstrap.min.css"
+              asp-fallback-href="~/lib/bootstrap/dist/css/bootstrap.min.css"
+              asp-fallback-test-class="sr-only" asp-fallback-test-property="position" asp-fallback-test-value="absolute" />
+        <link rel="stylesheet" href="~/css/site.min.css" asp-append-version="true" />
+        <link rel="stylesheet"
+              href="https://kendo.cdn.telerik.com/2017.1.118/styles/kendo.common.min.css"
+              asp-fallback-href="~/lib/kendo-ui/styles/kendo.common.min.css"
+              asp-fallback-test-class="k-common-test-class"
+              asp-fallback-test-property="opacity" asp-fallback-test-value="0" />
+        <link rel="stylesheet"
+              href="https://kendo.cdn.telerik.com/2017.1.118/styles/kendo.silver.min.css"
+              asp-fallback-href="~/lib/kendo-ui/styles/kendo.silver.min.css"
+              asp-fallback-test-class="k-theme-test-class"
+              asp-fallback-test-property="opacity" asp-fallback-test-value="0" />
+        <script src="https://ajax.aspnetcdn.com/ajax/jquery/jquery-2.2.0.min.js"
+                asp-fallback-src="~/lib/jquery/dist/jquery.min.js"
+                asp-fallback-test="window.jQuery">
+        </script>
+        <script src="https://ajax.aspnetcdn.com/ajax/bootstrap/3.3.6/bootstrap.min.js"
+                asp-fallback-src="~/lib/bootstrap/dist/js/bootstrap.min.js"
+                asp-fallback-test="window.jQuery && window.jQuery.fn && window.jQuery.fn.modal">
+        </script>
+        <script src="~/js/site.min.js" asp-append-version="true"></script>
+        <script src="https://kendo.cdn.telerik.com/2017.1.118/js/kendo.all.min.js"
+                asp-fallback-src="~/lib/kendo-ui/js/kendo.all.min.js"
+                asp-fallback-test="window.kendo">
+        </script>
+        <script src="https://kendo.cdn.telerik.com/2017.1.118/js/kendo.aspnetmvc.min.js"
+                asp-fallback-src="~/lib/kendo-ui/js/kendo.aspnetmvc.min.js"
+                asp-fallback-test="kendo.data.transports['aspnetmvc-ajax']">
+        </script>
+    </environment>
+    <!-- Bootstrap -->
+    <link href="~/vendors/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="~/vendors/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+    <!-- NProgress -->
+    <link href="~/vendors/nprogress/nprogress.css" rel="stylesheet">
+    <!-- iCheck -->
+    <link href="~/vendors/iCheck/skins/flat/green.css" rel="stylesheet">
+    <!-- bootstrap-progressbar -->
+    <link href="~/vendors/bootstrap-progressbar/css/bootstrap-progressbar-3.3.4.min.css" rel="stylesheet">
+    <!-- JQVMap -->
+    <link href="~/vendors/jqvmap/dist/jqvmap.min.css" rel="stylesheet" />
+    <!-- bootstrap-daterangepicker -->
+    <link href="~/vendors/bootstrap-daterangepicker/daterangepicker.css" rel="stylesheet">
+    <!-- FullCalendar -->
+    <link href="~/vendors/fullcalendar/dist/fullcalendar.min.css" rel="stylesheet">
+    <link href="~/vendors/fullcalendar/dist/fullcalendar.print.css" rel="stylesheet" media="print">
+    <!-- Custom Theme Style -->
+    <link href="~/build/css/custom.min.css" rel="stylesheet">
+</head>
+<body class="nav-md" style="padding-top:0px;">
+    <div class="container body">
+        <div class="main_container">
+            <div class="col-md-3 left_col">
+                <div class="left_col scroll-view">
+                    <div class="navbar nav_title" style="border: 0;">
+                        <a href="index.html" class="site_title"><i class="fa fa-check-square-o"></i> <span>IVY</span></a>
+                    </div>
+
+                    <div class="clearfix"></div>
+
+                    <!-- menu profile quick info -->
+                    <div class="profile clearfix">
+                        <div class="profile_pic">
+                            <img src="~/images/ivy/img.jpg" alt="..." class="img-circle profile_img">
+                        </div>
+                        <div class="profile_info">
+                            <span>Welcome,</span>
+                            <h2>Institutional Investor</h2>
+                        </div>
+                    </div>
+                    <!-- /menu profile quick info -->
+
+                    <br />
+
+                    <!-- sidebar menu -->
+                    <div id="sidebar-menu" class="main_menu_side hidden-print main_menu">
+                        <div class="menu_section">
+                            <h3>Menu</h3>
+                            <ul class="nav side-menu">
+                                <li>
+                                    <a><i class="fa fa-home"></i> Home <span class="fa fa-chevron-down"></span></a>
+                                    <ul class="nav child_menu">
+                                        <li><a href="~/InstitutionalVoting/Dashboard">Dashboard</a></li>
+                                        <li><a href="~/InstitutionalVoting/Calendar">Calendar</a></li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    <a><i class="fa fa-edit"></i> Voting <span class="fa fa-chevron-down"></span></a>
+                                    <ul class="nav child_menu">
+                                        <li><a href="~/InstitutionalVoting/MeetingsList">Vote - Meetings List</a></li>
+                                        <li><a href="~/Observer/en/IndexRealtime/IVY">Vote Results</a></li>
+                                        <li><a href="~/InstitutionalVoting/votereports">Vote Reports</a></li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    <a href="~/InstitutionalVoting/coreporting"><i class="fa fa-copy"></i> Company Reporting </a>
+
+                                </li>
+                                <li>
+                                    <a href="~/InstitutionalVoting/alerts"><i class="fa fa-bullhorn"></i> Alerts </a>
+
+                                </li>
+                                <li>
+                                    <a href="~/InstitutionalVoting/admin"><i class="fa fa-cogs"></i> Administration </a>
+
+                                </li>
+                            </ul>
+                        </div>
+
+
+                    </div>
+                    <!-- /sidebar menu -->
+                    <!-- /menu footer buttons -->
+                    <div class="sidebar-footer hidden-small">
+                        <a data-toggle="tooltip" data-placement="top" title="Settings" href="Settings">
+                            <span class="glyphicon glyphicon-cog" aria-hidden="true"></span>
+                        </a>
+                        <a data-toggle="tooltip" data-placement="top" title="FullScreen" href="fullscreen">
+                            <span class="glyphicon glyphicon-fullscreen" aria-hidden="true"></span>
+                        </a>
+                        <a data-toggle="tooltip" data-placement="top" title="Lock" href="login">
+                            <span class="glyphicon glyphicon-eye-close" aria-hidden="true"></span>
+                        </a>
+                        <a data-toggle="tooltip" data-placement="top" title="Logout" href="login">
+                            <span class="glyphicon glyphicon-off" aria-hidden="true"></span>
+                        </a>
+                    </div>
+                    <!-- /menu footer buttons -->
+                </div>
+            </div>
+
+            <!-- top navigation -->
+            <div class="top_nav">
+                <div class="nav_menu">
+                    <nav>
+                        <div class="nav toggle">
+                            <a id="menu_toggle"><i class="fa fa-bars"></i></a>
+                        </div>
+                        <ul id="menu-images" style="width:auto;" class="nav navbar-nav navbar-right" >
+                            <li style="width: 70px;" role="presentation" class="dropdown">
+                                <a href="javascript:;" class="dropdown-toggle info-number" data-toggle="dropdown" aria-expanded="false">
+                                    <i class="fa fa-envelope-o"></i>
+                                    <span class="badge bg-green">6</span>
+                                </a>
+                                <ul style="width: 295px;" id="menu1" class="dropdown-menu list-unstyled msg_list" role="menu">
+                                    <li style="width: 240px;">
+                                        <a>
+                                            <span class="image"><img src="~/images/ivy/img.jpg" alt="Profile Image" /></span>
+                                            <span>
+                                                <span>Institutional Investor</span>
+                                                <span class="time">3 mins ago</span>
+                                            </span>
+                                            <span class="message">
+                                                You have 2 unvoted meetings happening in the next 48 hours
+                                            </span>
+                                        </a>
+                                    </li>
+                                    <li style="width: 240px;">
+                                        <a>
+                                            <span class="image"><img src="~/images/ivy/img.jpg" alt="Profile Image" /></span>
+                                            <span>
+                                                <span>Institutional Investor</span>
+                                                <span class="time">24 mins ago</span>
+                                            </span>
+                                            <span class="message">
+                                                You have 4 Power of Attorney notices that will be expiring within the next ...
+                                            </span>
+                                        </a>
+                                    </li>
+                                    <li style="width: 240px;">
+                                        <a>
+                                            <span class="image"><img src="~/images/ivy/img.jpg" alt="Profile Image" /></span>
+                                            <span>
+                                                <span>Institutional Investor</span>
+                                                <span class="time">4 hours ago</span>
+                                            </span>
+                                            <span class="message">
+                                                Glass Lewis released a Proxy Paper recommendation for Google's next Annual ...
+                                            </span>
+                                        </a>
+                                    </li>
+                                    <li style="width: 240px;">
+                                        <a>
+                                            <span class="image"><img src="~/images/ivy/img.jpg" alt="Profile Image" /></span>
+                                            <span>
+                                                <span>Institutional Investor</span>
+                                                <span class="time">1 day ago</span>
+                                            </span>
+                                            <span class="message">
+                                                The final results from the votes of Royal Dutch Shell's Annual General Meeting are ...
+                                            </span>
+                                        </a>
+                                    </li>
+                                    <li style="width: 240px;">
+                                        <div class="text-center">
+                                            <a>
+                                                <strong>See All Alerts</strong>
+                                                <i class="fa fa-angle-right"></i>
+                                            </a>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+
+                            <li style="width: 160px;" class="">
+                                <a href="javascript:;" class="user-profile dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                                    <img src="~/images/ivy/img.jpg" alt="">Institutional Investor
+                                    <span class=" fa fa-angle-down"></span>
+                                </a>
+                                <ul style="width: 150px;" class="dropdown-menu dropdown-usermenu pull-right">
+                                    <li style="width: 125px;"><a href="profile"> Profile</a></li>
+                                    <li style="width: 125px;">
+                                        <a href="Settings">
+                                            <span class="badge bg-red pull-right">50%</span>
+                                            <span>Settings</span>
+                                        </a>
+                                    </li>
+                                    <li style="width: 125px;"><a href="Help">Help</a></li>
+                                    <li style="width: 125px;"><a href="login"><i class="fa fa-sign-out pull-right"></i> Log Out</a></li>
+                                </ul>
+                            </li>
+
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+            <!-- /top navigation -->
+            <!-- page content -->
+    
+        @RenderBody()
+    <!-- /page content -->
+    <!-- footer content -->
+    <footer>
+        <div class="pull-right">
+            Gentelella - Bootstrap Admin Template by <a href="https://colorlib.com">Colorlib</a>
+        </div>
+        <div class="clearfix"></div>
+    </footer>
+    <!-- /footer content -->
+    </div>
+    </div>
+    
+    <!-- Bootstrap -->
+    <script src="~/vendors/bootstrap/dist/js/bootstrap.min.js"></script>
+    <!-- Chart.js -->
+    <script src="~/vendors/Chart.js/dist/Chart.min.js"></script>
+    <!-- gauge.js -->
+    <script src="~/vendors/gauge.js/dist/gauge.min.js"></script>
+    <!-- iCheck -->
+    <script src="~/vendors/iCheck/icheck.min.js"></script>
+    <!-- Skycons -->
+    <script src="~/vendors/skycons/skycons.js"></script>
+    <!-- Flot -->
+    <script src="~/vendors/Flot/jquery.flot.js"></script>
+    <script src="~/vendors/Flot/jquery.flot.pie.js"></script>
+    <script src="~/vendors/Flot/jquery.flot.time.js"></script>
+    <script src="~/vendors/Flot/jquery.flot.stack.js"></script>
+    <script src="~/vendors/Flot/jquery.flot.resize.js"></script>
+    <!-- Flot plugins -->
+    <script src="~/vendors/flot.orderbars/js/jquery.flot.orderBars.js"></script>
+    <script src="~/vendors/flot-spline/js/jquery.flot.spline.min.js"></script>
+    <script src="~/vendors/flot.curvedlines/curvedLines.js"></script>
+    <!-- DateJS -->
+    <script src="~/vendors/DateJS/build/date.js"></script>
+    <!-- JQVMap -->
+    <script src="~/vendors/jqvmap/dist/jquery.vmap.js"></script>
+    <script src="~/vendors/jqvmap/dist/maps/jquery.vmap.world.js"></script>
+    <script src="~/vendors/jqvmap/examples/js/jquery.vmap.sampledata.js"></script>
+    <!-- bootstrap-daterangepicker -->
+    <script src="~/vendors/moment/min/moment.min.js"></script>
+    <script src="~/vendors/bootstrap-daterangepicker/daterangepicker.js"></script>
+
+    <!-- FullCalendar -->
+    <script src="../vendors/moment/min/moment.min.js"></script>
+    <script src="../vendors/fullcalendar/dist/fullcalendar.min.js"></script>
+
+
+    <script src="~/vendors/fastclick/lib/fastclick.js"></script>
+    <!-- NProgress -->
+    <script src="~/vendors/nprogress/nprogress.js"></script>
+    <!-- bootstrap-progressbar -->
+    <script src="~/vendors/bootstrap-progressbar/bootstrap-progressbar.min.js"></script>
+    <!-- Custom Theme Scripts -->
+    <script src="~/build/js/custom.min.js"></script>
+    @RenderSection("scripts", required: false)
+    <script>
+        $("#menu-images").kendoMenu();
+        // toggle small or large menu 
+        $MENU_TOGGLE.on('click', function () {
+            console.log('clicked - menu toggle');
+
+            if ($BODY.hasClass('nav-md')) {
+                $SIDEBAR_MENU.find('li.active ul').hide();
+                $SIDEBAR_MENU.find('li.active').addClass('active-sm').removeClass('active');
+                $BODY.toggleClass('nav-md nav-sm');
+            } else {
+                $SIDEBAR_MENU.find('li.active-sm ul').show();
+                $SIDEBAR_MENU.find('li.active-sm').addClass('active').removeClass('active-sm');
+                $BODY.toggleClass('nav-md nav-sm');
+            }
+            
+
+            $('.dataTable').each(function () { $(this).dataTable().fnDraw(); });
+        });
+
+
+    </script>
+</body>
+</html>

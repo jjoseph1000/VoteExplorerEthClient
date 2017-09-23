@@ -1,0 +1,521 @@
+﻿@model VoteExplorer.Models.MainVM
+
+<div class="demo-section k-content">
+    @(Html.Kendo().TabStrip()
+      .Name("tabstrip")      
+      .Animation(animation =>
+          animation.Open(effect =>
+              effect.Fade(FadeDirection.In)))
+      .Items(tabstrip =>
+      {
+      tabstrip.Add().Text("Active Queston")
+              .Selected(true)
+              .Content(@<text>
+        @if (Model.activeQuestion.quid != "") {
+
+            <div id="container">
+                <div id="left"><b>QID:</b> </div>
+                <div id="right">@Model.activeQuestion.quid</div>
+            </div>
+
+
+            <div id="container">
+                <div id="left"><b>QUESTION:</b> </div>
+                <div id="right">@Model.activeQuestion.text</div>
+            </div>
+
+            <div id="container">
+                <div id="left"><b>BLOCK DEADLINE:</b> </div>
+                <div id="right">@Model.activeQuestion.block</div>
+            </div>
+
+            <div id="container">
+                <div id="left"><b>ESTIMATED END DATE:</b> </div>
+                <div id="right">@Model.activeQuestion.EndDate</div>
+            </div>
+            <div id="container">
+                <div id="activeAnswerSection">
+                    <hr />
+                    <ul class="fieldlist">
+                        @foreach (var answer in Model.activeQuestion.Answers)
+                        {
+                            <li>
+                                <input type="radio" name="answer" id="ans_@answer.answid" class="k-radio">
+                                <label class="k-radio-label" for="ans_@answer.answid">@answer.test</label>
+                            </li>
+
+                        }
+                    </ul>
+                </div>
+            </div>
+        }
+        else
+        {
+            <h4>No Active Question Available</h4>
+
+        }
+        </text>);
+
+                          tabstrip.Add().Text("Completed Questions")
+                              .Content(@<text>
+        @(Html.Kendo().Grid(Model.completedQuestions)
+                .Name("dgCompletedQuestions")
+                .Columns(columns =>
+                {
+                    columns.Bound(q => q.keyid).Hidden(true);
+                    columns.Bound(q => q.quid).Title("ID").Width(130);
+                    columns.Bound(q => q.text).Title("Question");
+                    columns.Bound(q => q.block).Title("Deadline").Width(130);
+                })
+                .Selectable(selectable => selectable
+                    .Mode(GridSelectionMode.Multiple)).Pageable()
+                    .Events(events => events
+                        .Change("onChange")
+                        )
+                .Sortable()
+                .Scrollable(scr => scr.Height(370))
+                .Filterable()
+                .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .PageSize(20)
+                    .ServerOperation(false)
+                 )
+        )
+        <hr>
+        <div id="questionText" style="height:50px;">
+
+        </div>
+        <div id="mainPanel" style="height:800px">
+            <div id="graphPanel">
+                <div id="pieChartPanel">
+                    <div id="answerPieChart" style="width: 450px; height: 450px;"></div>
+                </div>
+                <div id="barChartPanel">
+                    <div id="answerBarChart" style="width: 450px; height: 450px;"></div>
+                </div>
+            </div>
+            <div id="answerGridPanel" style="height: 790px; width: 100%;">
+                <div id="dgAnswer"></div>
+            </div>
+        </div>
+
+
+
+
+        </text>);
+
+
+          })
+)
+</div>
+
+    <div id="window">
+
+        <div id="addressPanel" style="height:700px;">
+            <div id="addressListPanel">
+                <div id="dgAddress"></div>
+            </div>
+            <div id="addressDetailsPanel">
+
+            </div>
+        </div>
+    </div>
+
+
+    <div class="responsive-message"></div>
+
+    <script>
+
+        $(document).ready(function () {
+            $("#mainPanel").kendoSplitter({
+                orientation: "vertical",
+                panes: [
+                    { collapsible: false, size: "475px" },
+                    { collapsible: false, size: "790px" },
+                ]
+            });
+
+            $("#graphPanel").kendoSplitter({
+                panes: [
+                    { collapsible: true },
+                    { collapsible: false }
+                ]
+            });
+
+
+            $("#addressPanel").kendoSplitter({
+                orientation: "vertical",
+                panes: [
+                    { collapsible: false, size: "320px" },
+                    { collapsible: false,   },
+                ]
+            });
+
+
+
+                    var myWindow = $("#window"),
+                        undo = $("#undo");
+                    undo.fadeIn();
+                    undo.click(function() {
+                        myWindow.data("kendoWindow").center().open();
+                        undo.fadeOut();
+                    });
+
+                    function onClose() {
+                        undo.fadeIn();
+                    }
+
+                    myWindow.kendoWindow({
+                        width: "600px",
+                        title: "About Alvar Aalto",
+                        visible: false,
+                        actions: [
+                            "Pin",
+                            "Minimize",
+                            "Maximize",
+                            "Close"
+                        ],
+                        close: onClose
+                    });
+                });
+    </script>
+
+
+
+
+
+<script type="text/javascript">
+    function onChange(arg) {
+
+        var selected = $.map(this.select(), function (item) {
+            return $(item).text();
+        });
+        
+        var quid = selected[0].split('|')[0];
+        var serviceURL = '/api/_GetAnswerInformation/' + quid;
+
+        $.ajax({
+            type: "GET",
+            url: serviceURL,
+            data: { quid: quid },
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: successFunc,
+            error: errorFunc
+        });
+    }
+
+    function onChange_Answer(arg) {
+        var selected = $.map(this.select(), function (item) {
+            return $(item).text();
+        });
+
+        var quid = selected[0].split('|')[0];
+        var serviceURL = '/api/_GetAnswerInformation/' + quid;
+
+        $.ajax({
+            type: "GET",
+            url: serviceURL,
+            data: { quid: quid },
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: successFunc_Address,
+            error: errorFunc
+        });
+    }
+
+    function onChange_Address(arg) {
+        var selected = $.map(this.select(), function (item) {
+            return $(item).text();
+        });
+
+        var splitter = $("#addressPanel").data("kendoSplitter");
+        splitter.ajaxRequest("#addressDetailsPanel", "http://45.55.216.92:30333/address/" + selected[0].split('|')[0]);
+
+    }
+
+
+        function getAnsId(value) {
+            return value.split(')')[0];
+        }
+
+        function getAnsText(value) {
+            return value.split(')')[1];
+        }
+
+        function successFunc_Address(data, status) {
+            var myWindow = $("#window");
+            myWindow.data("kendoWindow").title(data.questionDetails.quid + " - " + data.answerDetails.ansid);
+            myWindow.data("kendoWindow").center().open();
+
+            $("#addressDetailsPanel").html("");
+
+
+            $("#dgAddress").kendoGrid({
+                dataSource: {
+                    data: data.addresses,
+                    schema: {
+                        model: {
+                            fields: {
+                                keyvalue: { type: "string" },
+                                id: { type: "number" },
+                                address: { type: "string" },
+                                totalVotes: { type: "number" }
+                            }
+                        }
+                    },
+                    pageSize: 20
+                },
+                height: 310,
+                scrollable: true,
+                sortable: true,
+                change: onChange_Address,
+                filterable: true,
+                selectable: "multiple",
+                pageable: {
+                    input: true,
+                    numeric: false
+                },
+                columns: [
+                    { field: "keyvalue", title: "keyvalue", hidden: true },
+                    { field: "id", title: "#", width: "80px" },
+                    { field: "address", title: "Address" },
+                    { field: "totalVotes", title: "Votes", width: "130px" }
+                ]
+            });
+
+
+
+
+        }
+
+        function successFunc(data, status) {
+
+            $("#questionText").html("<p><h4>Question: </h4></p><p>" + data.questionText + "</p>");
+
+            dataSource = new kendo.data.DataSource({
+                data: data.PieChartData,
+                schema: {
+                    model: {
+                        fields: {
+                            value: "value"
+                        }
+                    }
+                }
+            });
+
+            $("#answerPieChart").kendoChart({
+                dataSource: dataSource,
+                legend: {
+                    visible: true,
+                    position: "bottom"
+                },
+                seriesDefaults: {
+                    labels: {
+                        visible: true,
+                        background: "transparent",
+                        template: "#= getAnsId(category) # - #= kendo.format('{0:P}', percentage)#"
+                    } 
+                },
+                tooltip: {
+                    visible: true,
+                    template: "#= getAnsId(category) # - #= kendo.format('{0:P}', percentage)#"
+                },
+                series: [{
+                    type: "pie",
+                    field: "value",
+                    categoryField: "category"
+                }]
+            });
+        
+
+            var seriesSchema = data.BarChartSchema;
+
+            $("#answerBarChart").kendoChart({
+                dataSource: {
+                    transport: {
+                        read: {
+                            url: "/api/_GetAnswersBarChartData/" + data.quid,
+                            dataType: "json"
+                        }
+                    },
+                    sort: {
+                        field: "year",
+                        dir: "asc"
+                    }
+                },
+                title: {
+                    text: ""
+                },
+                legend: {
+                    position: "bottom",
+                    template: "#= series.name #: #= value #"
+                },
+                seriesDefaults: {
+                    type: "column",
+                    labels: {
+                        visible: true,
+                        position: "top",
+                        padding: {
+                            top: -20
+                        }
+                    }
+                },
+                series: seriesSchema,
+                valueAxis: {
+                    labels: {
+                        format: "N0"
+                    },
+                    line: {
+                        visible: false
+                    }
+                },
+                tooltip: {
+                    visible: true,
+                    format: "N0",
+                    template: "#= series.name #: #= value #"
+                }
+            });
+
+            var products = [{
+                ProductName: "nuclear",
+                UnitPrice: "Nuclear",
+                UnitsInStock: 5,
+                Discontinued: false
+            }, {
+                ProductName: "nuclear",
+                UnitPrice: "Nuclear",
+                UnitsInStock: 5,
+                Discontinued: false
+            }, {
+                ProductName: "nuclear",
+                UnitPrice: "Nuclear",
+                UnitsInStock: 5,
+                Discontinued: false
+            }, {
+                ProductName: "nuclear",
+                UnitPrice: "Nuclear",
+                UnitsInStock: 5,
+                Discontinued: false
+            }]
+
+            $("#dgAnswer").kendoGrid({
+                dataSource: {
+                    data: data.PieChartData,
+                    schema: {
+                        model: {
+                            fields: {
+                                keyvalue: {type: "string"},
+                                answid: { type: "string" },
+                                text: { type: "string" },
+                                totalVotes: { type: "number" }
+                            }
+                        }
+                    },
+                    pageSize: 20
+                },
+                height: 310,
+                scrollable: true,
+                sortable: true,
+                filterable: true,
+                selectable: "multiple",
+                change: onChange_Answer,
+                pageable: {
+                    input: true,
+                    numeric: false
+                },
+                columns: [
+                    { field: "keyvalue", title: "keyvalue", hidden: true},
+                    { field: "answid", title: "Answer", width: "110px" },
+                    { field: "text", title: "Description" },
+                    { field: "totalVotes", title: "Votes", width: "130px" }
+                ]
+            });
+
+
+        }
+
+
+
+
+        function errorFunc() {
+            alert('error');
+        }
+
+        $(document).ready(function () {
+
+        });
+
+
+</script>
+<style>
+    hr {
+        border: none;
+        height: 1px;
+        /* Set the hr color */
+        color: #333; /* old IE */
+        background-color: #333; /* Modern Browsers */
+    }
+
+    .sunny, .cloudy, .rainy {
+        display: block;
+        margin: 30px auto 10px;
+        width: 128px;
+        height: 128px;
+    }
+
+    .cloudy{
+        background-position: -128px 0;
+    }
+
+    .rainy{
+        background-position: -256px 0;
+    }
+
+    .weather {
+        margin: 0 auto 30px;
+        text-align: center;
+    }
+
+    #tabstrip h2 {
+        font-weight: lighter;
+        font-size: 5em;
+        line-height: 1;
+        padding: 0 0 0 30px;
+        margin: 0;
+    }
+
+    #tabstrip h2 span {
+        background: none;
+        padding-left: 5px;
+        font-size: .3em;
+        vertical-align: top;
+    }
+
+    #tabstrip p {
+        margin: 0;
+        padding: 0;
+    }
+
+    #container{width:100%;}
+    #left{float:left;width:180px;vertical-align: top;padding-bottom:10px;}
+    #right{float:left;width:800px;vertical-align: top;padding-bottom:10px;}
+    #activeAnswerSection{float:left;width:100%;}
+        .fieldlist {
+            margin: 0 0 -1em;
+            padding: 0;
+        }
+
+        .fieldlist li {
+            list-style: none;
+            padding-bottom: 1em;
+        }
+
+</style>
+
+@* All initialization scripts are rendered to the bottom of the page, see _Layout.cshtml *@
+@section scripts {
+    @Html.Kendo().DeferredScripts()
+}
+
+

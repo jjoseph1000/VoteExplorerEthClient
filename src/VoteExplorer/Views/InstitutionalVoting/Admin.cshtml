@@ -1,0 +1,600 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    Layout = "_IVYLayout";
+}
+<div class="right_col" role="main">
+    <div style="padding-top:75px;">
+    @(Html.Kendo().TabStrip()
+.Name("tabstrip")
+.Animation(animation =>
+animation.Open(effect =>
+    effect.Fade(FadeDirection.In)))
+.Items(tabstrip =>
+{
+tabstrip.Add().Text("VOTE POLICIES")
+              .Selected(true)
+      .Content(@<text>
+            <div class="x_content">
+
+                <p>Select whether to automatically vote according to recommendations</p>
+                <!-- start pop-over -->
+                <a href="#">
+                        <button type="button" class="btn btn-default" data-container="body" data-toggle="popover" data-placement="left" data-content="Vivamus sagittis lacus vel augue laoreet rutrum faucibus." data-original-title="" title="">
+                            Autovote with Management Recommendations
+                        </button>
+                </a>
+                <a href="#">
+                    <button type="button" class="btn btn-default" data-container="body" data-toggle="popover" data-placement="top" data-content="Vivamus sagittis lacus vel augue laoreet rutrum faucibus." data-original-title="" title="">
+                        Autovote with Glass-Lewis Recommendations
+                    </button>
+                </a>
+                <a href="#">
+                    <button type="button" class="btn btn-default" data-container="body" data-toggle="popover" data-placement="top" data-content="Vivamus sagittis lacus vel augue laoreet rutrum faucibus." data-original-title="" title="">
+                        Disable Autovoting
+                    </button>
+                </a>
+
+
+            </div>
+            <!-- end pop-over -->
+
+
+
+
+
+    </text>);
+
+      tabstrip.Add().Text("ACCOUNTS")
+              .Content(@<text>
+
+        <div id="dgAccount"></div>
+
+
+                    </text>);
+
+            tabstrip.Add().Text("CUSTODIANS")
+                .Content(@<text>
+                    <div id="dgCustodian"></div>
+
+
+
+                        </text>);
+
+                    tabstrip.Add().Text("GROUPS")
+                .Content(@<text>
+        <div id="dgGroup"></div>
+        <br />
+
+        <div id="groupAccountsLinking" style="border-style: solid;border-width:1px;">
+            <table>
+                <tr>
+                    <td colspan="3">
+                        <div id="lblGroupName"></div>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="left">
+                        <button id="btnAddAccount" class="k-primary">ADD ACCOUNT(S)</button>
+                    </td>
+                    <td>&nbsp;</td>
+                    <td align="right">
+                        <button id="btnRemoveAccount" class="k-primary">REMOVE ACCOUNT(S)</button>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td align="left">
+                        <div id="dgAccounts_NotAssociatedToGroup"></div>
+                    </td>
+                    <td>&nbsp;</td>
+                    <td align="right">
+                        <div id="dgAccount_ByGroup"></div>
+                    </td>
+                </tr>
+                
+            </table>
+        </div>
+                </text>);
+
+
+
+          })
+)
+    </div>
+</div>
+<script>
+    var groupId = "";
+    var arrayOfSelectedNonAssociatedAccounts;
+    var arrayOfSelectedAssociatedAccounts;
+
+    $(document).ready(function () {
+        $("#groupAccountsLinking").hide();
+
+        $("#btnAddAccount").kendoButton({
+                        click: btnAddAccount_onClick
+                }
+            );
+
+        $("#btnRemoveAccount").kendoButton({
+            click: btnRemoveAccount_onClick
+        }
+            );
+
+        var serviceURL = '/api/_GetCustodians';
+
+            $.ajax({
+                type: "GET",
+                url: serviceURL,
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: custodianSuccessFunc,
+                error: errorFunc
+            });
+
+        
+            loadAccounts();
+            loadGroups();
+    });
+
+    function btnRemoveAccount_onClick(e)
+    {
+        var accountIds = "";
+
+        if (arrayOfSelectedAssociatedAccounts.length > 0) {
+            for (x = 0; x < arrayOfSelectedAssociatedAccounts.length; x++) {
+                var arrayItems = arrayOfSelectedAssociatedAccounts[x].split('|');
+                accountIds += arrayItems[0] + "|";
+
+            }
+
+            var serviceURL = '/api/Groups/RemoveAccount/' + groupId + '/' + accountIds;
+
+            $.ajax({
+                type: "GET",
+                url: serviceURL,
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: removeAccountsSuccessFunc,
+                error: errorFunc
+            });
+        }
+    }
+
+    function btnAddAccount_onClick(e)
+    {
+        var accountIds = "";
+
+        if (arrayOfSelectedNonAssociatedAccounts.length > 0) {
+            for (x = 0; x < arrayOfSelectedNonAssociatedAccounts.length; x++) {
+                var arrayItems = arrayOfSelectedNonAssociatedAccounts[x].split('|');
+                accountIds += arrayItems[0] + "|";
+
+            }
+
+            var serviceURL = '/api/Groups/AddAccount/' + groupId + '/' + accountIds;
+
+            $.ajax({
+                type: "GET",
+                url: serviceURL,
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: addAccountsSuccessFunc,
+                error: errorFunc
+            });
+
+        }
+    }
+
+    function removeAccountsSuccessFunc(data, success) {
+        refreshAccountsByGroupGrid();
+
+    }
+
+    function addAccountsSuccessFunc(data,success)
+    {
+        refreshAccountsByGroupGrid();
+
+    }
+
+    function loadGroups()
+    {
+
+        dataSource = new kendo.data.DataSource({
+            transport: {
+                read:  function(options) {
+                    $.ajax({
+                        url: "/api/Groups/_GetGroups",
+                        dataType: "json", // "jsonp" is required for cross-domain requests; use "json" for same-domain requests
+                        success: function(result) {
+                            // notify the data source that the request succeeded
+                            options.success(result);
+                        },
+                        error: function(result) {
+                            // notify the data source that the request failed
+                            options.error(result);
+                        }
+                    });
+                },
+                create: function(options) {
+                    $.ajax({
+                        url: "/api/Groups/Create",
+                        dataType: "json", // "jsonp" is required for cross-domain requests; use "json" for same-domain requests
+                        // send the created data items as the "models" service parameter encoded in JSON
+                        data: {
+                            models: kendo.stringify(options.data.models)
+                        },
+                        success: function(result) {
+                            // notify the data source that the request succeeded
+                            options.success(result);
+                        },
+                        error: function(result) {
+                            // notify the data source that the request failed
+                            options.error(result);
+                        }
+                    });
+                },
+                update: function(options) {
+                    $.ajax({
+                        url: "/api/Groups/Update",
+                        dataType: "json", // "jsonp" is required for cross-domain requests; use "json" for same-domain requests
+                        // send the updated data items as the "models" service parameter encoded in JSON
+                        data: {
+                            models: kendo.stringify(options.data.models)
+                        },
+                        success: function(result) {
+                            // notify the data source that the request succeeded
+                            options.success(result);
+                        },
+                        error: function(result) {
+                            // notify the data source that the request failed
+                            options.error(result);
+                        }
+                    });
+                },
+                destroy: function (options) {
+                    $.ajax({
+                        url: "/api/Groups/Destroy",
+                        dataType: "json", // "jsonp" is required for cross-domain requests; use "json" for same-domain requests
+                        // send the updated data items as the "models" service parameter encoded in JSON
+                        data: {
+                            models: kendo.stringify(options.data.models)
+                        },
+                        success: function (result) {
+                            // notify the data source that the request succeeded
+                            $("#groupAccountsLinking").hide();
+                            options.success(result);
+                        },
+                        error: function (result) {
+                            // notify the data source that the request failed
+                            options.error(result);
+                        }
+                    });
+                },
+                //,
+                //update: {
+                //    url: crudServiceBaseUrl + "/Products/Update",
+                //    dataType: "jsonp"
+                //},
+                //destroy: {
+                //    url: crudServiceBaseUrl + "/Products/Destroy",
+                //    dataType: "jsonp"
+                //},
+                //create: {
+                //    url: crudServiceBaseUrl + "/Products/Create",
+                //    dataType: "jsonp"
+                //},
+                parameterMap: function(options, operation) {
+                    if (operation !== "read" && options.models) {
+                        return {models: kendo.stringify(options.models)};
+                    }
+                }
+            },
+            batch: true,
+            pageSize: 20,
+            schema: {
+                model: {
+                    id: "_id",
+                    fields: {
+                        keyValue: { editable: false, nullable: true },
+                        _id: { editable: false, nullable: true },
+                        groupName: { editable: true, validation: { required: true } },
+                        meetingEntity: { editable: true, validation: { required: true } },
+                    }
+                }
+            }
+        });
+
+        $("#dgGroup").kendoGrid({
+            dataSource: dataSource,
+            pageable: true,
+            height: 250,
+            sortable: true,
+            filterable: true,
+            selectable: "single",
+            pageable: {
+                input: true,
+                numeric: false
+            },
+            change: onChange_Group,
+            toolbar: ["create"],
+            columns: [
+                { field: "keyValue", title: "keyvalue", hidden: true },
+                { field: "_id", title: "_id", hidden: true },
+                { field: "groupName", title: "Name" },
+                { field: "meetingEntity", title: "Meeting", editor: meetingDropDownEditor },
+                { command: ["edit", "destroy"], width: "200px", title: "&nbsp;" }],
+            editable: "inline"
+        });
+    }
+
+    function onChange_Group(arg) {
+        var selected = $.map(this.select(), function (item) {
+            return $(item).text();
+        });
+
+        
+        groupId = selected[0].split('|')[0];
+        var groupName = selected[0].split('|')[1];
+        if (groupId.toUpperCase().indexOf("UPDATECANCEL") != -1)
+        {
+            $("#groupAccountsLinking").hide();
+        }
+        else
+        {
+            $("#groupAccountsLinking").show();
+            $("#lblGroupName").html("&nbsp;<strong>GROUP: </strong>" + groupName + "<br><p>&nbsp;</p>");
+
+            refreshAccountsByGroupGrid();
+        }
+    }
+
+    function dgAccount_ByGroup_onChange(arg) {
+        var selected = $.map(this.select(), function (item) {
+            return $(item).text();
+        });
+
+        
+        arrayOfSelectedAssociatedAccounts = selected;
+    }
+
+    function dgAccounts_NotAssociatedToGroup_onChange(arg) {
+        var selected = $.map(this.select(), function (item) {
+            return $(item).text();
+        });
+
+        arrayOfSelectedNonAssociatedAccounts = selected;
+    }
+
+    function successFunc_AccountsByGroup(data, status)
+    {
+        $("#dgAccount_ByGroup").kendoGrid({
+            dataSource: {
+                data: data,
+                schema: {
+                    model: {
+                        fields: {
+                            keyValue: { editable: false, nullable: true },
+                            accountNumber: { type: "string" },
+                            companyName: { type: "string" },
+                            bankName: { type: "string" },
+                            availableShares: { type: "string" }
+                        }
+                    }
+                },
+            },
+            scrollable: true,
+            sortable: true,
+            filterable: true,
+            selectable: "multiple",
+            change: dgAccount_ByGroup_onChange,
+            height: 550,
+            pageable: false,
+            pageable: {
+                input: true,
+                numeric: false
+            },
+            columns: [
+                { field: "keyValue", title: "keyvalue", hidden: true },
+                { field: "accountNumber", title: "Account Number", width: "110px" },
+                { field: "companyName", title: "Company", width: "110px" },
+                { field: "bankName", title: "Custodian Bank Name", width: "110px" },
+                { field: "availableShares", title: "Available Shares", width: "110px" }
+            ]
+        });
+
+
+    }
+
+
+    function successFunc_AccountsNotAssociatedToGroup(data, status) {
+        $("#dgAccounts_NotAssociatedToGroup").kendoGrid({
+            dataSource: {
+                data: data,
+                schema: {
+                    model: {
+                        fields: {
+                            keyValue: { editable: false, nullable: true },
+                            accountNumber: { type: "string" },
+                            companyName: { type: "string" },
+                            bankName: { type: "string" },
+                            availableShares: { type: "string" }
+                        }
+                    }
+                },
+            },
+            scrollable: true,
+            sortable: true,
+            filterable: true,
+            selectable: "multiple",
+            change: dgAccounts_NotAssociatedToGroup_onChange,
+            height: 550,
+            pageable: false,
+            pageable: {
+                input: true,
+                numeric: false
+            },
+            columns: [
+                { field: "keyValue", title: "keyvalue", hidden: true },
+                { field: "accountNumber", title: "Account Number", width: "110px" },
+                { field: "companyName", title: "Company", width: "110px" },
+                { field: "bankName", title: "Custodian Bank Name", width: "110px" },
+                { field: "availableShares", title: "Available Shares", width: "110px" }
+            ]
+        });
+
+
+    }
+
+    function refreshAccountsByGroupGrid()
+    {
+        var serviceURL = '/api/Accounts/_GetByGroupId/' + groupId;
+
+        $.ajax({
+            type: "GET",
+            url: serviceURL,
+            data: { groupId: groupId },
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: successFunc_AccountsByGroup,
+            error: errorFunc
+        });
+
+        var serviceURL1 = '/api/Accounts/_GetAccounts';///' + groupId;
+
+        $.ajax({
+            type: "GET",
+            url: serviceURL1,
+            data: { groupId: groupId },
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: successFunc_AccountsNotAssociatedToGroup,
+            error: errorFunc
+        });
+
+    }
+
+
+    function meetingDropDownEditor(container, options) {
+        $('<input required name="' + options.field + '"/>')
+            .appendTo(container)
+            .kendoDropDownList({
+                autoBind: true,
+                dataTextField: "entity",
+                dataValueField: "entity",
+                dataBound: function() {
+                    //this.search(options.model.meetingEntity);
+                    //this.select(this.selectedIndex);
+                },
+                dataSource: {
+                    type: "jsonp",
+                    serverFiltering: false,
+                    transport: {
+                        read: {
+                            url: "/api/_GetMeetings",
+                        }
+                    }
+                }
+            });
+    }
+
+
+    function loadAccounts()
+    {
+        var serviceURL = '/api/Accounts/_GetAccounts';
+
+        $.ajax({
+            type: "GET",
+            url: serviceURL,
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: accountsSuccessFunc,
+            error: errorFunc
+        });
+
+    }
+
+    function accountsSuccessFunc(data, status) {
+        $("#dgAccount").kendoGrid({
+            dataSource: {
+                data: data,
+                schema: {
+                    model: {
+                        fields: {
+                            accountNumber: { type: "string" },
+                            companyName: { type: "string" },
+                            bankName: { type: "string" },
+                            availableShares: { type: "string" }
+                        }
+                    }
+                },
+                pageSize: 10
+            },
+            scrollable: false,
+            sortable: true,
+            filterable: true,
+            selectable: "single",
+            pageable: {
+                input: true,
+                numeric: false
+            },
+            columns: [
+                { field: "accountNumber", title: "Account Number", width: "110px" },
+                { field: "companyName", title: "Company", width: "110px" },
+                { field: "bankName", title: "Custodian Bank Name", width: "110px" },
+                { field: "availableShares", title: "Available Shares", width: "110px" }
+            ]
+        });
+
+
+
+    }
+
+    function custodianSuccessFunc(data, status) {
+        $("#dgCustodian").kendoGrid({
+            dataSource: {
+                data: data,
+                schema: {
+                    model: {
+                        fields: {
+                            custodianBankName: { type: "string" }
+                        }
+                    }
+                },
+                pageSize: 10
+            },
+            scrollable: false,
+            sortable: true,
+            filterable: true,
+            selectable: "single",
+            pageable: {
+                input: true,
+                numeric: false
+            },
+            columns: [
+                { field: "custodianBankName", title: "Bank Name", width: "110px" }
+            ]
+        });
+    }
+
+    function errorFunc() {
+        alert('error');
+    }
+
+
+</script>
+<style>
+    .demo-section p {
+        margin: 0 0 30px;
+        line-height: 50px;
+    }
+
+        .demo-section p .k-button {
+            margin: 0 10px 0 0;
+        }
+
+    .k-primary {
+        min-width: 150px;
+    }
+</style>

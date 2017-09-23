@@ -1,0 +1,327 @@
+﻿@model VoteExplorer.Models.MainVM
+@{
+    if (ViewBag.UserType == "IVY")
+    {
+        Layout = "_IVYLayout";
+    }
+    else
+    {
+        Layout = "_Layout_Russian";
+    }
+}
+<div class="right_col" role="main">
+    <div class="">
+        <div class="page-title">
+            <div class="title_left">
+                <h3>
+                    Посмотреть результаты
+                    @if (ViewBag.UserType == "IVY")
+                    {
+                        <select id="ddlMeetingList" style="width:800px;">
+                            <option>Broadridge (Annual General Meeting) - June 1, 2016</option>
+                            <option>Exxon (Annual General Meeting) - June 1, 2016</option>
+                            <option>Google (Special Meeting) - June 1, 2016</option>
+                            <option>IBM (Annual General Meeting) - June 1, 2016</option>
+                            <option>Microsoft (Annual General Meeting) - June 1, 2016</option>
+                            <option>Nasdaq (Annual General Meeting) - June 1, 2016</option>
+                            <option>Yahoo! (Special Meeting) - June 1, 2016</option>
+                        </select>
+                    }
+                    else
+                    {
+
+                        <small>Royal Dutch Shell plc</small>
+
+                    }
+                </h3>
+                
+            </div>
+            <div class="title_right">
+                <div class="col-md-5 col-sm-5 col-xs-12 form-group top_search">
+                    <div class="input-group">
+                        <!-- <input type="text" class="form-control" placeholder="Click here to attend the AGM"> -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="clearfix"></div>
+
+        <div class="demo-section k-content">
+            <div id="example">
+                <table id="dgCompletedProposals">
+                    <thead>
+                        <tr>
+                            <th style="visibility:hidden;display:none;">
+                            </th>
+                            <th>
+                            </th>
+                            <th>
+                            </th>
+                            <th>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="3"></td>
+                        </tr>
+                    </tbody>
+                    <!-- Start of StatCounter Code for Default Guide -->
+                    <script type="text/javascript">
+                    var sc_project=11422069; 
+                    var sc_invisible=1; 
+                    var sc_security="e5b87542"; 
+                    var sc_https=1; 
+                    var scJsHost = (("https:" == document.location.protocol) ?
+                    "https://secure." : "http://www.");
+                    document.write("<sc"+"ript type='text/javascript' src='" +
+                    scJsHost+
+                    "statcounter.com/counter/counter.js'></"+"script>");
+                    </script>
+                    <noscript><div class="statcounter"><a title="web analytics"
+                    href="http://statcounter.com/" target="_blank"><img
+                    class="statcounter"
+                    src="//c.statcounter.com/11422069/0/e5b87542/1/" alt="web
+                    analytics"></a></div></noscript>
+                    <!-- End of StatCounter Code for Default Guide -->
+                </table>
+                <script id="rowTemplate" type="text/x-kendo-tmpl">
+                    <tr style="border-width:1px; border:solid" data-uid="#: quid #">
+                        <td style="visibility:hidden;display:none;">
+                            #: quid #|
+                        </td>
+                        <td class="details">
+                            #: text_ru #
+                        </td>
+                        <td class="voteresult">
+                            <span>
+                                победа при голосовании: #: winningPercentage #
+                            </span>
+                            <div class="box">
+                                #: winningAnswer_ru #
+                            </div>
+                            <span>
+                                Ваш доверенный представитель проголосовал: #: proxyChoice_ru #
+                            </span>
+                        </td>
+                        <td class="employeeID">
+                            <div id="answerPieChart_#: quid #" style="width: 150px; height: 150px;"></div>
+                        </td>
+                    </tr>
+                </script>
+                <script id="altRowTemplate" type="text/x-kendo-tmpl">
+                    <tr class="k-alt" data-uid="#: quid #">
+                        <td style="visibility:hidden;display:none;">
+                            #: quid #|
+
+                        </td>
+                        <td class="details">
+                            #: text_ru #
+                        </td>
+                        <td class="voteresult">
+                            <span>
+                                победа при голосовании: #: winningPercentage #
+                            </span>
+                            <div class="box">
+                                #: winningAnswer_ru #
+                            </div>
+                            <span>
+                                Ваш доверенный представитель проголосовал: #: proxyChoice_ru #
+                            </span>
+                        </td>
+                        <td class="employeeID">
+                            <div id="answerPieChart_#: quid #" style="width: 150px; height: 150px;"></div>
+                        </td>
+                    </tr>
+                </script>
+                <script>
+                    $(document).ready(function () {
+
+                        $("#ddlMeetingList").kendoDropDownList({
+
+                        });
+
+                        var serviceURL = '/api/_GetCompletedQuestions_Realtime/@ViewBag.UserType';
+
+                        $.ajax({
+                            type: "GET",
+                            url: serviceURL,
+                            contentType: "application/json; charset=utf-8",
+                            dataType: "json",
+                            success: successFuncCompleted,
+                            error: errorFunc
+                        });
+
+
+                        //var jsonTest1 = @Html.Raw(Json.Serialize(Model.completedQuestions))
+                        //alert(jsonTest1[0].quid);
+
+
+
+
+                    });
+
+                    function dgCompletedProposals_onChange(arg) {
+                        var selected = $.map(this.select(), function (item) {
+                            return $(item).text();
+                        });
+
+                        var quid = selected[0].split('|')[0].trim();
+                        var UserType = "@ViewBag.UserType";
+
+                        $(location).attr("href", "/Observer/ru/QuestionRealtime/" + quid + "|" + UserType);
+
+                    }
+
+                    function successFuncCompleted(data, status) {
+                        $("#dgCompletedProposals").kendoGrid({
+                            dataSource: {
+                                type: "json",
+                                data: data
+                            },
+                            selectable: "single",
+                            change: dgCompletedProposals_onChange,
+                            rowTemplate: kendo.template($("#rowTemplate").html()),
+                            altRowTemplate: kendo.template($("#altRowTemplate").html())
+                        });
+
+
+
+                        ////
+                        for (var x = 0; x < data.length; x++) {
+                            var serviceURL1 = '/api/_GetAnswerInformation_Realtime/' + data[x].quid;
+
+                            $.ajax({
+                                type: "GET",
+                                url: serviceURL1,
+                                data: { quid: data[x].quid },
+                                contentType: "application/json; charset=utf-8",
+                                dataType: "json",
+                                success: function (data, status) {
+
+                                    dataSource = new kendo.data.DataSource({
+                                        data: data.PieChartData,
+                                        schema: {
+                                            model: {
+                                                fields: {
+                                                    value: "value"
+                                                }
+                                            }
+                                        }
+                                    });
+
+                                    $("#answerPieChart_" + data.PieChartData[0].quid).kendoChart({
+                                        dataSource: dataSource,
+                                        legend: {
+                                            visible: false
+                                        },
+                                        seriesDefaults: {
+                                            labels: {
+                                                visible: false,
+                                                background: "transparent",
+                                                template: "#= getAnsText(category) # - #= kendo.format('{0:P}', percentage)#"
+                                            }
+                                        },
+                                        tooltip: {
+                                            visible: true,
+                                            template: "#= getAnsText(category) # - #= kendo.format('{0:P}', percentage)#"
+                                        },
+                                        series: [{
+                                            type: "pie",
+                                            field: "value",
+                                            categoryField: "category"
+                                        }]
+                                    });
+
+
+                                },
+                                error: errorFunc
+                            });
+                        }
+                        ////
+                    }
+
+                    function successFunc(data, status) {
+
+
+                    }
+
+                    function errorFunc() {
+                        alert('error');
+                    }
+
+                    function getAnsId(value) {
+                        return value.split(')')[0];
+                    }
+
+                    function getAnsText(value) {
+                        switch (value.split(')')[1].toUpperCase().trim())
+                        {
+                            case "FOR":
+                                return "за";
+                                break;
+                            case "AGAINST":
+                                return "против";
+                                break;
+                            default:
+                                return "воздержался";
+                                break;
+                        }
+
+                    }
+
+                </script>
+                <style>
+                    .box {
+                        width: 130px;
+                        height: 50px;
+                        border: 1px solid black;
+                        position: relative;
+                        text-align: center;
+                        background: #ccc;
+                        vertical-align: middle;
+                        display: table-cell;
+                        color: black;
+                    }
+
+                    .details {
+                        width: 600px;
+                    }
+
+                    .voteresult {
+                        width: 190px;
+                    }
+
+                    .employeeID {
+                        width: 190px;
+                    }
+
+
+
+                    .k-grid td {
+                        padding: 20px;
+                        border-bottom-width: 1px;
+                        border-bottom-style: solid;
+                        border-bottom-color: black;
+                    }
+
+                    .k-grid-header {
+                        height: 0px;
+                    }
+
+                    .k-grid table {
+                        width: auto;
+                    }
+
+                    .k-grid .k-alt td {
+                    }
+                </style>
+            </div>
+            <div id="answerPieChart" style="width: 250px; height: 250px;"></div>
+        </div>
+    </div>
+</div>
+@* All initialization scripts are rendered to the bottom of the page, see _Layout.cshtml *@
+@section scripts {
+    @Html.Kendo().DeferredScripts()
+}

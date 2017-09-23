@@ -1,0 +1,500 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    Layout = "_IVYLayout";
+}
+<div class="right_col" role="main">
+    <!-- top tiles -->
+    <div class="row tile_count">
+        <div class="col-md-3 col-sm-3 col-xs-6 tile_stats_count">
+            <span class="count_top"><i class="fa fa-exclamation-circle"></i> Meetings within 48 hours</span>
+            <div class="count red">3</div>
+            <span class="count_bottom"><i class="green"><i class="fa fa-sort-asc"></i>14% </i> From 48 hours ago</span>
+        </div>
+        <div class="col-md-3 col-sm-3 col-xs-6 tile_stats_count">
+            <span class="count_top"><i class="fa fa-clock-o"></i> Meetings within 7 days</span>
+            <div class="count">7</div>
+            <span class="count_bottom"><i class="green"><i class="fa fa-sort-asc"></i>3% </i> From last Week</span>
+        </div>
+        <div class="col-md-3 col-sm-3 col-xs-6 tile_stats_count">
+            <span class="count_top"><i class="fa fa-legal"></i> New Meetings</span>
+            <div class="count">8</div>
+            <span class="count_bottom"><i class="red"><i class="fa fa-sort-desc"></i>12% </i> From last Year</span>
+        </div>
+        <div class="col-md-3 col-sm-3 col-xs-6 tile_stats_count">
+            <span class="count_top"><i class="fa fa-inbox"></i> New Accounts</span>
+            <div class="count">22</div>
+            <span class="count_bottom"><i class="green"><i class="fa fa-sort-asc"></i>34% </i> From last Year</span>
+        </div>
+
+        <div class="col-md-3 col-sm-3 col-xs-6 tile_stats_count">
+
+        </div>
+        <div class="col-md-3 col-sm-3 col-xs-6 tile_stats_count">
+
+        </div>
+    </div>
+
+    <br />
+
+    <div class="row">
+
+
+
+
+
+        <!-- Start to do list -->
+        <div class="col-md-6 col-sm-6 col-xs-12">
+            <div class="x_panel">
+                <div class="x_title">
+                    <h2>Announcements</h2>
+                    <ul class="nav navbar-right panel_toolbox">
+                        <li>
+                            <a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                        </li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><i class="fa fa-wrench"></i></a>
+                            <ul class="dropdown-menu" role="menu">
+                                <li>
+                                    <a href="#">Settings 1</a>
+                                </li>
+                                <li>
+                                    <a href="#">Settings 2</a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li>
+                            <a class="close-link"><i class="fa fa-close"></i></a>
+                        </li>
+                    </ul>
+                    <div class="clearfix"></div>
+                </div>
+                <div class="x_content">
+
+                    <div id="dgAnnouncements"></div>
+                    <div class="dgAnnouncements-loading"></div>
+
+                </div>
+            </div>
+        </div>
+        <!-- End to do list -->
+
+
+
+        <div class="col-md-6 col-sm-6 col-xs-12">
+            <div class="x_panel tile fixed_height_320">
+                <div class="x_title">
+                    <h2>Upcoming Meetings <small>within 7 days</small></h2>
+                    <ul class="nav navbar-right panel_toolbox">
+                        <li>
+                            <a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                        </li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><i class="fa fa-wrench"></i></a>
+                            <ul class="dropdown-menu" role="menu">
+                                <li>
+                                    <a href="#">Settings 1</a>
+                                </li>
+                                <li>
+                                    <a href="#">Settings 2</a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li>
+                            <a class="close-link"><i class="fa fa-close"></i></a>
+                        </li>
+                    </ul>
+                    <div class="clearfix"></div>
+                </div>
+                <div class="x_content">
+                    <div class="dashboard-widget-content">
+                        <div class="upcomingMeetings-loading"></div>
+                        <ul id="upcomingMeetings" class="quick-list">
+                            <li>
+                                <i class="fa fa-exclamation-circle" style="color:red;"></i><a href="#">[August 07] IBM</a>
+                            </li>
+                            <li>
+                                <i class="fa fa-exclamation-circle" style="color:red;"></i><a href="#">[August 08] Broadridge</a>
+                            </li>
+                            <li><i class="fa fa-check-circle" style="color:green;"></i><a href="#">[August 09] Nasdaq</a> </li>
+                            <li>
+                                <i class="fa fa-check-circle" style="color:green;"></i><a href="#">[August 10] Microsoft</a>
+                            </li>
+                            <li><i class="fa fa-exclamation-circle" style="color:red;"></i><a href="#">[August 11] Yahoo!</a> </li>
+                            <li>
+                                <i class="fa fa-check-circle" style="color:green;"></i><a href="#">[August 12] Google</a>
+                            </li>
+                            <li>
+                                <i class="fa fa-check-circle" style="color:green;"></i><a href="#">[August 13] Exxon</a>
+                            </li>
+
+                        </ul>
+
+
+                        <div class="sidebar-widget">
+                            <h4>Completed Votes</h4>
+                            <canvas width="150" height="80" id="chart_gauge_01" class="" style="width: 160px; height: 100px;"></canvas>
+                            <div class="goal-wrapper">
+                                <span class="gauge-value pull-left"></span>
+                                <span id="goal-text" class="goal-value pull-right"></span>
+                            </div>
+                            <h4>
+                                <span id="gauge-text" class="gauge-value">57</span>
+                                <span class="gauge-value">%</span>
+                            
+                            </h4>
+                        </div>
+                        <h4 style="text-align: center;">Expand <i class="fa fa-chevron-down"></i></h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- NEXT ROW-->
+        <div class="row">
+            <!-- Start to do list -->
+            <div class="col-md-6 col-sm-6 col-xs-12">
+            </div>
+            <div class="row"></div>
+            <div class="col-md-6 col-sm-6 col-xs-12">
+                <div class="x_panel">
+                    <div class="x_title">
+                        <h2>New Meetings<small>8 New Meetings</small></h2>
+                        <ul class="nav navbar-right panel_toolbox">
+                            <li>
+                                <a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                            </li>
+                            <li class="dropdown">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><i class="fa fa-wrench"></i></a>
+                                <ul class="dropdown-menu" role="menu">
+                                    <li>
+                                        <a href="#">Settings 1</a>
+                                    </li>
+                                    <li>
+                                        <a href="#">Settings 2</a>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                <a class="close-link"><i class="fa fa-close"></i></a>
+                            </li>
+                        </ul>
+                        <div class="clearfix"></div>
+                    </div>
+                    <div class="x_content">
+
+                        <div id="dgNewMeetings"></div>
+                        <div class="dgNewMeetings-loading"></div>
+                    </div>
+                </div>
+            </div>
+            <!-- End to do list -->
+            <!-- Start to do list -->
+            <div class="col-md-6 col-sm-6 col-xs-12">
+                <div class="x_panel">
+                    <div class="x_title">
+                        <h2>New Accounts<small>22 New Accounts</small></h2>
+                        <ul class="nav navbar-right panel_toolbox">
+                            <li>
+                                <a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                            </li>
+                            <li class="dropdown">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><i class="fa fa-wrench"></i></a>
+                                <ul class="dropdown-menu" role="menu">
+                                    <li>
+                                        <a href="#">Settings 1</a>
+                                    </li>
+                                    <li>
+                                        <a href="#">Settings 2</a>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                <a class="close-link"><i class="fa fa-close"></i></a>
+                            </li>
+                        </ul>
+                        <div class="clearfix"></div>
+                    </div>
+                    <div class="x_content">
+                        <div id="dgNewAccounts"></div>
+                        <div class="dgNewAccounts-loading"></div>
+                    </div>
+                </div>
+            </div>
+            <!-- End to do list -->
+            <div class="col-md-4 col-sm-4 col-xs-12">
+
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+        </div>
+
+
+<div class="row">
+
+    <div class="row">
+
+
+
+
+
+        <!-- end of weather widget -->
+    </div>
+</div>
+    </div>
+</div>
+<script>
+    function init_gauge(percentageVoted) {
+
+        if (typeof (Gauge) === 'undefined') { return; }
+
+        console.log('init_gauge [' + $('.gauge-chart').length + ']');
+
+        console.log('init_gauge');
+        console.log('init_gauge2');
+
+        var chart_gauge_settings = {
+            lines: 12,
+            angle: 0,
+            lineWidth: 0.4,
+            pointer: {
+                length: 0.75,
+                strokeWidth: 0.042,
+                color: '#1D212A'
+            },
+            limitMax: 'false',
+            colorStart: '#1ABC9C',
+            colorStop: '#1ABC9C',
+            strokeColor: '#F0F3F3',
+            generateGradient: true
+        };
+
+        if ($('#chart_gauge_01').length) {
+
+            var chart_gauge_01_elem = document.getElementById('chart_gauge_01');
+            var chart_gauge_01 = new Gauge(chart_gauge_01_elem).setOptions(chart_gauge_settings);
+
+        }
+
+
+        if ($('#gauge-text').length) {
+
+            chart_gauge_01.maxValue = 100;
+            chart_gauge_01.animationSpeed = 32;
+            chart_gauge_01.set(percentageVoted);
+            chart_gauge_01.setTextField(document.getElementById("gauge-text"));
+
+        }
+
+        if ($('#chart_gauge_02').length) {
+
+            var chart_gauge_02_elem = document.getElementById('chart_gauge_02');
+            var chart_gauge_02 = new Gauge(chart_gauge_02_elem).setOptions(chart_gauge_settings);
+
+        }
+
+
+        if ($('#gauge-text2').length) {
+
+            chart_gauge_02.maxValue = 9000;
+            chart_gauge_02.animationSpeed = 32;
+            chart_gauge_02.set(2400);
+            chart_gauge_02.setTextField(document.getElementById("gauge-text2"));
+
+        }
+
+
+    }
+
+
+    $(document).ready(function () {
+        var serviceURL = '/api/_GetAnnouncements';
+        kendo.ui.progress($(".dgAnnouncements-loading"), true);
+        $.ajax({
+            type: "GET",
+            url: serviceURL,
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: announcementsSuccessFunc,
+            error: errorFunc
+        });
+
+        getNewMeetings();
+        getNewAccounts();
+        getUpcomingMeetings();
+    });
+
+    function announcementsSuccessFunc(data, status) {
+        $("#dgAnnouncements").kendoGrid({
+            dataSource: {
+                data: data,
+                schema: {
+                    model: {
+                        fields: {
+                            announcements: { type: "string" }
+                        }
+                    }
+                },
+                pageSize: 7
+            },
+            scrollable: false,
+            sortable: false,
+            filterable: false,
+            pageable: {
+                input: true,
+                numeric: false
+            },
+            columns: [
+                { field: "announcements", title: "&nbsp;" },
+            ]
+        });
+
+        kendo.ui.progress($(".dgAnnouncements-loading"), false);
+    }
+
+    function getUpcomingMeetings() {
+        var serviceURL = '/api/_GetUpcomingMeetings';
+
+        kendo.ui.progress($(".upcomingMeetings-loading"), true);
+
+        $.ajax({
+            type: "GET",
+            url: serviceURL,
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: upcomingMeetingsSuccessFunc,
+            error: errorFunc
+        });
+    }
+
+    function upcomingMeetingsSuccessFunc(data, status) {
+        
+        //data
+        //upcomingMeetings
+        $("#upcomingMeetings").empty();
+        var votedMeetings = 0;
+        for (var x = 0; x < data.length; x++)
+        {
+            var statusIcon = "";
+            if (data[x].status == "Voted")
+            {
+                statusIcon = "<i class=\"fa fa-check-circle\" style=\"color:green;\"></i>";
+                votedMeetings += 1;
+            }
+            else
+            {
+                statusIcon = "<i class=\"fa fa-exclamation-circle\" style=\"color:red;\"></i>";
+
+            }
+
+            $("#upcomingMeetings").append("<li>" + statusIcon + data[x].fullText + "</li>");
+
+        }
+
+        var percentageVoted = (votedMeetings / data.length) * 100;
+        init_gauge(percentageVoted);
+        kendo.ui.progress($(".upcomingMeetings-loading"), false);
+    }
+
+    function getNewAccounts() {
+        var serviceURL = '/api/_GetNewAccounts';
+
+        kendo.ui.progress($(".dgNewAccounts-loading"), true);
+
+        $.ajax({
+            type: "GET",
+            url: serviceURL,
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: newAccountsSuccessFunc,
+            error: errorFunc
+        });
+    }
+
+    function newAccountsSuccessFunc(data, status) {
+        $("#dgNewAccounts").kendoGrid({
+            dataSource: {
+                data: data,
+                schema: {
+                    model: {
+                        fields: {
+                            fullText: { type: "string" }
+                        }
+                    }
+                },
+                pageSize: 7
+            },
+            scrollable: false,
+            sortable: false,
+            filterable: false,
+            pageable: {
+                input: true,
+                numeric: false
+            },
+            columns: [
+                { field: "fullText", title: "&nbsp;" },
+            ]
+        });
+
+        kendo.ui.progress($(".dgNewAccounts-loading"), false);
+    }
+
+    function getNewMeetings()
+    {
+        var serviceURL = '/api/_GetNewmeetings';
+
+        kendo.ui.progress($(".dgNewMeetings-loading"), true);
+
+        $.ajax({
+            type: "GET",
+            url: serviceURL,
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: newMeetingsSuccessFunc,
+            error: errorFunc
+        });
+
+
+    }
+
+    function newMeetingsSuccessFunc(data, status) {
+        $("#dgNewMeetings").kendoGrid({
+            dataSource: {
+                data: data,
+                schema: {
+                    model: {
+                        fields: {
+                            fullText: { type: "string" }
+                        }
+                    }
+                },
+                pageSize: 7
+            },
+            scrollable: false,
+            sortable: false,
+            filterable: false,
+            pageable: {
+                input: true,
+                numeric: false
+            },
+            columns: [
+                { field: "fullText", title: "&nbsp;" },
+            ]
+        });
+
+        kendo.ui.progress($(".dgNewMeetings-loading"), false);
+    }
+    
+    //<button type="button" class="btn btn-danger btn-xs">Unvoted</button>
+    function errorFunc() {
+        alert('error');
+    }
+
+
+
+</script>

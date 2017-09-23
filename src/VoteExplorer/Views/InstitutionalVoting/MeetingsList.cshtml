@@ -1,0 +1,112 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    Layout = "_IVYLayout";
+}
+<div class="right_col" role="main">
+    <div class="">
+        <div class="page-title">
+            <div class="title_left">
+                <h3>Meetings List <small>Meetings with Proxy Authority</small></h3>
+            </div>
+
+
+        </div>
+
+        <div class="clearfix"></div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="x_panel">
+                    <div class="x_title">
+                        <h2>Meetings</h2>
+
+                        <div class="clearfix"></div>
+                    </div>
+                    <div class="x_content">
+
+                        <p>Please click on a meeting from below to see vote options</p>
+
+                        <!-- start project list -->
+
+                        <div id="dgMeetingList"></div>
+
+                        <!-- end project list -->
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+<script>
+    $(document).ready(function () {
+        var serviceURL = '/api/_GetMeetings';
+
+        $.ajax({
+            type: "GET",
+            url: serviceURL,
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: meetingsuccessFunc,
+            error: errorFunc
+        });
+    });
+
+    function onChange_Meeting(arg) {
+        var selected = $.map(this.select(), function (item) {
+            return $(item).text();
+        });
+
+        $(location).attr('href', 'AccountsList')
+    }
+
+
+
+    function meetingsuccessFunc(data, status) {
+        $("#dgMeetingList").kendoGrid({
+            dataSource: {
+                data: data,
+                schema: {
+                    model: {
+                        fields: {
+                            _id: { type: "string" },
+                            entity: { type: "string" },
+                            companyName: { type: "string" },
+                            securityID: { type: "string" },
+                            meetingDate: { type: "string" },
+                            voteDeadline: { type: "string" },
+                            ballotReceptionDate: { type: "string" },
+                            voteStatus: { type: "string" }
+                        }
+                    }
+                },
+                pageSize: 10
+            },
+            scrollable: false,
+            sortable: true,
+            filterable: true,
+            selectable: "single",
+            change: onChange_Meeting,
+            pageable: {
+                input: true,
+                numeric: false
+            },
+            columns: [
+                { field: "companyName", title: "Company Name" },
+                { field: "securityID", title: "Security ID" },
+                { field: "companyName", title: "Alerts", sortable: false ,template: "<ul class=\"list-inline\"><li><span class=\"glyphicon glyphicon-warning-sign\" aria-hidden=\"true\"></span></li><li><span class=\"glyphicon glyphicon-download-alt\" aria-hidden=\"true\"></span></li><li><span class=\"glyphicon glyphicon-flag\" aria-hidden=\"true\"></span></li></ul>" },
+                { field: "meetingDate", title: "Meeting Date", template: "#=  (meetingDate == null)? '' : kendo.toString(kendo.parseDate(meetingDate, 'yyyy-MM-dd'), 'MMM dd, yyyy') #" },
+                { field: "voteDeadline", title: "Vote Deadline", template: "#=  (voteDeadline == null)? '' : kendo.toString(kendo.parseDate(voteDeadline, 'yyyy-MM-dd'), 'MMM dd, yyyy') #" },
+                { field: "ballotReceptionDate", title: "Ballot Reception", template: "#=  (ballotReceptionDate == null)? '' : kendo.toString(kendo.parseDate(ballotReceptionDate, 'yyyy-MM-dd'), 'MMM dd, yyyy') #" },
+                { field: "_id", title: "Accounts Voted", template: "<div class=\"project_progress\"><div class=\"progress progress_sm\"><div class=\"progress-bar bg-green\" role=\"progressbar\" data-transitiongoal=\"100\"></div></div><small>0% Complete</small></div>" },
+                { field: "voteStatus", title: "Status", template: "#=  (voteStatus == 'NotVoted')? '<button type=\"button\" class=\"btn btn-danger btn-xs\">Unvoted</button>' : '<button type=\"button\" class=\"btn btn-success btn-xs\">Voted</button>' #" },
+            ]
+        });
+    }
+    //<button type="button" class="btn btn-danger btn-xs">Unvoted</button>
+    function errorFunc() {
+        alert('error');
+    }
+
+</script>

@@ -1,0 +1,432 @@
+﻿
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - VoteExplorer</title>
+    <environment names="Development">
+        <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
+        <link rel="stylesheet" href="~/css/site.css" />
+        <link rel="stylesheet" href="~/lib/kendo-ui/styles/kendo.common.min.css" />
+        <link rel="stylesheet" href="~/lib/kendo-ui/styles/kendo.silver.min.css" />
+        <script src="~/lib/jquery/dist/jquery.js"></script>
+        <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
+        <script src="~/js/site.js" asp-append-version="true"></script>
+        <script src="~/lib/kendo-ui/js/kendo.all.min.js"></script>
+        <script src="~/lib/kendo-ui/js/kendo.aspnetmvc.min.js"></script>
+    </environment>
+    <environment names="Staging,Production">
+        <link rel="stylesheet" href="https://ajax.aspnetcdn.com/ajax/bootstrap/3.3.6/css/bootstrap.min.css"
+              asp-fallback-href="~/lib/bootstrap/dist/css/bootstrap.min.css"
+              asp-fallback-test-class="sr-only" asp-fallback-test-property="position" asp-fallback-test-value="absolute" />
+        <link rel="stylesheet" href="~/css/site.min.css" asp-append-version="true" />
+        <link rel="stylesheet"
+              href="https://kendo.cdn.telerik.com/2017.1.118/styles/kendo.common.min.css"
+              asp-fallback-href="~/lib/kendo-ui/styles/kendo.common.min.css"
+              asp-fallback-test-class="k-common-test-class"
+              asp-fallback-test-property="opacity" asp-fallback-test-value="0" />
+        <link rel="stylesheet"
+              href="https://kendo.cdn.telerik.com/2017.1.118/styles/kendo.silver.min.css"
+              asp-fallback-href="~/lib/kendo-ui/styles/kendo.silver.min.css"
+              asp-fallback-test-class="k-theme-test-class"
+              asp-fallback-test-property="opacity" asp-fallback-test-value="0" />
+        <script src="https://ajax.aspnetcdn.com/ajax/jquery/jquery-2.2.0.min.js"
+                asp-fallback-src="~/lib/jquery/dist/jquery.min.js"
+                asp-fallback-test="window.jQuery">
+        </script>
+        <script src="https://ajax.aspnetcdn.com/ajax/bootstrap/3.3.6/bootstrap.min.js"
+                asp-fallback-src="~/lib/bootstrap/dist/js/bootstrap.min.js"
+                asp-fallback-test="window.jQuery && window.jQuery.fn && window.jQuery.fn.modal">
+        </script>
+        <script src="~/js/site.min.js" asp-append-version="true"></script>
+        <script src="https://kendo.cdn.telerik.com/2017.1.118/js/kendo.all.min.js"
+                asp-fallback-src="~/lib/kendo-ui/js/kendo.all.min.js"
+                asp-fallback-test="window.kendo">
+        </script>
+        <script src="https://kendo.cdn.telerik.com/2017.1.118/js/kendo.aspnetmvc.min.js"
+                asp-fallback-src="~/lib/kendo-ui/js/kendo.aspnetmvc.min.js"
+                asp-fallback-test="kendo.data.transports['aspnetmvc-ajax']">
+        </script>
+    </environment>
+    <!-- Bootstrap -->
+    <link href="~/vendors/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="~/vendors/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+    <!-- NProgress -->
+    <link href="~/vendors/nprogress/nprogress.css" rel="stylesheet">
+    <!-- iCheck -->
+    <link href="~/vendors/iCheck/skins/flat/green.css" rel="stylesheet">
+    <!-- Custom Theme Style -->
+    <link href="~/build/css/custom.min.css" rel="stylesheet">
+</head>
+<body class="nav-md" style="padding-top:0px;">
+    <div class="container body">
+        <div class="main_container">
+            <div class="col-md-3 left_col">
+                <div class="left_col scroll-view">
+                    <div class="navbar nav_title" style="border: 0;">
+                        <a href="index.html" class="site_title"><i class="fa fa-check-square-o"></i> <span>SHO</span></a>
+                    </div>
+                    <div class="clearfix"></div>
+                    <!-- menu profile quick info -->
+                    <div class="profile clearfix">
+                        <div class="profile_pic">
+                            <img src="~/images/img.jpg" alt="..." class="img-circle profile_img">
+                        </div>
+                        <div class="profile_info">
+                            <span>Добро пожаловать,</span>
+                            <h2>Shareholder</h2>
+                        </div>
+                    </div>
+                    <!-- /menu profile quick info -->
+                    <br />
+                    <!-- sidebar menu -->
+                    <div id="sidebar-menu" class="main_menu_side hidden-print main_menu">
+                        <div class="menu_section">
+                            <h3>Меню голосования</h3>
+                            <ul class="nav side-menu">
+                                <li>
+                                    <a href="/ShareholderVoting/ru/Index"><i class="fa fa-edit"></i> Проголосовать </a>
+                                </li>
+                                <li>
+                                    <a href="/Observer/ru/IndexRealtime/SH"><i class="fa fa-edit"></i> Посмотреть результаты </a>
+                                </li>
+                                <li>
+                                    <a href="/ShareholderVoting/ru/Login"><i class="fa fa-power-off"></i> Выйти </a>
+                                </li>
+                            </ul>
+                            <h3>Статус подачи голосов</h3>
+                            <ul class="nav side-menu">
+                                <li>
+                                    <a><span id="voteSubmissionStatus1"></span></a>
+                                </li>
+                                <li>
+
+                                    <div class="demo-section k-content box" style="width:230px;background-color:white;visibility:hidden;" id="voteStatusBox1">
+                                        <div id="voteStatus1">
+                                            <div class="loading1">
+                                                <div class="loadingInfo1">
+                                                    <h7>Обработка вопроса <span class="currentQuestionNum1">0</span> of <span class="totalQuestionNum1"></span></h7>
+                                                    <div class="statusContainer1">
+                                                        Завершены <span class="chunkStatus1">0</span> задачи из 3<br />
+                                                    </div>
+                                                    <div>
+                                                        <small><span class="blockchainMessage"></span></small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <p>
+                                                <div style="float:left;width:170px;" id="loadingProgressBar1"></div>
+                                            </p>
+                                            <p>
+                                                <div style="float:left;width:170px;" id="totalProgressBar1"></div><div style="float:left;"> &nbsp; <span class="loadingStatus1">0%</span></div>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+
+                        </div>
+                    </div>
+                    <!-- /sidebar menu -->
+                    <!-- /menu footer buttons -->
+                    <div class="sidebar-footer hidden-small">
+                        <a data-toggle="tooltip" data-placement="top" title="Голосование" href="~/ShareholderVoting/ru/Index">
+                            <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
+                        </a>
+                        <a data-toggle="tooltip" target="_blank" data-placement="top" title="скачать" href="http://www.shell.com/investors/retail-shareholder-information/annual-general-meeting/_jcr_content/par/textimage_1328904083.stream/1492595235065/09f2af788de91bf1e7a360e95ec7d6455e5c4774fa4ce3e60cab195955e779e9/2017-notice-of-meeting-shell-agm.pdf">
+                            <span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>
+                        </a>
+                        <a data-toggle="tooltip" data-placement="top" title="Помощь" href="~/ShareholderVoting/ru/Help">
+                            <span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
+                        </a>
+                        <a data-toggle="tooltip" data-placement="top" title="Выйти" href="/ShareholderVoting/ru/Login">
+                            <span class="glyphicon glyphicon-off" aria-hidden="true"></span>
+                        </a>
+                    </div>
+                    <!-- /menu footer buttons -->
+                </div>
+            </div>
+            <!-- top navigation -->
+            <div class="top_nav">
+                <div class="nav_menu">
+                    <nav>
+                        <div class="nav toggle">
+                            <a id="menu_toggle"><i class="fa fa-bars"></i></a>
+                        </div>
+                        <ul class="nav navbar-nav navbar-right">
+                            <li class="">
+                                <a href="javascript:;" class="user-profile dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                                    <img src="~/images/img.jpg" alt="">Shareholder
+                                    <span class=" fa fa-angle-down"></span>
+                                </a>
+                                <ul class="dropdown-menu dropdown-usermenu pull-right">
+                                    </a>
+                            </li>
+                            <li><a target="_blank" href="http://www.shell.com/investors/retail-shareholder-information/annual-general-meeting/_jcr_content/par/textimage_1328904083.stream/1492595235065/09f2af788de91bf1e7a360e95ec7d6455e5c4774fa4ce3e60cab195955e779e9/2017-notice-of-meeting-shell-agm.pdf"> скачать</a></li>
+                            <li><a href="~/ShareholderVoting/en/Help"> Помощь</a></li>
+                            <li><a href="/ShareholderVoting/ru/Login"><i class="fa fa-sign-out pull-right"></i> Выйти</a></li>
+                        </ul>
+                        </li>
+
+
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+            <!-- /top navigation -->
+            <!-- page content -->
+
+            @RenderBody()
+            <!-- /page content -->
+            <!-- footer content -->
+            <footer>
+                <div class="pull-right">
+                    Shareholder Voting by <a href="https://thebcilabs.com">BCI Labs</a>
+                </div>
+                <div class="clearfix"></div>
+            </footer>
+            <!-- /footer content -->
+        </div>
+    </div>
+    <script src="~/vendors/fastclick/lib/fastclick.js"></script>
+    <!-- NProgress -->
+    <script src="~/vendors/nprogress/nprogress.js"></script>
+    <!-- bootstrap-progressbar -->
+    <script src="~/vendors/bootstrap-progressbar/bootstrap-progressbar.min.js"></script>
+    <!-- Custom Theme Scripts -->
+    <script src="~/build/js/custom.min.js"></script>
+    @RenderSection("scripts", required: false)
+    <script>
+        // toggle small or large menu 
+        $MENU_TOGGLE.on('click', function () {
+            console.log('clicked - menu toggle');
+
+            if ($BODY.hasClass('nav-md')) {
+                if (voteSubmissionStatus != "VoteCoinsPendingTransfer") {
+                    $SIDEBAR_MENU.find('li.active ul').hide();
+                    $SIDEBAR_MENU.find('li.active').addClass('active-sm').removeClass('active');
+                    $BODY.toggleClass('nav-md nav-sm');
+                }
+            } else {
+                $SIDEBAR_MENU.find('li.active-sm ul').show();
+                $SIDEBAR_MENU.find('li.active-sm').addClass('active').removeClass('active-sm');
+                $BODY.toggleClass('nav-md nav-sm');
+            }
+
+
+            $('.dataTable').each(function () { $(this).dataTable().fnDraw(); });
+        });
+
+        var voteSubmissionId = "";
+        var voteSubmissionStatus;
+
+
+        $(document).ready(function () {
+            $("#voteStatus1").show();
+            $("#voteStatusBox1").css('visibility', 'hidden');//.hide();
+
+            var serviceURL = '/api/GetCurrentVoteSubmissionId';
+
+            $.ajax({
+                type: "GET",
+                url: serviceURL,
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: currentVoteSubmissionSuccessFunc,
+                error: errorFunc
+            });
+
+            $("#loadingProgressBar1").kendoProgressBar({
+                type: "chunk",
+                chunkCount: 3,
+                min: 0,
+                max: 3,
+                orientation: "horizontal",
+            });
+
+            $("#totalProgressBar1").kendoProgressBar({
+                orientation: "horizontal",
+                showStatus: false,
+                animation: false,
+                change: onChange
+            });
+
+        });
+
+        function onChange(e) {
+            $(".loadingStatus1").text(e.value + "%");
+        }
+
+        function currentVoteSubmissionSuccessFunc(data, status)
+        {
+            voteSubmissionId = data.id;
+            if (data.voteSubmissionStatus == "Votes Pending")
+            {
+                $("#voteSubmissionStatus1").text("Подтверждение голосов находится в обработке");
+
+            }
+            else if (data.voteSubmissionStatus == "No Votes Submitted")
+            {
+                $("#voteSubmissionStatus1").text("Голоса для подтверждения отсутствуют");
+
+            }
+            else if (data.voteSubmissionStatus == "Submitted Successfully")
+            {
+                $("#voteSubmissionStatus1").text("Голоса успешно подтверждены");
+
+            }
+
+
+            if (voteSubmissionId != "")
+            {
+                voteSubmissionStatus = "VoteCoinsPendingTransfer";
+                $("#voteSubmissionStatus1").text(" Подтверждение голосов находится в обработкеg");
+
+                var interval = setInterval(function () {
+                    if (voteSubmissionStatus == "VoteCoinsPendingTransfer") {
+
+                        GetVoteSubmissionStatus();
+                    } else {
+                        clearInterval(interval);
+                    }
+                }, 4000);
+            }
+            else
+            {
+            }
+        }
+
+        function GetVoteSubmissionStatus() {
+            var serviceURL = '/api/GetVoteSubmissionStatus/' + voteSubmissionId;
+
+            $.ajax({
+                type: "GET",
+                url: serviceURL,
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: voteSubmissionStatusSuccessFunc,
+                error: errorFunc
+            });
+        }
+
+        function voteSubmissionStatusSuccessFunc(data, status) {
+            $(".totalQuestionNum1").text(data.voteSelections.length);
+            if (data.voteSubmissionStatus == "2") {
+                var percentage = parseInt((parseInt(data.currentQuestionBeingProcessedNumber) / parseInt(data.voteSelections.length)) * 100 + .5);
+
+                $(".currentQuestionNum1").text(data.currentQuestionBeingProcessedNumber);
+
+                var pb = $("#totalProgressBar1").data("kendoProgressBar");
+                pb.value(percentage);
+
+                var total = $("#loadingProgressBar1").data("kendoProgressBar");
+                total.value(data.blockChainStage);
+
+                $(".chunkStatus1").text(data.blockChainStage);
+
+                $(".blockchainMessage").text(data.blockChainProcessingMessage);
+                $("#voteStatusBox1").css('visibility', 'visible');//.show();
+                $("#voteSubmissionStatus1").text("");
+
+                console.log(data.currentQuestionBeingProcessedNumber + '/' + data.voteSelections.length);
+
+                if ($BODY.hasClass('nav-sm')) {
+                    $SIDEBAR_MENU.find('li.active-sm ul').show();
+                    $SIDEBAR_MENU.find('li.active-sm').addClass('active').removeClass('active-sm');
+                    $BODY.toggleClass('nav-md nav-sm');
+                }
+
+
+                $('.dataTable').each(function () { $(this).dataTable().fnDraw(); });
+
+
+            }
+            else {
+                voteSubmissionStatus = "VoteCoinsTransferred";
+                $("#voteStatusBox1").css('visibility', 'hidden');//.hide();
+                $("#voteStatus1").hide();
+                $("#voteSubmissionStatus1").text("Голоса успешно подтверждены");
+            }
+        }
+
+        function onComplete(e) {
+            var total = $("#loadingProgressBar1").data("kendoProgressBar");
+            total.value(total.value() + 1);
+
+            if (total.value() < total.options.max) {
+                $(".chunkStatus1").text(total.value());
+                $(".loadingInfo1").text(itemsToLoad[total.value()]);
+
+                //load();
+            }
+        }
+
+        //var interval = setInterval(function () {
+        //    if (pb.value() < 100) {
+        //        pb.value(pb.value() + 1);
+        //    } else {
+        //        clearInterval(interval);
+        //    }
+        //}, 78);
+
+        function onTotalComplete(e) {
+            $(".loadingInfo1").text("All Votes Have Been Successfully Cast");
+            $(".statusContainer1").hide();
+        }
+
+        function errorFunc(result) {
+            for (var propertyName in result) {
+
+                //alert(propertyName);
+            }
+
+
+            alert("error");
+        }
+
+    </script>
+    <style>
+        .demo-section {
+            overflow: auto;
+        }
+
+        .k-progressbar {
+            width: 500px;
+            height: 20px;
+        }
+
+        #loadingProgressBar1 {
+            margin-top: 10px;
+        }
+
+        .loading1 {
+            float: left;
+        }
+
+        .loadingInfo1 {
+            float: left;
+            margin: 5px 0 0 5px;
+        }
+
+        .reloadButton {
+            display: none;
+            margin-top: 10px;
+        }
+
+        .box {
+            width: 130px;
+            height: 50px;
+            border: 1px solid black;
+            position: relative;
+            text-align: center;
+            background: #ccc;
+            vertical-align: middle;
+            display: table-cell;
+            color: black;
+        }
+    </style>
+
+</body>
+</html>

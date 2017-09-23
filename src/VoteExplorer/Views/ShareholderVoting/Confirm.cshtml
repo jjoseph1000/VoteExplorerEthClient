@@ -1,0 +1,186 @@
+﻿@model VoteExplorer.Models.MainVM
+@*
+    For more information on enabling MVC for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+
+<div class="right_col" role="main">
+    <div class="">
+        <div class="page-title">
+            <div class="title_left">
+                <h3>Proxy Vote Submitted   <small> @Model.voteTokenName</small></h3>
+            </div>
+            <div class="title_right">
+                <div class="col-md-5 col-sm-5 col-xs-12 form-group top_search">
+                    <div class="input-group">
+                        <span class="input-group-btn">
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="clearfix"></div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="x_panel">
+                    <div class="x_title">
+                        <h2 style="color:red;">Voting Deadline: October 10, 2017<small> </small></h2>
+                        <div class="clearfix"></div>
+                    </div>
+                    <div class="x_content">
+                        <p>You have successfully voted.  Your vote selections are below.</p>
+                        <!-- start project list -->
+                        <table class="table table-striped projects">
+                            <thead>
+                                <tr>
+                                    <th style="width: 1%">#</th>
+                                    <th style="width: 20%">Proposal</th>
+                                    <th>Director Info</th>
+                                    <th>Board Recommendation</th>
+                                    <!-- <th>Status</th> -->
+                                    <th style="width: 20%">Your Vote</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (int x = 0; x < Model.activeQuestions.Count(); x++)
+                                {
+                                    VoteExplorer.Models.QuestionVM question = Model.activeQuestions[x];
+                                    <tr>
+                                        <td>@question.questionIndex</td>
+                                        <td>
+                                            <a>Proposal @question.proposalNumber</a>
+                                            <br />
+                                            <small>@question.text</small>
+                                        </td>
+                                        <td>
+                                            <ul class="list-inline">
+                                                <li>
+                                                    <img src="~/images/user.png" class="avatar" alt="Avatar">
+                                                </li>
+                                            </ul>
+                                        </td>
+                                        <td>
+                                            <button type="button" class="btn btn-success btn-xs">For</button>
+                                        </td>
+                                        <td>
+                                            <div class="row">
+                                                <div class="btn-group" data-toggle="buttons">
+                                                    @if (question.SelectedAnswerId == "A")
+                                                    {
+                                                        <label class="btn btn-success">
+                                                            <input type="radio" name="selection_@question.quid" id="selection_@question.quid" value="A"><i class="fa fa-thumbs-o-up"></i> For
+                                                        </label>
+                                                    }
+                                                    else
+                                                    {
+                                                        <label class="btn btn-default">
+                                                            <input type="radio" readonly="readonly" name="selection_@question.quid" id="selection_@question.quid" value="A"><i class="fa fa-thumbs-o-up"></i> For
+                                                        </label>
+                                                    }
+                                                    @if (question.SelectedAnswerId == "B")
+                                                    {
+                                                        <label class="btn btn-success">
+                                                            <input type="radio" name="selection_@question.quid" id="selection_@question.quid" value="B"><i class="fa fa-thumbs-o-down"></i> Against
+                                                        </label>
+                                                    }
+                                                    else
+                                                    {
+                                                        <label class="btn btn-default">
+                                                            <input type="radio" readonly="readonly" name="selection_@question.quid" id="selection_@question.quid" value="B"><i class="fa fa-thumbs-o-down"></i> Against
+                                                        </label>
+                                                    }
+                                                    @if (question.SelectedAnswerId == "Z")
+                                                    {
+                                                        <label class="btn btn-success">
+                                                            <input type="radio" name="selection_@question.quid" id="selection_@question.quid" value="Z"><i class="fa fa-ban"></i> Abstain
+                                                        </label>
+                                                    }
+                                                    else
+                                                    {
+                                                        <label class="btn btn-default">
+                                                            <input type="radio" readonly="readonly" name="selection_@question.quid" id="selection_@question.quid" value="Z"><i class="fa fa-ban"></i> Abstain
+                                                        </label>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                                <!-- Start of StatCounter Code for Default Guide -->
+                                <script type="text/javascript">
+                                var sc_project=11422069; 
+                                var sc_invisible=1; 
+                                var sc_security="e5b87542"; 
+                                var sc_https=1; 
+                                var scJsHost = (("https:" == document.location.protocol) ?
+                                "https://secure." : "http://www.");
+                                document.write("<sc"+"ript type='text/javascript' src='" +
+                                scJsHost+
+                                "statcounter.com/counter/counter.js'></"+"script>");
+                                </script>
+                                <noscript><div class="statcounter"><a title="web analytics"
+                                href="http://statcounter.com/" target="_blank"><img
+                                class="statcounter"
+                                src="//c.statcounter.com/11422069/0/e5b87542/1/" alt="web
+                                analytics"></a></div></noscript>
+                                <!-- End of StatCounter Code for Default Guide -->
+                            </tbody>
+                        </table>
+                        <!-- end project list -->
+                        <div style="text-align:center;">
+                            <a href="/ShareholderVoting/en/Login" class="btn btn-round btn-dark">LOG OUT</a>
+                            <a id="btnChangeVote" class="btn btn-round btn-warning">CHANGE VOTES</a>
+                            <a href="/Observer/en/IndexRealtime/SH" class="btn btn-round btn-info">VOTE RESULTS</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="dialog"></div>
+        <script>
+            var voteSubmissionId2 = "@Model.VoteSubmissionId.ToString()";
+
+            function pageLoad() {
+
+                $("#btnChangeVote").click(function () {
+                    GetVoteSubmissionStatus2();
+                });
+
+
+
+            };
+
+            function GetVoteSubmissionStatus2()
+            {
+                if (voteSubmissionId2 == "0") {
+                    $(location).attr("href", "/ShareholderVoting/en/Index/1");
+                } else {
+                    deployedVotingSession.getLastVoteSessionId.call(function (error, voteSessionId) {
+                        if (voteSubmissionId2 != voteSessionId) {
+                            var dialog = $('#dialog');
+
+                            dialog.kendoDialog({
+                                width: "370px",
+                                title: "Revote",
+                                closable: true,
+                                modal: true,
+                                content: "<strong>Current Votes Have Not Yet Been Accepted By The Blockchain.  Please Allow A Few More Minutes Before Attempting To Revote.</strong>",
+                                actions: [
+                                    {
+                                        text: 'OK', action: function (e) {
+                                            var dialog = $('#dialog');
+
+                                            dialog.data("kendoDialog").close();
+                                        }
+                                    }
+                                ],
+                                //close: VoteSubmitted,
+                            });
+                        } else {
+                            $(location).attr("href", "/ShareholderVoting/en/Index/1");
+                        }
+                    });
+                }        
+            }    
+        </script>

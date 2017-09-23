@@ -1,0 +1,239 @@
+﻿@model VoteExplorer.Models.MainVM
+@*
+    For more information on enabling MVC for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+<script>
+
+    function pageLoad() {
+        $("#btnConfirm").click(function () {
+            var voteSubmissionId = "@Model.VoteSubmissionId";
+            var voteString = "@Model.voteString";
+            deployedVotingSession.vote(voteSubmissionId, voteString, function (error, transactionid) {
+                if (transactionid != null && transactionid != "") {
+                    var serviceURL = '/api/ConfirmVotes/' + voteSubmissionId + '/en/' + transactionid;
+
+                    $.ajax({
+                        type: "GET",
+                        url: serviceURL,
+                        contentType: "application/json; charset=utf-8",
+                        dataType: "json",
+                        success: function (data, status) {
+                            $(location).attr("href", "/ShareholderVoting/en/Confirm/@Model.VoteSubmissionId");
+                        },
+                        error: function (result) {
+                            for (var propertyName in result) {
+
+                                //alert(propertyName);
+                            }
+
+
+                            alert("error");
+                        }
+                    });
+                }
+            });
+
+
+
+            @*var dialog = $('#dialog');
+
+            dialog.kendoDialog({
+                width: "370px",
+                title: "Vote Submission",
+                closable: true,
+                modal: true,
+                content: "<strong>Your Votes will be submitted to the blockchain network and you will receive an email when confirmed.</strong>",
+                actions: [
+                    {
+                        text: 'OK', action: function (e) {
+                            console.log("ConfirmVotes");
+
+
+                                var serviceURL = '/api/ConfirmVotes/@Model.VoteSubmissionId/en';
+
+                                $.ajax({
+                                    type: "GET",
+                                    url: serviceURL,
+                                    contentType: "application/json; charset=utf-8",
+                                    dataType: "json",
+                                    success: function (data, status) {
+                                        $(location).attr("href", "/ShareholderVoting/en/Confirm/@Model.VoteSubmissionId");
+                                    },
+                                    error: function (result) {
+                                        for (var propertyName in result) {
+
+                                            //alert(propertyName);
+                                        }
+
+
+                                        alert("error");
+                                    }
+                                });
+                        }
+                    }
+                ],
+                //close: VoteSubmitted,
+                initOpen: Dialog_initopen
+            });
+
+            dialog.data("kendoDialog").open();*@
+
+        });
+    };
+
+    function Dialog_initopen(e) {
+
+    }
+
+
+
+
+
+
+
+
+</script>
+<div class="right_col" role="main">
+    <div class="">
+        <div class="page-title">
+            <div class="title_left">
+                <h3>CONFIRM YOUR VOTE    <small> @Model.voteTokenName</small></h3>
+            </div>
+            <div class="title_right">
+                <div class="col-md-5 col-sm-5 col-xs-12 form-group top_search">
+                    <div class="input-group">
+                        <!-- <input type="text" class="form-control" placeholder="Click here to attend the AGM"> -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="clearfix"></div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="x_panel">
+                    <div class="x_title">
+                        <h2 style="color:red;">Deadline to Vote: October 10, 2017</h2>
+                        <div style="text-align:center;">
+                            <span class="input-group-btn">
+                                @*<a href="/ShareholderVoting/en/Attend" class="btn btn-danger" type="button" style="color: white;">Click here to cancel your vote and attend the Annual General Meeting to vote in person</a>*@
+                            </span>
+                        </div>
+                        <div class="clearfix"></div>
+                    </div>
+                    <div class="x_content">
+                        @Model.voteString
+                        <p>Please confirm your vote selections are correct below:</p>
+                        <!-- start project list -->
+                        <table class="table table-striped projects">
+                            <thead>
+                                <tr>
+                                    <th style="width: 1%">#</th>
+                                    <th style="width: 20%">Proposal</th>
+                                    <th>Director Info</th>
+                                    <th>Board Recommendation</th>
+                                    <!-- <th>Status</th> -->
+                                    <th style="width: 20%">Your Vote</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (int x = 0; x < Model.activeQuestions.Count(); x++)
+                                {
+                                    VoteExplorer.Models.QuestionVM question = Model.activeQuestions[x];
+                                    <tr>
+                                        <td>@question.orderNum</td>
+                                        <td>
+                                            <a>Proposal @question.proposalNumber</a>
+                                            <br />
+                                            <small>@question.text</small>
+                                        </td>
+                                        <td>
+                                            <ul class="list-inline">
+                                                <li>
+                                                    <img src="~/images/user.png" class="avatar" alt="Avatar">
+                                                </li>
+                                            </ul>
+                                        </td>
+                                        <td>
+                                            <button type="button" class="btn btn-success btn-xs">@question.boardRecommendation</button>
+                                        </td>
+                                        <td>
+                                            <div class="row">
+                                                <div class="btn-group" data-toggle="buttons">
+                                                    @if (question.SelectedAnswerId == "A")
+                                                    {
+                                                        <label class="btn btn-success">
+                                                            <input type="radio" name="selection_@question.quid" id="selection_@question.quid" value="A"><i class="fa fa-thumbs-o-up"></i> For
+                                                        </label>
+                                                    }
+                                                    else
+                                                    {
+                                                        <label class="btn btn-default">
+                                                            <input type="radio" readonly="readonly" name="selection_@question.quid" id="selection_@question.quid" value="A"><i class="fa fa-thumbs-o-up"></i> For
+                                                        </label>
+                                                    }
+                                                    @if (question.SelectedAnswerId == "B")
+                                                    {
+                                                        <label class="btn btn-success">
+                                                            <input type="radio" name="selection_@question.quid" id="selection_@question.quid" value="B"><i class="fa fa-thumbs-o-down"></i> Against
+                                                        </label>
+                                                    }
+                                                    else
+                                                    {
+                                                        <label class="btn btn-default">
+                                                            <input type="radio" readonly="readonly" name="selection_@question.quid" id="selection_@question.quid" value="B"><i class="fa fa-thumbs-o-down"></i> Against
+                                                        </label>
+                                                    }
+                                                    @if (question.SelectedAnswerId == "Z")
+                                                    {
+                                                        <label class="btn btn-success">
+                                                            <input type="radio" name="selection_@question.quid" id="selection_@question.quid" value="Z"><i class="fa fa-ban"></i> Abstain
+                                                        </label>
+                                                    }
+                                                    else
+                                                    {
+                                                        <label class="btn btn-default">
+                                                            <input type="radio" readonly="readonly" name="selection_@question.quid" id="selection_@question.quid" value="Z"><i class="fa fa-ban"></i> Abstain
+                                                        </label>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                                                                <!-- Start of StatCounter Code for Default Guide -->
+                                <script type="text/javascript">
+                                var sc_project=11422069; 
+                                var sc_invisible=1; 
+                                var sc_security="e5b87542"; 
+                                var sc_https=1; 
+                                var scJsHost = (("https:" == document.location.protocol) ?
+                                "https://secure." : "http://www.");
+                                document.write("<sc"+"ript type='text/javascript' src='" +
+                                scJsHost+
+                                "statcounter.com/counter/counter.js'></"+"script>");
+                                </script>
+                                <noscript><div class="statcounter"><a title="web analytics"
+                                href="http://statcounter.com/" target="_blank"><img
+                                class="statcounter"
+                                src="//c.statcounter.com/11422069/0/e5b87542/1/" alt="web
+                                analytics"></a></div></noscript>
+                                <!-- End of StatCounter Code for Default Guide -->
+                            </tbody>
+                        </table>
+                        <!-- end project list -->
+                        <div style="text-align:center;">
+                            <a href="/ShareholderVoting/en/Index/1" class="btn btn-round btn-default">GO BACK</a>
+                            <button id="btnConfirm" type="button" class="btn btn-round btn-success">
+                                CONFIRM VOTE SELECTIONS
+                            </button>
+                            <div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="dialog">
+        </div>

@@ -1,0 +1,35 @@
+diff a/src/VoteExplorer/Views/InstitutionalVoting/Submit.cshtml b/src/VoteExplorer/Views/InstitutionalVoting/Submit.cshtml	(rejected hunks)
+@@ -35,7 +35,32 @@
+     }
+ 
+     function VoteSubmitted(e) {
+-            $(location).attr("href", "/InstitutionalVoting/Confirm/@Model.VoteSubmissionId");
++        var serviceURL = '/api/ConfirmVotes/@Model.VoteSubmissionId';
++
++        $.ajax({
++            type: "GET",
++            url: serviceURL,
++            contentType: "application/json; charset=utf-8",
++            dataType: "json",
++            success: voteConfirmStatusSuccessFunc,
++            error: errorFunc
++        });
++
++    }
++
++
++    function voteConfirmStatusSuccessFunc(data, status) {
++        $(location).attr("href", "/InstitutionalVoting/Confirm/@Model.VoteSubmissionId");
++    }
++
++    function errorFunc(result) {
++        for (var propertyName in result) {
++
++            //alert(propertyName);
++        }
++
++
++        alert("error");
+     }
+ 
+ </script>

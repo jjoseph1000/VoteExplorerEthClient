@@ -1,0 +1,1 @@
+/root/externalApps/vanitygen/vanitygen $1

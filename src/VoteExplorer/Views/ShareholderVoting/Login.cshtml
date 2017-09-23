@@ -1,0 +1,389 @@
+﻿@model VoteExplorer.Models.SHOLoginVM
+
+@*
+    For more information on enabling MVC for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    Layout = "";
+}
+<script src="~/lib/jquery/dist/jquery.js"></script>
+<link href="~/app.css" rel="stylesheet">
+<script src="~/lib/web3/dist/web3.min.js"></script>
+<script src="~/lib/crypto-js/crypto-js.js"></script>
+<script>
+        var accounts;
+        var account;
+
+        var voteSessionABI;
+        var voteSessionContract;
+        var deployedVotingSession;
+        var votingTokenABI;
+        var votingTokenContract;
+        var deployedVotingToken;
+
+        var currentTokenName;
+        var currentTokenSymbol;
+        var currentTokenDecimal;
+        var sessionValues;
+        let questionKeyValue = {};
+
+        window.App = {
+            start: function () {
+                var self = this;
+                web3.eth.getAccounts(function (err, accs) {
+                    if (err != null) {
+                        alert("There was an error fetching your accounts.");
+                        return;
+                    }
+                    if (accs.length == 0) {
+                        alert("Couldn't get any accounts! Make sure your Ethereum client is configured correctly.");
+                        return;
+                    }
+
+                    accounts = accs;
+                    account = accounts[0];
+                    web3.eth.defaultAccount = account;
+                    //var votingSessionContractAddress = document.getElementById("contractAddress").value;
+
+                    voteSessionABI = "[ { \"constant\": false, \"inputs\": [ { \"name\": \"voteToken\", \"type\": \"address\" } ], \"name\": \"setVoteTokenAddress\", \"outputs\": [ { \"name\": \"setTokenId\", \"type\": \"bool\" } ], \"payable\": false, \"type\": \"function\" }, { \"constant\": false, \"inputs\": [ { \"name\": \"votedAddress\", \"type\": \"address\" }, { \"name\": \"voteSessionId\", \"type\": \"string\" }, { \"name\": \"transactionId\", \"type\": \"string\" } ], \"name\": \"setVoteTransactionId\", \"outputs\": [ { \"name\": \"Result\", \"type\": \"bool\" } ], \"payable\": false, \"type\": \"function\" }, { \"constant\": false, \"inputs\": [ { \"name\": \"indexVoter\", \"type\": \"uint256\" }, { \"name\": \"voterAddress\", \"type\": \"address\" } ], \"name\": \"getVoteAnswersByAddress\", \"outputs\": [ { \"name\": \"indexVoter1\", \"type\": \"uint256\" }, { \"name\": \"voter\", \"type\": \"address\" }, { \"name\": \"voteSessionId\", \"type\": \"string\" }, { \"name\": \"voteAnswers\", \"type\": \"string\" }, { \"name\": \"blockNumber\", \"type\": \"uint256\" }, { \"name\": \"balance\", \"type\": \"uint256\" } ], \"payable\": false, \"type\": \"function\" }, { \"constant\": false, \"inputs\": [ { \"name\": \"voterIndex\", \"type\": \"uint256\" } ], \"name\": \"getVoteAnswersByIndex\", \"outputs\": [ { \"name\": \"indexVoter1\", \"type\": \"uint256\" }, { \"name\": \"voter\", \"type\": \"address\" }, { \"name\": \"voteSessionId\", \"type\": \"string\" }, { \"name\": \"voteAnswers\", \"type\": \"string\" }, { \"name\": \"blockNumber\", \"type\": \"uint256\" }, { \"name\": \"balance\", \"type\": \"uint256\" } ], \"payable\": false, \"type\": \"function\" }, { \"constant\": false, \"inputs\": [], \"name\": \"totalVoters\", \"outputs\": [ { \"name\": \"totalVoters\", \"type\": \"uint256\" } ], \"payable\": false, \"type\": \"function\" }, { \"constant\": false, \"inputs\": [], \"name\": \"getLastVoteSessionId\", \"outputs\": [ { \"name\": \"voteSessionId1\", \"type\": \"string\" } ], \"payable\": false, \"type\": \"function\" }, { \"constant\": false, \"inputs\": [], \"name\": \"getVoteAnswers\", \"outputs\": [ { \"name\": \"indexVoter1\", \"type\": \"uint256\" }, { \"name\": \"voter\", \"type\": \"address\" }, { \"name\": \"voteSessionId\", \"type\": \"string\" }, { \"name\": \"voteAnswers\", \"type\": \"string\" }, { \"name\": \"blockNumber\", \"type\": \"uint256\" }, { \"name\": \"balance\", \"type\": \"uint256\" } ], \"payable\": false, \"type\": \"function\" }, { \"constant\": false, \"inputs\": [ { \"name\": \"questionIndex\", \"type\": \"uint256\" } ], \"name\": \"getQuestionByIndex\", \"outputs\": [ { \"name\": \"questionIndex1\", \"type\": \"uint256\" }, { \"name\": \"questionId\", \"type\": \"string\" }, { \"name\": \"questionTextRows\", \"type\": \"uint256\" }, { \"name\": \"boardRecommendation\", \"type\": \"string\" }, { \"name\": \"isActive\", \"type\": \"uint256\" } ], \"payable\": false, \"type\": \"function\" }, { \"constant\": false, \"inputs\": [ { \"name\": \"questionId\", \"type\": \"string\" }, { \"name\": \"questionTextRows\", \"type\": \"uint256\" }, { \"name\": \"questionText\", \"type\": \"bytes32\" }, { \"name\": \"boardRecommendation\", \"type\": \"string\" }, { \"name\": \"isActive\", \"type\": \"uint256\" } ], \"name\": \"insertUpdateQuestion\", \"outputs\": [ { \"name\": \"insertupdate\", \"type\": \"bool\" } ], \"payable\": false, \"type\": \"function\" }, { \"constant\": true, \"inputs\": [ { \"name\": \"x\", \"type\": \"bytes32\" } ], \"name\": \"bytes32ToString\", \"outputs\": [ { \"name\": \"\", \"type\": \"string\" } ], \"payable\": false, \"type\": \"function\" }, { \"constant\": false, \"inputs\": [ { \"name\": \"questionId\", \"type\": \"string\" }, { \"name\": \"questionTextRow\", \"type\": \"uint256\" } ], \"name\": \"getQuestionTextByRow\", \"outputs\": [ { \"name\": \"questionid\", \"type\": \"string\" }, { \"name\": \"row\", \"type\": \"uint256\" }, { \"name\": \"textLine\", \"type\": \"bytes32\" } ], \"payable\": false, \"type\": \"function\" }, { \"constant\": false, \"inputs\": [ { \"name\": \"questionId\", \"type\": \"string\" }, { \"name\": \"questionTextRow\", \"type\": \"uint256\" }, { \"name\": \"questionText\", \"type\": \"bytes32\" } ], \"name\": \"addQuestionTextRow\", \"outputs\": [ { \"name\": \"success\", \"type\": \"bool\" } ], \"payable\": false, \"type\": \"function\" }, { \"constant\": false, \"inputs\": [], \"name\": \"totalQuestions\", \"outputs\": [ { \"name\": \"totalQuestions\", \"type\": \"uint256\" } ], \"payable\": false, \"type\": \"function\" }, { \"constant\": false, \"inputs\": [ { \"name\": \"source\", \"type\": \"string\" } ], \"name\": \"stringToBytes32\", \"outputs\": [ { \"name\": \"result\", \"type\": \"bytes32\" } ], \"payable\": false, \"type\": \"function\" }, { \"constant\": false, \"inputs\": [], \"name\": \"getVoteTokenAddress\", \"outputs\": [ { \"name\": \"VoteToken\", \"type\": \"address\" } ], \"payable\": false, \"type\": \"function\" }, { \"constant\": false, \"inputs\": [ { \"name\": \"voteSessionId\", \"type\": \"string\" }, { \"name\": \"selectedAnswers\", \"type\": \"string\" } ], \"name\": \"vote\", \"outputs\": [ { \"name\": \"Result\", \"type\": \"bool\" } ], \"payable\": false, \"type\": \"function\" }, { \"inputs\": [], \"payable\": false, \"type\": \"constructor\" } ]";
+                    voteSessionContract = web3.eth.contract(JSON.parse(voteSessionABI));
+                    
+
+                    votingTokenABI = "[{\"constant\":true,\"inputs\":[],\"name\":\"name\",\"outputs\":[{\"name\":\"\",\"type\":\"string\"}],\"payable\":false,\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_spender\",\"type\":\"address\"},{\"name\":\"_value\",\"type\":\"uint256\"}],\"name\":\"approve\",\"outputs\":[{\"name\":\"success\",\"type\":\"bool\"}],\"payable\":false,\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"decimals\",\"outputs\":[{\"name\":\"\",\"type\":\"uint8\"}],\"payable\":false,\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"_totalSupply\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_from\",\"type\":\"address\"},{\"name\":\"_to\",\"type\":\"address\"},{\"name\":\"_value\",\"type\":\"uint256\"}],\"name\":\"transferfrom\",\"outputs\":[{\"name\":\"success\",\"type\":\"bool\"}],\"payable\":false,\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"_owner\",\"type\":\"address\"}],\"name\":\"balanceOf\",\"outputs\":[{\"name\":\"balance\",\"type\":\"uint256\"}],\"payable\":false,\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"symbol\",\"outputs\":[{\"name\":\"\",\"type\":\"string\"}],\"payable\":false,\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_to\",\"type\":\"address\"},{\"name\":\"_value\",\"type\":\"uint256\"}],\"name\":\"transfer\",\"outputs\":[{\"name\":\"success\",\"type\":\"bool\"}],\"payable\":false,\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"_owner\",\"type\":\"address\"},{\"name\":\"_spender\",\"type\":\"address\"}],\"name\":\"allowance\",\"outputs\":[{\"name\":\"remaining\",\"type\":\"uint256\"}],\"payable\":false,\"type\":\"function\"},{\"inputs\":[],\"payable\":false,\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"name\":\"_from\",\"type\":\"address\"},{\"indexed\":true,\"name\":\"_to\",\"type\":\"address\"},{\"indexed\":false,\"name\":\"_value\",\"type\":\"uint256\"}],\"name\":\"Transfer\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"name\":\"_owner\",\"type\":\"address\"},{\"indexed\":true,\"name\":\"_spender\",\"type\":\"address\"},{\"indexed\":false,\"name\":\"_value\",\"type\":\"uint256\"}],\"name\":\"Approval\",\"type\":\"event\"}]";
+                    votingTokenContract = web3.eth.contract(JSON.parse(votingTokenABI));
+                    
+
+                      
+                });
+            },
+            logIn: function () {
+                var contractNumber = document.getElementById("contractNumber").value;
+                deployedVotingSession = voteSessionContract.at(contractNumber);
+
+                deployedVotingSession.getVoteTokenAddress.call(function (error, voteTokenAdd) {
+                    console.log(voteTokenAdd);
+                    deployedVotingToken = votingTokenContract.at(voteTokenAdd);
+                    deployedVotingToken.symbol.call(function (error, symbol) {
+                        currentTokenSymbol = symbol;
+                        deployedVotingToken.name.call(function (error, name) {
+                            currentTokenName = name;
+                            deployedVotingToken.decimals.call(function (error, decimal) {
+                                currentTokenDecimal = decimal;
+                                deployedVotingToken.balanceOf.call(account, function (error, balance) {
+                                    var userBalance = balance + "";
+                                    if (userBalance == "0") {
+                                        document.getElementById("validationText").innerHTML = "In Order To Vote On This Contract, You Must Possess The Following Token: (" + currentTokenName + " [" + currentTokenSymbol + "]), Public Address: " + voteTokenAdd;
+                                        return false;
+                                    }
+                                    else {
+                                        sessionValues = {
+                                            "contractNumber": contractNumber,
+                                            "voteTokenAdd": voteTokenAdd,
+                                            "currentTokenName": currentTokenName,
+                                            "currentTokenSymbol": currentTokenSymbol,
+                                            "currentTokenDecimal": currentTokenDecimal,
+                                            "account": account,
+                                            "userBalance": userBalance,
+                                            "voteAnswerChoices": "",
+                                            "voteSessionId": "",
+                                            "transactionId": ""
+                                        };
+                                        var questions = [];
+                                        sessionValues.questions = questions;
+
+                                        deployedVotingSession.totalQuestions.call(function (error, totalQuestions) {
+                                            for (var i = 0; i < totalQuestions; i++) {
+
+                                                deployedVotingSession.getQuestionByIndex.call(i, function (error, question) {
+                                                    var strQuestions = JSON.stringify(question);
+                                                    var arrQuestions = strQuestions.substring(1, strQuestions.length-1).split(',');
+                                                    var questionIndex = arrQuestions[0].substring(1,arrQuestions[0].length-1);
+                                                    var questionId = arrQuestions[1].substring(1, arrQuestions[1].length - 1);
+                                                    var questionLineRows = arrQuestions[2].substring(1, arrQuestions[2].length - 1);
+                                                    var boardRecommendation = arrQuestions[3].substring(1, arrQuestions[3].length - 1);
+                                                    var isActive = arrQuestions[4].substring(1,arrQuestions[4].length-1);
+                                                    var question = {
+                                                        "questionIndex": questionIndex,
+                                                        "quid": questionId,
+                                                        "text": "",
+                                                        "questionLineRows": questionLineRows,
+                                                        "boardRecommendation": boardRecommendation,
+                                                        "isActive": isActive
+                                                    }
+                                                    sessionValues.questions.push(question);
+
+                                                    if (totalQuestions == sessionValues.questions.length) {
+                                                        for (var x = 0; x < totalQuestions; x++)
+                                                        {
+                                                            questionKeyValue[sessionValues.questions[x].quid] = x;
+                                                            var questionsLines = [];
+                                                            sessionValues.questions[x].questionLines = questionsLines;
+                                                            //console.log("sessionvalues = " + sessionValues.questions[x].questionl);
+                                                        }
+                                                        for (var x = 0; x < totalQuestions; x++)
+                                                        {
+                                                            var questionLineNumbers = parseInt(sessionValues.questions[x].questionLineRows);
+                                                            for (var z = 0; z < questionLineNumbers; z++) {
+                                                                deployedVotingSession.getQuestionTextByRow.call(sessionValues.questions[x].quid, z, function (error, lineText) {
+                                                                    var rowInfo = JSON.stringify(lineText);
+                                                                    var arrRowInfo = rowInfo.substring(1, rowInfo.length - 1).split(',');
+                                                                    var lineQuid = arrRowInfo[0].substring(1, arrRowInfo[0].length - 1);
+                                                                    var lineRow = arrRowInfo[1].substring(1, arrRowInfo[1].length - 1);
+                                                                    var lineText = web3.toUtf8(arrRowInfo[2].substring(1, arrRowInfo[2].length - 1));
+
+                                                                    var questionLine = {
+                                                                        "quid": lineQuid,
+                                                                        "row": lineRow,
+                                                                        "text": lineText
+
+                                                                    }
+                                                                    var questionIndex = questionKeyValue[lineQuid];
+                                                                    sessionValues.questions[questionIndex].questionLines.push(questionLine);
+                                                                    //check all texts
+
+                                                                    var gotAllText = true;
+                                                                    for (var a = 0; a < totalQuestions; a++)
+                                                                    {
+                                                                        if (sessionValues.questions[a].questionLines.length != parseInt(sessionValues.questions[a].questionLineRows)) {
+                                                                            gotAllText = false;
+                                                                        }
+
+                                                                    }
+
+                                                                    console.log("got all text = " + gotAllText);
+
+                                                                    if (gotAllText) {
+
+                                                                        for (var s = 0; s < totalQuestions; s++) {
+                                                                            let rowTextKeyValue = {};
+
+                                                                            for (var t = 0; t < sessionValues.questions[s].questionLineRows; t++) {
+                                                                                var intRowNum = parseInt(sessionValues.questions[s].questionLines[t].row);
+                                                                                rowTextKeyValue[intRowNum] = sessionValues.questions[s].questionLines[t].text;
+                                                                            }
+                                                                            sessionValues.questions[s].text = "";
+                                                                            for (var v = 0; v < sessionValues.questions[s].questionLineRows; v++) {
+                                                                                sessionValues.questions[s].text += " " + rowTextKeyValue[v].trim();
+                                                                            }
+                                                                            console.log(s + " a = " + sessionValues.questions[s].text);
+                                                                        }
+
+                                                                        deployedVotingSession.getVoteAnswers.call(function (error, voteAnswers) {
+                                                                            var voteSessionId = voteAnswers[2];
+                                                                            var voteAnswerChoices = voteAnswers[3];
+                                                                            var transactionId = voteAnswers[4];
+
+                                                                            sessionValues.voteSessionId = voteSessionId;
+                                                                            sessionValues.voteAnswerChoices = voteAnswerChoices;
+                                                                            sessionValues.transactionId = transactionId;
+
+                                                                            console.log(sessionValues);
+
+                                                                            //console.log("sessionValue =" + JSON.stringify(sessionValues));
+                                                                            var serviceURL = '/api/SetSessionVariables';
+                                                                            $.ajax({
+                                                                                headers: {
+                                                                                    'Accept': 'application/json',
+                                                                                    'Content-Type': 'application/json'
+                                                                                },
+                                                                                type: "POST",
+                                                                                url: serviceURL,
+                                                                                contentType: "application/json; charset=utf-8",
+                                                                                data: JSON.stringify(sessionValues),
+                                                                                dataType: "json",
+                                                                                success: function (data, status) {
+                                                                                    document.getElementById("loginForm").submit();
+                                                                                },
+                                                                                error: function (error) {
+                                                                                    alert("error");
+                                                                                }
+                                                                            });
+
+
+
+                                                                        });
+
+                                                                    }
+
+                                                                    //sessionValues.questions[questionKeyValue[lineQuid]].questionLines(questionLine);
+                                                                });
+
+                                                            }
+
+                                                        }
+
+
+
+
+
+                                                        console.log("sessionValues = " + sessionValues);
+                                                    }
+                                                });
+                                            }
+                                        });
+                                    }
+                                });
+
+                            })
+
+
+                        });
+                    });
+
+                    //deployedVotingToken.balanceOf.call(account, function (error, balance) {
+                    //    console.log("balance: " + balance);
+                    //});
+                })
+
+                //deployedVotingSession.getVoteTokenAddress.call(function (error, voteTokenAdd) {
+                //    deployedVotingToken = votingTokenContract.at(voteTokenAdd);
+                //    deployedVotingToken.balanceOf.call(account, function (error, balance) {
+                //        console.log("balance =" + balance);
+
+                //    });
+
+
+                
+                
+            }
+        };
+
+        window.addEventListener('load', function () {
+            if (typeof web3 !== 'undefined') {
+                window.web3 = new Web3(web3.currentProvider);
+            } else {
+                console.warn("No web3 detected. Falling back to http://localhost:8545. You should remove this fallback when you deploy live, as it's inherently insecure. Consider switching to Metamask for development. More info here: http://truffleframework.com/tutorials/truffle-and-metamask");
+                // fallback - use your fallback strategy (local node / hosted node + in-dapp id mgmt / fail)
+                window.web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
+            }
+            App.start();
+        });
+
+
+
+        
+
+        
+
+        //$(this).closest('form').submit()
+</script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <!-- Meta, title, CSS, favicons, etc. -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SHO Login</title>
+    <!-- Bootstrap -->
+    <link href="~/vendors/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="~/vendors/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+    <!-- NProgress -->
+    <link href="~/vendors/nprogress/nprogress.css" rel="stylesheet">
+    <!-- Animate.css -->
+    <link href="~/vendors/animate.css/animate.min.css" rel="stylesheet">
+    <!-- Custom Theme Style -->
+    <link href="~/build/css/custom.min.css" rel="stylesheet">
+</head>
+<body class="login">
+    <form action="/ShareholderVoting/en/Login?Length=5" id="loginForm" method="post">
+
+        <div>
+            <a class="hiddenanchor" id="signup"></a>
+            <a class="hiddenanchor" id="signin"></a>
+            <div class="login_wrapper">
+                <div class="animate form login_form">
+                    <section class="login_content">
+                        <form>
+                            <h1>Login Form</h1>
+                            <div>
+                                @Html.TextBoxFor(x => x.contractNumber, new { @class = "form-control", style = "width: 370px;", @placeholder = "Vote Contract Address" })
+                                <span id="validationText" class="field-validation-valid" data-valmsg-for="contractNumber" data-valmsg-replace="true"></span>
+                            </div>
+                            <div>
+                                @Html.HiddenFor(x => x.tokenName)
+                                @Html.HiddenFor(x => x.tokenSymbol)
+                                @Html.HiddenFor(x => x.balance)
+                                <a class="btn btn-default submit" onclick="App.logIn()">Log in</a>
+                            </div>
+                            <div class="clearfix"></div>
+                            <div class="separator">
+
+                                <div class="clearfix"></div>
+                                <br />
+                                <div>
+                                    <h1><i class="fa fa-check-square-o"></i> SHO - Shareholder Voter App</h1>
+                                    <p>©2017 All Rights Reserved. BCI Labs.</p>
+                                </div>
+                            </div>
+                        </form>
+                    </section>
+                </div>
+                <div id="register" class="animate form registration_form">
+                    <section class="login_content">
+                        <form>
+                            <h1>Create Account</h1>
+                            <div>
+                                <input type="text" class="form-control" placeholder="Username" required="" />
+                            </div>
+                            <div>
+                                <input type="email" class="form-control" placeholder="Email" required="" />
+                            </div>
+                            <div>
+                                <input type="password" class="form-control" placeholder="Password" required="" />
+                            </div>
+                            <div>
+                                <a class="btn btn-default submit" href="index.html">Submit</a>
+                            </div>
+                            <div class="clearfix"></div>
+                            <div class="separator">
+                                <p class="change_link">
+                                    Already a member ?
+                                    <a href="#signin" class="to_register"> Log in </a>
+                                </p>
+                                <div class="clearfix"></div>
+                                <br />
+                                <div>
+                                    <h1><i class="fa fa-check-square-o"></i> IVY - Institutional Voter</h1>
+                                    <p>©2017 All Rights Reserved. BCI Labs.</p>
+                                </div>
+                            </div>
+                        </form>
+                    </section>
+                </div>
+            </div>
+        </div>
+       </form>
+
+
+
+        <!-- Start of StatCounter Code for Default Guide -->
+        <script type="text/javascript">
+
+
+
+            var sc_project = 11422069;
+            var sc_invisible = 1;
+            var sc_security = "e5b87542";
+            var sc_https = 1;
+            var scJsHost = (("https:" == document.location.protocol) ?
+            "https://secure." : "http://www.");
+            document.write("<sc" + "ript type='text/javascript' src='" +
+            scJsHost +
+            "statcounter.com/counter/counter.js'></" + "script>");
+        </script>
+        <noscript>
+            <div class="statcounter">
+                <a title="web analytics"
+                   href="http://statcounter.com/" target="_blank">
+                    <img class="statcounter"
+                         src="//c.statcounter.com/11422069/0/e5b87542/1/" alt="web
+    analytics">
+                </a>
+            </div>
+        </noscript>
+        <!-- End of StatCounter Code for Default Guide -->
+</body>
+</html>

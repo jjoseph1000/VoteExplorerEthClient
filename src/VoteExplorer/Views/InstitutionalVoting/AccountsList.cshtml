@@ -1,0 +1,106 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    Layout = "_IVYLayout";
+}
+<div class="right_col" role="main">
+    <div class="">
+        <div class="page-title">
+            <div class="title_left">
+                <h3>Accounts List <small>Broadridge Accounts with Proxy Authority</small></h3>
+            </div>
+
+
+
+        </div>
+
+        <div class="clearfix"></div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="x_panel">
+                    <div class="x_title">
+                        <h2>Accounts</h2>
+
+                        <div class="col-md-2"></div>
+                        <div class="col-md-6">
+                            <div style="text-align:center;">
+                                <span class="input-group-btn">
+                                    <a href="~/InstitutionalVoting/Vote" class="btn btn-primary" type="button" style="color: white;">Vote Selected Accounts</a>
+                                </span>
+                                <span class="input-group-btn">
+                                    <a href="~/InstitutionalVoting/Vote" class="btn btn-primary" type="button" style="color: white;">Vote by Account Groups</a>
+                                </span>
+
+                                <span class="input-group-btn">
+                                    <a href="~/InstitutionalVoting/Vote" class="btn btn-primary" type="button" style="color: white;">Vote ALL Accounts</a>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="clearfix"></div>
+                    </div>
+                    <div class="x_content">
+
+                        <p>Please select the account(s) you would like to vote</p>
+
+                        <div id="dgAccounts"></div>
+                        <!-- start project list -->
+                        <!-- end project list -->
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $(document).ready(function () {
+        var serviceURL = '/api/Accounts/_GetAccounts';
+
+        $.ajax({
+            type: "GET",
+            url: serviceURL,
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: accountsSuccessFunc,
+            error: errorFunc
+        });
+    });
+
+    function accountsSuccessFunc(data, status) {
+        $("#dgAccounts").kendoGrid({
+            dataSource: {
+                data: data,
+                schema: {
+                    model: {
+                        fields: {
+                            _id: { type: "string" },
+                            accountNumber: { type: "int" },
+                            availableShares: { type: "int" },
+                            bankName: { type: "string" }
+                        }
+                    }
+                }
+            },
+            scrollable: true,
+            height: 550,
+            sortable: true,
+            filterable: true,
+            selectable: "multiple",
+            pageable: false,
+            columns: [
+                { field: "accountNumber", title: "Account #" },
+                { field: "availableShares", title: "Voted Shares", template: "0" },
+                { field: "availableShares", title: "Available Shares"},
+                { field: "bankName", title: "Custodian" },
+                { field: "availableShares", title: "Votes", template: "XXXXXXXXXXXX" },
+                { field: "voteStatus", title: "Status", template: "<button type=\"button\" class=\"btn btn-danger btn-xs\">Unvoted</button>" },
+            ]
+        });
+    }
+    //<button type="button" class="btn btn-danger btn-xs">Unvoted</button>
+    function errorFunc() {
+        alert('error');
+    }
+</script>

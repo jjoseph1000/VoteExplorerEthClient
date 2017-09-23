@@ -1,0 +1,1 @@
+/root/externalApps/BCI-XXX/src/BCI-XXXd -datadir=/root/.BCI-XXX sendrawtransaction $1

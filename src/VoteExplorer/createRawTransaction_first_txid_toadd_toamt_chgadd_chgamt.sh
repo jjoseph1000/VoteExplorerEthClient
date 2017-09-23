@@ -1,0 +1,1 @@
+ /root/externalApps/BCI-XXX/src/BCI-XXXd -datadir=/root/.BCI-XXX createrawtransaction '[{"txid":"'$1'","vout":'$2'}]' '{"'$3'": '$4', "'$5'": '$6'}'
