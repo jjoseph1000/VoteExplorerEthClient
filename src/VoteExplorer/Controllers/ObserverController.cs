@@ -12,8 +12,6 @@ using MongoDB.Driver.Linq;
 using System.Dynamic;
 using Newtonsoft.Json;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
-using System.IO;
 
 namespace VoteExplorer.Controllers
 {
@@ -60,12 +58,12 @@ namespace VoteExplorer.Controllers
 
             MainVM viewModel = new MainVM();
 
-            string contractNumber = HttpContext.Session.GetString("contractNumber");
+            string meetingId = HttpContext.Session.GetString("displayResultsMeetingId");
 
 
-            if (contractNumber != "-1")
+            if (meetingId != "-1")
             {
-                List<Question> questions = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Question>>(HttpContext.Session.GetString("questions"));
+                List<Question> questions = Context.questions.AsQueryable().Where(q=>q.MeetingId== meetingId).ToList();
 
                 viewModel.completedQuestions = (from q in questions
                                                 select new QuestionVM
@@ -77,7 +75,7 @@ namespace VoteExplorer.Controllers
                                                 }
                                                                    ).ToList();
 
-                viewModel.meeting = Context.meetings.AsQueryable().Where(m => m._id == contractNumber).FirstOrDefault();
+                viewModel.meeting = Context.meetings.AsQueryable().Where(m => m._id == meetingId).FirstOrDefault();
             }
             else
             {
@@ -91,34 +89,58 @@ namespace VoteExplorer.Controllers
 
         public IActionResult IndexRealtime_Codebehind(string UserType, LanguagePreference languagePreference)
         {
-            var builder = new ConfigurationBuilder()
-                 .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json");
-
-            IConfigurationRoot Configuration = builder.Build();
-
-            int refreshBlockchainDataInSeconds = Convert.ToInt32(Configuration["refreshBlockchainDataInSeconds"]);
-
-            if (HttpContext.Session.GetString("contractNumber") == null)
+            if (HttpContext.Session.GetString("displayResultsMeetingId") == null)
             {
-                return RedirectToAction("Login","ShareholderVoting");
+                if (languagePreference == LanguagePreference.Russian)
+                {
+                    if (UserType == "IVY")
+                    {
+                        return RedirectToAction("Login_Russian", "InstitutionalVoting");
+                    }
+                    else
+                    {
+                        return RedirectToAction("Login_Russian", "ShareholderVoting");
+                    }
+                }
+                else
+                {
+                    if (UserType == "IVY")
+                    {
+                        return RedirectToAction("Login", "InstitutionalVoting");
+                    }
+                    else
+                    {
+                        return RedirectToAction("Login", "ShareholderVoting");
+                    }
+                }
+
             }
 
-            string contractNumber = HttpContext.Session.GetString("contractNumber").ToString();
-            List<ContractBlockchainAddresses> contractBlockchainAddresses = Context.contractBlockchainAddresses.AsQueryable().ToList();
-
             MainVM viewModel = new MainVM();
-            if (contractBlockchainAddresses.Any(bc=>bc.contractNumber==contractNumber && Convert.ToDateTime(bc.lastModifiedDatetime).AddSeconds(refreshBlockchainDataInSeconds) > DateTime.Now))
+
+            string meetingId = HttpContext.Session.GetString("displayResultsMeetingId");
+
+            if (meetingId != "-1")
             {
-                viewModel.refreshDataFromBlockchain = "false";
+                List<Question> questions = Context.questions.AsQueryable().Where(q => q.MeetingId == meetingId).ToList();
+
+                viewModel.completedQuestions = (from q in questions
+                                                select new QuestionVM
+                                                {
+                                                    quid = q.quid,
+                                                    text = q.text,
+                                                    block = q.block,
+                                                    keyid = q.quid + "|"
+                                                }
+                                                                   ).ToList();
+
+                viewModel.meeting = Context.meetings.AsQueryable().Where(m => m._id == meetingId).FirstOrDefault();
             }
             else
             {
-                viewModel.refreshDataFromBlockchain = "true";
+                viewModel.completedQuestions = new List<QuestionVM>();
             }
 
-            viewModel.contractNumber = contractNumber;
-            viewModel.voteTokenName = HttpContext.Session.GetString("voteTokenName").ToString();
             ViewBag.UserType = UserType;
 
             return View(viewModel);
@@ -157,7 +179,7 @@ namespace VoteExplorer.Controllers
             }
 
 
-            List<Question> questions = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Question>>(HttpContext.Session.GetString("questions"));
+            IMongoQueryable<Question> questions = Context.questions.AsQueryable();
             var question = questions.FirstOrDefault(q => q.quid == quid);
             QuestionVM questionVM = new QuestionVM();
             questionVM.quid = quid;
@@ -170,28 +192,42 @@ namespace VoteExplorer.Controllers
 
         public IActionResult QuestionRealtime_Codebehind(string quidAndUserType, LanguagePreference languagePreference)
         {
-            if (HttpContext.Session.GetString("contractNumber") == null)
-            {
-                return RedirectToAction("Login", "ShareholderVoting");
-            }
-
-            var builder = new ConfigurationBuilder()
-                 .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json");
-
-            IConfigurationRoot Configuration = builder.Build();
-
             string quid = quidAndUserType.Split('|')[0].ToString();
             string UserType = quidAndUserType.Split('|')[1].ToString();
-            
-            List<Question> questions = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Question>>(HttpContext.Session.GetString("questions"));
+
+            if (HttpContext.Session.GetString("displayResultsMeetingId") == null)
+            {
+                if (languagePreference == LanguagePreference.Russian)
+                {
+                    if (UserType == "IVY")
+                    {
+                        return RedirectToAction("Login_Russian", "InstitutionalVoting");
+                    }
+                    else
+                    {
+                        return RedirectToAction("Login_Russian", "ShareholderVoting");
+                    }
+                }
+                else
+                {
+                    if (UserType == "IVY")
+                    {
+                        return RedirectToAction("Login", "InstitutionalVoting");
+                    }
+                    else
+                    {
+                        return RedirectToAction("Login", "ShareholderVoting");
+                    }
+                }
+
+            }
+
+            IMongoQueryable<Question> questions = Context.questions.AsQueryable();
             var question = questions.FirstOrDefault(q => q.quid == quid);
             QuestionVM questionVM = new QuestionVM();
             questionVM.quid = quid;
             questionVM.text = question.text;
-            questionVM.voteTokenName = HttpContext.Session.GetString("voteTokenName").ToString();
-            questionVM.blockchainExplorerUrl = Configuration["blockchainExplorerUrl"].ToString();
-            
+
             ViewBag.UserType = UserType;
 
             return View(questionVM);

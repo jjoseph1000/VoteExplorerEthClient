@@ -16,7 +16,7 @@
     <div class="">
         <div class="page-title">
             <div class="title_left">
-                <h3>VOTE RESULTS    <small> @Model.voteTokenName</small></h3>
+                <h3>VOTE RESULTS    <small> Royal Dutch Shell plc.</small></h3>
             </div>
             <div class="title_right">
                 <div class="col-md-5 col-sm-5 col-xs-12 form-group top_search">
@@ -29,7 +29,7 @@
         <div class="clearfix"></div>
         <div id="questionText" style="height:50px;">
         </div>
-        <div id="mainPanel" style="height:635px">
+        <div id="mainPanel" style="height:800px">
             <div id="graphPanel">
                 <div id="pieChartPanel">
                     <div id="answerPieChart" style="width: 450px; height: 450px;"></div>
@@ -38,12 +38,18 @@
                     <div id="answerBarChart" style="width: 450px; height: 450px;"></div>
                 </div>
             </div>
-            <div id="answerGridPanel" style="height: 300px; width: 100%;">
+            <div id="answerGridPanel" style="height: 790px; width: 100%;">
                 <div id="dgAnswer"></div>
             </div>
         </div>
-        <div id="dgAddress"></div>
         <div id="window">
+            <div id="addressPanel" style="height:700px;">
+                <div id="addressListPanel">
+                    <div id="dgAddress"></div>
+                </div>
+                <div id="addressDetailsPanel">
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -66,10 +72,9 @@
     analytics"></a></div></noscript>
     <!-- End of StatCounter Code for Default Guide -->
 <script>
-    var blockchainExplorerUrl = "@Model.blockchainExplorerUrl";
 
-    function pageLoad() {
-        $("#mainPanel").kendoSplitter({
+        $(document).ready(function () {
+            $("#mainPanel").kendoSplitter({
                 orientation: "vertical",
                 panes: [
                     { collapsible: false, size: "475px" },
@@ -84,7 +89,14 @@
                 ]
             });
 
-;
+
+            $("#addressPanel").kendoSplitter({
+                orientation: "vertical",
+                panes: [
+                    { collapsible: false, size: "320px" },
+                    { collapsible: false, },
+                ]
+            });
 
 
 
@@ -122,207 +134,233 @@
                 data: { quid: quid },
                 contentType: "application/json; charset=utf-8",
                 dataType: "json",
-                success: function (data, status) {
-                    $("#questionText").html("<p><h4>Question: </h4></p><p>" + data.questionText + "</p>");
-
-                    dataSource = new kendo.data.DataSource({
-                        data: data.PieChartData,
-                        schema: {
-                            model: {
-                                fields: {
-                                    value: "value"
-                                }
-                            }
-                        }
-                    });
-
-                    $("#answerPieChart").kendoChart({
-                        dataSource: dataSource,
-                        legend: {
-                            visible: false
-                        },
-                        seriesDefaults: {
-                            labels: {
-                                visible: true,
-                                background: "transparent",
-                                template: "#= getAnsId(category) # - #= kendo.format('{0:P}', percentage)#"
-                            }
-                        },
-                        tooltip: {
-                            visible: true,
-                            template: "#= getAnsId(category) # - #= kendo.format('{0:P}', percentage)#"
-                        },
-                        series: [{
-                            type: "pie",
-                            field: "value",
-                            categoryField: "category"
-                        }]
-                    });
-
-
-                    var seriesSchema = data.BarChartSchema;
-
-                    $("#answerBarChart").kendoChart({
-                        dataSource: {
-                            transport: {
-                                read: {
-                                    url: "/api/_GetAnswersBarChartData_Realtime/" + data.quid,
-                                    dataType: "json"
-                                }
-                            },
-                            sort: {
-                                field: "year",
-                                dir: "asc"
-                            }
-                        },
-                        title: {
-                            text: ""
-                        },
-                        legend: {
-                            position: "top",
-                        },
-                        seriesDefaults: {
-                            type: "column",
-                            labels: {
-                                visible: true,
-                                position: "top",
-                                padding: {
-                                    top: -20
-                                }
-                            }
-                        },
-                        series: seriesSchema,
-                        valueAxis: {
-                            labels: {
-                                format: "N0"
-                            },
-                            line: {
-                                visible: false
-                            }
-                        },
-                        tooltip: {
-                            visible: true,
-                            format: "N0",
-                            template: "#= series.name #: #= value #"
-                        }
-                    });
-
-                    var products = [{
-                        ProductName: "nuclear",
-                        UnitPrice: "Nuclear",
-                        UnitsInStock: 5,
-                        Discontinued: false
-                    }, {
-                        ProductName: "nuclear",
-                        UnitPrice: "Nuclear",
-                        UnitsInStock: 5,
-                        Discontinued: false
-                    }, {
-                        ProductName: "nuclear",
-                        UnitPrice: "Nuclear",
-                        UnitsInStock: 5,
-                        Discontinued: false
-                    }, {
-                        ProductName: "nuclear",
-                        UnitPrice: "Nuclear",
-                        UnitsInStock: 5,
-                        Discontinued: false
-                    }]
-
-                    $("#dgAnswer").kendoGrid({
-                        dataSource: {
-                            data: data.PieChartData,
-                            schema: {
-                                model: {
-                                    fields: {
-                                        keyvalue: { type: "string" },
-                                        answid: { type: "string" },
-                                        text: { type: "string" },
-                                        totalCoins: { type: "number" }
-                                    }
-                                }
-                            },
-                            pageSize: 20
-                        },
-                        scrollable: false,
-                        sortable: true,
-                        filterable: true,
-                        selectable: "single",
-                        change: function (arg) {
-                            var selected = $.map(this.select(), function (item) {
-                                return $(item).text();
-                            });
-
-                            var quid = selected[0].split('|')[0];
-                            var serviceURL = '/api/_GetAnswerInformation_Realtime/' + quid;
-
-                            $.ajax({
-                                type: "GET",
-                                url: serviceURL,
-                                data: { quid: quid },
-                                contentType: "application/json; charset=utf-8",
-                                dataType: "json",
-                                success: function (data, status) {
-
-                                    $("#dgAddress").kendoGrid({
-                                        dataSource: {
-                                            data: data.addresses,
-                                            schema: {
-                                                model: {
-                                                    fields: {
-                                                        keyvalue: { type: "string" },
-                                                        id: { type: "number" },
-                                                        address: { type: "string" },
-                                                        blockNumber: { type: "number" },
-                                                        totalCoins: { type: "number" }
-                                                    }
-                                                }
-                                            },
-                                            pageSize: 20
-                                        },
-                                        height: 310,
-                                        scrollable: true,
-                                        sortable: true,
-                                        change: function onChange_Address(arg) {
-                                            var selected = $.map(this.select(), function (item) {
-                                                return $(item).text();
-                                            });
-
-                                            window.open(blockchainExplorerUrl + selected[0].split('|')[0]);
-                                        },
-                                        filterable: true,
-                                        selectable: "multiple",
-                                        pageable: {
-                                            input: true,
-                                            numeric: false
-                                        },
-                                        columns: [
-                                            { field: "keyvalue", title: "keyvalue", hidden: true },
-                                            { field: "id", title: "#", width: "80px" },
-                                            { field: "address", title: "From" },
-                                            { field: "blockNumber", title: "Block", width: "130px" },
-                                            { field: "totalCoins", title: "Tokens", width: "130px" }
-                                        ]
-                                    });
-                                },
-                                error: errorFunc
-                            });
-                        },
-                        pageable: {
-                            input: true,
-                            numeric: false
-                        },
-                        columns: [
-                            { field: "keyvalue", title: "keyvalue", hidden: true },
-                            { field: "answid", title: "Answer", width: "110px" },
-                            { field: "text", title: "Description" },
-                            { field: "totalCoins", title: "Tokens", width: "130px" }
-                        ]
-                    });
-                },
+                success: successFunc,
                 error: errorFunc
             });
-        };
+
+
+        });
+
+        function successFunc(data, status) {
+            $("#questionText").html("<p><h4>Question: </h4></p><p>" + data.questionText + "</p>");
+
+            dataSource = new kendo.data.DataSource({
+                data: data.PieChartData,
+                schema: {
+                    model: {
+                        fields: {
+                            value: "value"
+                        }
+                    }
+                }
+            });
+
+            $("#answerPieChart").kendoChart({
+                dataSource: dataSource,
+                legend: {
+                    visible: false
+                },
+                seriesDefaults: {
+                    labels: {
+                        visible: true,
+                        background: "transparent",
+                        template: "#= getAnsId(category) # - #= kendo.format('{0:P}', percentage)#"
+                    }
+                },
+                tooltip: {
+                    visible: true,
+                    template: "#= getAnsId(category) # - #= kendo.format('{0:P}', percentage)#"
+                },
+                series: [{
+                    type: "pie",
+                    field: "value",
+                    categoryField: "category"
+                }]
+            });
+
+
+            var seriesSchema = data.BarChartSchema;
+
+            $("#answerBarChart").kendoChart({
+                dataSource: {
+                    transport: {
+                        read: {
+                            url: "/api/_GetAnswersBarChartData_Realtime/" + data.quid,
+                            dataType: "json"
+                        }
+                    },
+                    sort: {
+                        field: "year",
+                        dir: "asc"
+                    }
+                },
+                title: {
+                    text: ""
+                },
+                legend: {
+                    position: "top",
+                },
+                seriesDefaults: {
+                    type: "column",
+                    labels: {
+                        visible: true,
+                        position: "top",
+                        padding: {
+                            top: -20
+                        }
+                    }
+                },
+                series: seriesSchema,
+                valueAxis: {
+                    labels: {
+                        format: "N0"
+                    },
+                    line: {
+                        visible: false
+                    }
+                },
+                tooltip: {
+                    visible: true,
+                    format: "N0",
+                    template: "#= series.name #: #= value #"
+                }
+            });
+
+            var products = [{
+                ProductName: "nuclear",
+                UnitPrice: "Nuclear",
+                UnitsInStock: 5,
+                Discontinued: false
+            }, {
+                ProductName: "nuclear",
+                UnitPrice: "Nuclear",
+                UnitsInStock: 5,
+                Discontinued: false
+            }, {
+                ProductName: "nuclear",
+                UnitPrice: "Nuclear",
+                UnitsInStock: 5,
+                Discontinued: false
+            }, {
+                ProductName: "nuclear",
+                UnitPrice: "Nuclear",
+                UnitsInStock: 5,
+                Discontinued: false
+            }]
+
+            $("#dgAnswer").kendoGrid({
+                dataSource: {
+                    data: data.PieChartData,
+                    schema: {
+                        model: {
+                            fields: {
+                                keyvalue: { type: "string" },
+                                answid: { type: "string" },
+                                text: { type: "string" },
+                                totalVotes: { type: "number" },
+                                totalCoins: { type: "number" }
+                            }
+                        }
+                    },
+                    pageSize: 20
+                },
+                scrollable: false,
+                sortable: true,
+                filterable: true,
+                selectable: "single",
+                change: onChange_Answer,
+                pageable: {
+                    input: true,
+                    numeric: false
+                },
+                columns: [
+                    { field: "keyvalue", title: "keyvalue", hidden: true },
+                    { field: "answid", title: "Answer", width: "110px" },
+                    { field: "text", title: "Description" },
+                    { field: "totalVotes", title: "Votes", width: "130px" },
+                    { field: "totalCoins", title: "Coins", width: "130px" }
+                ]
+            });
+
+
+        }
+
+        function successFunc_Address(data, status) {
+            var myWindow = $("#window");
+            myWindow.data("kendoWindow").title(data.questionDetails.quid + " - " + data.answerDetails.ansid);
+            myWindow.data("kendoWindow").center().open();
+
+            $("#addressDetailsPanel").html("");
+
+
+            $("#dgAddress").kendoGrid({
+                dataSource: {
+                    data: data.addresses,
+                    schema: {
+                        model: {
+                            fields: {
+                                keyvalue: { type: "string" },
+                                id: { type: "number" },
+                                address: { type: "string" },
+                                totalVotes: { type: "number" },
+                                totalCoins: { type: "number" }
+                            }
+                        }
+                    },
+                    pageSize: 20
+                },
+                height: 310,
+                scrollable: true,
+                sortable: true,
+                change: onChange_Address,
+                filterable: true,
+                selectable: "multiple",
+                pageable: {
+                    input: true,
+                    numeric: false
+                },
+                columns: [
+                    { field: "keyvalue", title: "keyvalue", hidden: true },
+                    { field: "id", title: "#", width: "80px" },
+                    { field: "address", title: "Address" },
+                    { field: "totalVotes", title: "Votes", width: "130px" },
+                    { field: "totalCoins", title: "Coins", width: "130px" }
+                ]
+            });
+
+
+
+
+        }
+
+        function onChange_Answer(arg) {
+            var selected = $.map(this.select(), function (item) {
+                return $(item).text();
+            });
+
+            var quid = selected[0].split('|')[0];
+            var serviceURL = '/api/_GetAnswerInformation_Realtime/' + quid;
+
+            $.ajax({
+                type: "GET",
+                url: serviceURL,
+                data: { quid: quid },
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: successFunc_Address,
+                error: errorFunc
+            });
+        }
+
+        function onChange_Address(arg) {
+            var selected = $.map(this.select(), function (item) {
+                return $(item).text();
+            });
+
+            var splitter = $("#addressPanel").data("kendoSplitter");
+            splitter.ajaxRequest("#addressDetailsPanel", "http://192.81.216.69:2750/address/" + selected[0].split('|')[0]);
+
+        }
 
         function errorFunc() {
             alert('error');

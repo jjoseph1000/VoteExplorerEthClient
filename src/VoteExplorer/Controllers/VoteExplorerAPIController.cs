@@ -52,142 +52,65 @@ namespace VoteExplorer.Controllers
             return accessBlockChain;
         }
 
-        [HttpPost("SetSessionVariables")]
-        public ActionResult SetSessionVariables([FromBody]Newtonsoft.Json.Linq.JObject sessionValues)
-        {
-            string contractNumber = sessionValues["contractNumber"].ToString();
-            HttpContext.Session.SetString("contractNumber", contractNumber);
-            string voteTokenAddress = sessionValues["voteTokenAdd"].ToString();
-            HttpContext.Session.SetString("voteTokenAddress", voteTokenAddress);
-            string voteTokenName = sessionValues["currentTokenName"].ToString();
-            HttpContext.Session.SetString("voteTokenName", voteTokenName);
-            string voteTokenSymbol = sessionValues["currentTokenSymbol"].ToString();
-            HttpContext.Session.SetString("voteTokenSymbol", voteTokenSymbol);
-            string voteTokenDecimal = sessionValues["currentTokenDecimal"].ToString();
-            HttpContext.Session.SetString("voteTokenDecimal", voteTokenDecimal);
-            string account = sessionValues["account"].ToString();
-            HttpContext.Session.SetString("account", account);
-            string userBalance = sessionValues["userBalance"].ToString();
-            HttpContext.Session.SetString("userBalance", userBalance);
-            HttpContext.Session.SetString("questions", Newtonsoft.Json.JsonConvert.SerializeObject(sessionValues["questions"]));
-            List<Question> questions = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Question>>(HttpContext.Session.GetString("questions"));
-            List<Answer> answers = new List<Answer>();
-            foreach (Question question in questions)
-            {
-                Answer answer = new Answer();
-                answer.quid = question.quid;
-                answer.answid = "A";
-                answer.test = "FOR";
-                answers.Add(answer);
-                answer = new Answer();
-                answer.quid = question.quid;
-                answer.answid = "B";
-                answer.test = "AGAINST";
-                answers.Add(answer);
-                answer = new Answer();
-                answer.quid = question.quid;
-                answer.answid = "Z";
-                answer.test = "ABSTAIN";
-                answers.Add(answer); 
-            }
-            HttpContext.Session.SetString("answers", Newtonsoft.Json.JsonConvert.SerializeObject(answers));
-
-
-            string voteSessionId = sessionValues["voteSessionId"].ToString();
-            HttpContext.Session.SetString("voteSessionId", voteSessionId);
-            string voteAnswerChoices = sessionValues["voteAnswerChoices"].ToString();
-            HttpContext.Session.SetString("voteAnswerChoices", voteAnswerChoices);
-            string transactionId = sessionValues["transactionId"].ToString();
-            HttpContext.Session.SetString("transactionId", transactionId);
-
-            return Json("OK");
-        }
-
-        [HttpGet("DeleteVoteSubmissionById/{id}")]
-        public ActionResult DeleteVoteSubmissionById(string id)
-        {
-            var filter = Builders<VoteSubmission>.Filter.Eq("_id", id);
-
-            Context.votesubmission.DeleteOne(filter);
-
-            return Json("OK");
-        }
-
-        [HttpGet("GetSessionVariables")]
-        public ActionResult GetSessionVariables()
-        {
-            string contractNumber = HttpContext.Session.GetString("contractNumber");
-            string account = HttpContext.Session.GetString("account");
-
-            var dynamicOutput = new ExpandoObject() as IDictionary<string, Object>;
-            dynamicOutput.Add("contractNumber", HttpContext.Session.GetString("contractNumber").ToString());
-            dynamicOutput.Add("voteTokenAddress", HttpContext.Session.GetString("voteTokenAddress").ToString());
-            dynamicOutput.Add("voteTokenName", HttpContext.Session.GetString("voteTokenName").ToString());
-            dynamicOutput.Add("voteTokenSymbol", HttpContext.Session.GetString("voteTokenSymbol").ToString());
-            dynamicOutput.Add("voteTokenDecimal", HttpContext.Session.GetString("voteTokenDecimal").ToString());
-            dynamicOutput.Add("account", HttpContext.Session.GetString("account").ToString());
-            dynamicOutput.Add("userBalance", HttpContext.Session.GetString("userBalance").ToString());
-            dynamicOutput.Add("questions", Newtonsoft.Json.JsonConvert.SerializeObject(HttpContext.Session.GetString("questions")));
-            dynamicOutput.Add("voteSessionId", HttpContext.Session.GetString("voteSessionId").ToString());
-            dynamicOutput.Add("voteAnswerChoices", HttpContext.Session.GetString("voteAnswerChoices").ToString());
-            dynamicOutput.Add("transactionId", HttpContext.Session.GetString("transactionId").ToString());
-
-            List<VoteSubmission> voteSubmissions = Context.votesubmission.AsQueryable().Where(vs => vs.contractNumber == contractNumber && vs.account == account && vs.voteSubmissionStatus == VoteSubmissionStatus.VotesConfirmed).ToList();
-            if (voteSubmissions.Any())
-            {
-                dynamicOutput.Add("voteSubmission", voteSubmissions.FirstOrDefault());
-            }
-            else
-            {
-                dynamicOutput.Add("voteSubmission", "");
-            }
-
-
-            return Json(dynamicOutput);
-        }
-
         [HttpPost("SubmitVotes")]
         public ActionResult SubmitVotes([FromBody]Newtonsoft.Json.Linq.JArray SubmittedVotes)
         {
-            string contractNumber = HttpContext.Session.GetString("contractNumber");
-            string account = HttpContext.Session.GetString("account");
-            List<Question> questions = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Question>>(HttpContext.Session.GetString("questions"));
-            List<QuestionVM> selectedVotes = (from q in questions                                                
-                                                select new QuestionVM
-                                                {
-                                                    quid = q.quid,
-                                                    text = q.text,
-                                                    text_ru = q.text_ru,
-                                                    boardRecommendation = q.boardRecommendation,
-                                                    questionIndex = q.questionIndex,
-                                                    keyid = q.quid + "|"
-                                                }
-                                                ).ToList();
-            selectedVotes.ForEach(sv => sv.orderNum = Convert.ToInt32(sv.questionIndex)+1);
-
-            string voteString = "";
-            for (int x = 0; x < SubmittedVotes.Count(); x++)
+            string meetingId = HttpContext.Session.GetString("displayResultsMeetingId");
+            string controlNumber = HttpContext.Session.GetString("controlNumber");
+            List<Question> questions = Context.questions.AsQueryable().Where(q => q.MeetingId == meetingId).ToList();
+            bool insufficientFunds = false;
+            List<Meeting_SHOAccount> meeting_shoaccounts = Context.meeting_shoaccounts.AsQueryable().Where(m => m.meetingId == meetingId && m.controlNumber == controlNumber).ToList();
+            Console.Write("Got to insufficient check");
+            if (meeting_shoaccounts.Any())
             {
-                string quid = SubmittedVotes[x]["quid"].ToString();
-                string selectedAnswerId = SubmittedVotes[x]["selectedAnswerId"].ToString();
-                var questionVote = selectedVotes.Where(v => v.quid == quid);
-                if (questionVote.Any())
+                for (int x = 0; x < questions.Count(); x++)
                 {
-                    selectedVotes.FirstOrDefault(v => v.quid == quid).SelectedAnswerId = selectedAnswerId;
-                    voteString += selectedAnswerId;
+                    Question question = questions[x];
+                    string walletAccountName = string.Format("{0}_{1}_{2}", meetingId, controlNumber, question.quid);
+                    if (Convert.ToDecimal(GetBalance(walletAccountName)) <= 0)
+                    {
+                        insufficientFunds = true;
+                    }
                 }
             }
 
-            VoteSubmission voteSubmission = new VoteSubmission();
-            voteSubmission.account = HttpContext.Session.GetString("account");
-            voteSubmission.contractNumber = HttpContext.Session.GetString("contractNumber");
-            voteSubmission.VoteSelections = selectedVotes;
-            voteSubmission.voteString = voteString;
-            voteSubmission.voteSubmissionStatus = VoteSubmissionStatus.VotesSubmitted;
+            if (insufficientFunds)
+            {
+                return Json("Insufficient");
+            }
+            else
+            {
+                List<QuestionVM> selectedVotes = (from q in questions
+                                                  where q.state == 2
+                                                  select new QuestionVM
+                                                  {
+                                                      quid = q.quid,
+                                                      text = q.text,
+                                                      text_ru = q.text_ru,
+                                                      block = q.block,
+                                                      keyid = q.quid + "|"
+                                                  }
+                                                    ).ToList();
 
-            Context.votesubmission.InsertOne(voteSubmission);
+                for (int x = 0; x < SubmittedVotes.Count(); x++)
+                {
+                    var questionVote = selectedVotes.Where(v => v.quid == SubmittedVotes[x]["quid"].ToString());
+                    if (questionVote.Any())
+                    {
+                        selectedVotes.FirstOrDefault(v => v.quid == SubmittedVotes[x]["quid"].ToString()).SelectedAnswerId = SubmittedVotes[x]["selectedAnswerId"].ToString();
+                    }
+                }
 
-            return Json(voteSubmission._id.ToString());            
+                VoteSubmission voteSubmission = new VoteSubmission();
+                voteSubmission.ControlNumber = HttpContext.Session.GetString("ControlNumber");
+                voteSubmission.MeetingId = meetingId;
+                voteSubmission.VoteSelections = selectedVotes;
+                voteSubmission.voteSubmissionStatus = VoteSubmissionStatus.VotesSubmitted;
+
+                Context.votesubmission.InsertOne(voteSubmission);
+
+                return Json(voteSubmission._id.ToString());
+            }
         }
 
         [HttpGet("GetVoteSubmissionStatus/{id}")]
@@ -196,9 +119,9 @@ namespace VoteExplorer.Controllers
             VoteSubmission voteSubmission = Context.votesubmission.AsQueryable().ToList().FirstOrDefault(vs => vs._id == id);
             List<QuestionVM> voteSelections = voteSubmission.VoteSelections;
             QuestionVM lastQuestion = voteSelections[voteSelections.Count() - 1];
-            string contractNumber = voteSubmission.contractNumber;
-            string account = voteSubmission.account;
-            List<BlockchainAddress> blockchainAddresses = Context.contractBlockchainAddresses.AsQueryable().Where(bca=>bca.contractNumber==contractNumber).FirstOrDefault().blockchainAddreses.AsQueryable().Where(bc => bc.contractNumber == contractNumber && bc.account == account && bc.quid == lastQuestion.quid && bc.currentTransaction == true && bc.isFirstTransaction == false).ToList();
+            string meetingId = voteSubmission.MeetingId;
+            string controlNumber = voteSubmission.ControlNumber;
+            List<BlockchainAddress> blockchainAddresses = Context.blockchainaddresses.AsQueryable().Where(bc => bc.meetingId == meetingId && bc.controlNumber == controlNumber && bc.quid == lastQuestion.quid && bc.currentTransaction == true && bc.isFirstTransaction == false).ToList();
 
             if (blockchainAddresses.Any())
             {
@@ -227,9 +150,9 @@ namespace VoteExplorer.Controllers
         public ActionResult GetCurrentVoteSubmissionId()
         {
             VoteSubmissionSatusVM voteSubmissionStatusVM = new VoteSubmissionSatusVM();
-            string contractNumber = HttpContext.Session.GetString("contractNumber");
-            string account = HttpContext.Session.GetString("account");
-            List<VoteSubmission> voteSubmissions = Context.votesubmission.AsQueryable().Where(vs => vs.contractNumber == contractNumber && vs.account == account && vs.voteSubmissionStatus == VoteSubmissionStatus.VoteCoinsPendingTransfer).ToList();
+            string meetingId = HttpContext.Session.GetString("activeVoteMeetingId");
+            string controlNumber = HttpContext.Session.GetString("ControlNumber");
+            List<VoteSubmission> voteSubmissions = Context.votesubmission.AsQueryable().Where(vs => vs.MeetingId == meetingId && vs.ControlNumber == controlNumber && vs.voteSubmissionStatus == VoteSubmissionStatus.VoteCoinsPendingTransfer).ToList();
             if (voteSubmissions.Any())
             {
                 voteSubmissionStatusVM.id = voteSubmissions.FirstOrDefault()._id;
@@ -239,7 +162,7 @@ namespace VoteExplorer.Controllers
                 voteSubmissionStatusVM.id = "";
             }
 
-            List<VoteSubmission> voteSubmissions1 = Context.votesubmission.AsQueryable().Where(vs => vs.contractNumber == contractNumber && vs.account == account).ToList();
+            List<VoteSubmission> voteSubmissions1 = Context.votesubmission.AsQueryable().Where(vs => vs.MeetingId == meetingId && vs.ControlNumber == controlNumber).ToList();
             if (voteSubmissions1.Any())
             {
                 switch (voteSubmissions1.FirstOrDefault().voteSubmissionStatus)
@@ -263,21 +186,30 @@ namespace VoteExplorer.Controllers
             return Json(voteSubmissionStatusVM);
         }
 
-        [HttpGet("ConfirmVotes/{id}/{languagePreference}/{transactionId}")]
-        public ActionResult ConfirmVotes(string id, string languagePreference, string transactionId)
+        [HttpGet("ConfirmVotes/{id}/{languagePreference}")]
+        public ActionResult ConfirmVotes(string id, string languagePreference)
         {
             VoteSubmission voteSubmission = Context.votesubmission.AsQueryable().ToList().FirstOrDefault(vs => vs._id == id);
 
             var filter = Builders<VoteSubmission>.Filter.Eq("_id", id);
-            var update = Builders<VoteSubmission>.Update.Set("voteSubmissionStatus", VoteSubmissionStatus.VotesConfirmed)
+            var update = Builders<VoteSubmission>.Update.Set("voteSubmissionStatus", VoteSubmissionStatus.VoteCoinsPendingTransfer)
                                                         .Set("dateSubmitted", DateTime.Now)
-                                                        .Set("transactionId", transactionId);
+                                                        .Set("currentQuestionBeingProcessedNumber", 0)
+                                                        .Set("currentQuestionBeingProcessedQuid", "")
+                                                        .Set("blockChainProcessingMessage", "")
+                                                        .Set("blockChainStage", BlockChainStage.NotProcessed);
+
             Context.votesubmission.UpdateOneAsync(filter, update);
 
-            VoteSubmissionTransaction voteSubmissionTransaction = new VoteSubmissionTransaction();
-            voteSubmissionTransaction.voteSubmissionid = id;
-            voteSubmissionTransaction.transactionid = transactionId;
-            Context.votesubmissiontransactions.InsertOneAsync(voteSubmissionTransaction);
+            string meetingId = HttpContext.Session.GetString("activeVoteMeetingId");
+            string controlNumber = HttpContext.Session.GetString("ControlNumber");
+
+            var filter1 = Builders<VoteSubmission>.Filter.Eq("ControlNumber", controlNumber) & Builders<VoteSubmission>.Filter.Eq("MeetingId", meetingId) & Builders<VoteSubmission>.Filter.Eq("voteSubmissionStatus", VoteSubmissionStatus.VoteCoinsTransferredPendingDelete);
+            Context.votesubmission.DeleteMany(filter1);
+
+            string voteSubmissionId_controlNumber_MeetingId = string.Format("{0}_{1}_{2}_{3}", id, controlNumber, meetingId, languagePreference);
+
+            _tm = new Timer(VoteOnBlockchain, voteSubmissionId_controlNumber_MeetingId, 2000, 2000);
 
             return Json(voteSubmission);
         }
@@ -623,15 +555,211 @@ namespace VoteExplorer.Controllers
 
 
 
+        public void VoteOnBlockchain(object voteSubmissionId_ControlNumber_MeetingId)
+        {
+            _tm.Dispose();
+
+            _log.LogInformation("Ran VoteOnBlockchain");
+            try
+            {
+                var parameters = voteSubmissionId_ControlNumber_MeetingId.ToString().Split('_');
+                string voteSubmissionId = parameters[0].ToString();
+                string controlNumber = parameters[1].ToString();
+                string meetingId = parameters[2].ToString();
+                string vanityAddressGeneratedMessage = "";
+                string privateKeyImportedMessage = "";
+                string coinsSentMessage = "";
+                bool unsignableTransactionExists = false;
+                if (parameters[3].ToString() == "ru")
+                {
+                    vanityAddressGeneratedMessage = "Создан персонализированный биткоин-адрес";
+                    privateKeyImportedMessage = "Приватный ключ внесен";
+                    coinsSentMessage = "Монеты высланы на адрес";
+                }
+                else
+                {
+                    vanityAddressGeneratedMessage = "Vanity Address Generated";
+                    privateKeyImportedMessage = "Private Key Imported";
+                    coinsSentMessage = "Coins Sent To Address";
+                }
+
+                List<Meeting_SHOAccount> meeting_shoaccounts = Context.meeting_shoaccounts.AsQueryable().Where(m => m.meetingId == meetingId && m.controlNumber == controlNumber).ToList();
+                string id = voteSubmissionId.ToString();
+                VoteSubmission voteSubmission = Context.votesubmission.AsQueryable().ToList().FirstOrDefault(vs => vs._id == id);
+
+                List<QuestionVM> questions = voteSubmission.VoteSelections;
+
+                var builder = new ConfigurationBuilder()
+                    .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json");
+
+                IConfigurationRoot Configuration = builder.Build();
+
+                decimal surcharge = Convert.ToDecimal(Configuration["surcharge"]);
+                decimal coinWeight = Convert.ToDecimal(Configuration["coinWeight"]);
+
+                //Set Vote Status to Pending
+                var filter = Builders<VoteSubmission>.Filter.Eq("_id", id);
+                var update = Builders<VoteSubmission>.Update.Set("voteSubmissionStatus", VoteSubmissionStatus.VoteCoinsPendingTransfer)
+                                                            .Set("blockChainStage", BlockChainStage.NotProcessed)
+                                                            .Set("blockChainProcessingMessage", " ");
+
+                Context.votesubmission.UpdateOne(filter, update);
+
+                SHOAccount shoAccount = Context.shoaccounts.AsQueryable().FirstOrDefault(a => a.ControlNumber == controlNumber);
+
+                //Go through list of questions
+                for (int x = 0; x < questions.Count(); x++)
+                {
+                    QuestionVM question = questions[x];
+
+                    Context.votesubmission.UpdateOne(filter, update);
+
+                    BlockchainAddress generatedAddress = GenerateVanityAddress(string.Format("1{0}{1}", question.quid, question.SelectedAnswerId));
+
+                    update = Builders<VoteSubmission>.Update.Set("currentQuestionBeingProcessedNumber", x + 1)
+                                                            .Set("blockChainStage", BlockChainStage.VanityAddressGenerated)
+                                                            .Set("blockChainProcessingMessage", vanityAddressGeneratedMessage);
+
+                    Context.votesubmission.UpdateOne(filter, update);
+
+                    Console.Write("PubAddress:" + generatedAddress.publicAddress + "\n");
+                    Console.Write("PrivateKey:" + generatedAddress.privateKey + "\n");
+                    ImportPrivateKey(generatedAddress.privateKey);
+                    update = Builders<VoteSubmission>.Update.Set("blockChainStage", BlockChainStage.PrivateKeyImported)
+                                                            .Set("blockChainProcessingMessage", privateKeyImportedMessage);
+
+                    Context.votesubmission.UpdateOne(filter, update);
+
+                    //string fromAccountName = "";
+                    //string coinsToSend = "";
+                    //string generalFundAccount = string.Format("GeneralFund_{0}", meetingId);
+
+                    //if (meeting_shoaccounts.Any())
+                    //{
+                    //    fromAccountName = walletAccountName;
+                    //}
+                    //else
+                    //{
+                    //    fromAccountName = generalFundAccount;
+                    //}
+                    //coinsToSend = (shoAccount.AvailableShares * coinWeight).ToString();
+                    //string transactionId = sendCoinsFromAccount(fromAccountName, generatedAddress.publicAddress, coinsToSend);
+                    List<BlockchainAddress> blockchainaddresses = Context.blockchainaddresses.AsQueryable().Where(bc => bc.meetingId == meetingId && bc.controlNumber == controlNumber && bc.quid == question.quid && bc.currentTransaction == true).ToList();
+                    if (blockchainaddresses.Any())
+                    {
+                        BlockchainAddress prevBlockchainAddress = blockchainaddresses.FirstOrDefault();
+                        decimal coinsToSendVote = (shoAccount.AvailableShares * coinWeight);
+                        decimal coinsInGeneralFund;
+                        string hexValue;
+                        SignedHex signedHex = new SignedHex(); ;
+
+                        if (prevBlockchainAddress.isFirstTransaction)
+                        {
+                            string hexValue1;
+                            string hexValue2;
+                            coinsInGeneralFund = Convert.ToDecimal(prevBlockchainAddress.coins) - coinsToSendVote - surcharge;
+                            hexValue1 = createRawTransactionOneInput(prevBlockchainAddress.transactionId, "1", generatedAddress.publicAddress, coinsToSendVote.ToString(), prevBlockchainAddress.generalFundPublicAddress, coinsInGeneralFund.ToString());
+                            SignedHex signedHex1 = signRawTransaction(hexValue1);
+                            if (signedHex1.complete == "true")
+                            {
+                                signedHex = signedHex1;
+                            }
+                            else
+                            {
+                                hexValue2 = createRawTransactionOneInput(prevBlockchainAddress.transactionId, "0", generatedAddress.publicAddress, coinsToSendVote.ToString(), prevBlockchainAddress.generalFundPublicAddress, coinsInGeneralFund.ToString());
+                                SignedHex signedHex2 = signRawTransaction(hexValue2);
+                                if (signedHex2.complete == "true")
+                                {
+                                    signedHex = signedHex2;
+                                }
+                                else
+                                {
+                                    signedHex.complete = "false";
+                                }
+                            }
+
+                        }
+                        else
+                        {
+                            coinsInGeneralFund = Convert.ToDecimal(prevBlockchainAddress.generalFundCoins) - surcharge;
+                            hexValue = createRawTransactionTwoInputs(prevBlockchainAddress.transactionId, "0", prevBlockchainAddress.transactionId, "1", generatedAddress.publicAddress, coinsToSendVote.ToString(), prevBlockchainAddress.generalFundPublicAddress, coinsInGeneralFund.ToString());
+                            signedHex = signRawTransaction(hexValue);
+                        }
+
+                        if (signedHex.complete == "true")
+                        {
+                            string transactionId = sendRawTransaction(signedHex.hex);
+                            //Clear and Log address and transaction info into database
+                            var filterSubmittedAddresses = Builders<BlockchainAddress>.Filter.Eq("meetingId", meetingId) & Builders<BlockchainAddress>.Filter.Eq("controlNumber", controlNumber) &
+                                                                Builders<BlockchainAddress>.Filter.Eq("quid", question.quid);
+                            var updateSubmittedAddresses = Builders<BlockchainAddress>.Update.Set("currentTransaction", false);
+
+                            Context.blockchainaddresses.UpdateMany(filterSubmittedAddresses, updateSubmittedAddresses);
+
+                            generatedAddress.inputTransactionId = prevBlockchainAddress.transactionId;
+                            generatedAddress.generalFundPublicAddress = prevBlockchainAddress.generalFundPublicAddress;
+                            generatedAddress.generalFundCoins = coinsInGeneralFund.ToString();
+                            generatedAddress.quid = question.quid;
+                            generatedAddress.ansid = question.SelectedAnswerId;
+                            generatedAddress.meetingId = meetingId;
+                            generatedAddress.transactionId = transactionId;
+                            generatedAddress.controlNumber = controlNumber;
+                            generatedAddress.currentTransaction = true;
+                            generatedAddress.isFirstTransaction = false;
+                            generatedAddress.coins = coinsToSendVote.ToString();
+                            Context.blockchainaddresses.InsertOneAsync(generatedAddress);
+
+                            update = Builders<VoteSubmission>.Update.Set("blockChainStage", BlockChainStage.CoinsSent)
+                                                                    .Set("blockChainProcessingMessage", coinsSentMessage);
+
+                            Context.votesubmission.UpdateOne(filter, update);
+
+
+                        }
+                        else
+                        {
+                            unsignableTransactionExists = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!unsignableTransactionExists)
+                {
+                    if (!meeting_shoaccounts.Any())
+                    {
+                        Meeting_SHOAccount meeting_shoaccount = new Meeting_SHOAccount();
+                        meeting_shoaccount.controlNumber = controlNumber;
+                        meeting_shoaccount.meetingId = meetingId;
+                        Context.meeting_shoaccounts.InsertOne(meeting_shoaccount);
+                    }
+
+                    update = Builders<VoteSubmission>.Update.Set("voteSubmissionStatus", VoteSubmissionStatus.VoteCoinsTransferred);
+                    Context.votesubmission.UpdateOne(filter, update);
+                }
+                else
+                {
+                    update = Builders<VoteSubmission>.Update.Set("voteSubmissionStatus", VoteSubmissionStatus.VotesSubmitted);
+                    Context.votesubmission.UpdateOne(filter, update);
+                }
+            }
+            catch (Exception ex)
+            {
+                _log.LogError(0, ex, "Failed on VoteOnBlockchain");
+            }
+        }
+
         [HttpGet("_GetCompletedQuestions")]
         public ActionResult _GetCompletedQuestions()
         {
             try
             {
-                string contractNumber = HttpContext.Session.GetString("contractNumber");
+                string meetingId = HttpContext.Session.GetString("displayResultsMeetingId");
 
-                List<Question> questions = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Question>>(HttpContext.Session.GetString("questions"));
-                List<Answer> answers = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Answer>>(HttpContext.Session.GetString("answers"));
+                List<Question> questions = Context.questions.AsQueryable().Where(q => q.MeetingId == meetingId).ToList();
+                IMongoQueryable<Answer> answers = Context.answers.AsQueryable();
+
                 List<Question> completedQuestions = questions.Where(q => q.state == 2).ToList();
 
                 foreach (Question question in completedQuestions)
@@ -699,8 +827,8 @@ namespace VoteExplorer.Controllers
 
         }
 
-        [HttpPost("_GetCompletedQuestions_Realtime")]
-        public ActionResult _GetCompletedQuestions_Realtime([FromBody]Newtonsoft.Json.Linq.JArray voteCollections)
+        [HttpGet("_GetCompletedQuestions_Realtime/{UserType}")]
+        public ActionResult _GetCompletedQuestions_Realtime(string UserType)
         {
             try
             {
@@ -711,75 +839,10 @@ namespace VoteExplorer.Controllers
                 IConfigurationRoot Configuration = builder.Build();
 
                 decimal coinWeight = Convert.ToDecimal(Configuration["coinWeight"]);
-                List<Question> questions = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Question>>(HttpContext.Session.GetString("questions")).OrderBy(q=>q.questionIndex).ToList();
-                List<Answer> answersContext = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Answer>>(HttpContext.Session.GetString("answers"));
-                string contractNumber = HttpContext.Session.GetString("contractNumber").ToString();
-                List<BlockchainAddress> blockchainAddresses;
-                if (voteCollections[0]["index"].ToString() != "")
-                {
-                    List<IDictionary<string, Object>> lstRawResults = new List<IDictionary<string, object>>();
-                    for (int x = 0; x < voteCollections.Count(); x++)
-                    {
-                        string index = voteCollections[x]["index"].ToString();
-                        string senderAddress = voteCollections[x]["senderAddress"].ToString();
-                        string sessionId = voteCollections[x]["sessionId"].ToString();
-                        string voteSelections = voteCollections[x]["voteSelections"].ToString();
-                        string blockNumber = voteCollections[x]["blockNumber"].ToString();
-                        string balance = voteCollections[x]["balance"].ToString();
 
-                        var dynamicObjectVoteResults = new ExpandoObject() as IDictionary<string, Object>;
-                        dynamicObjectVoteResults.Add("index", index);
-                        dynamicObjectVoteResults.Add("senderAddress", senderAddress);
-                        dynamicObjectVoteResults.Add("sessionId", sessionId);
-                        dynamicObjectVoteResults.Add("blockNumber", blockNumber);
-                        dynamicObjectVoteResults.Add("balance", Convert.ToInt32(balance));
-
-                        for (int i = 0; i < questions.Count(); i++)
-                        {
-                            dynamicObjectVoteResults.Add(questions[i].quid, voteSelections.Substring(i, 1));
-                        }
-                        lstRawResults.Add(dynamicObjectVoteResults);
-                    }
-
-                    blockchainAddresses = new List<BlockchainAddress>();
-
-                    foreach (Question question in questions)
-                    {
-                        List<Answer> rawAnswers = answersContext.Where(a => a.quid == question.quid).ToList();
-                        foreach (Answer answer in rawAnswers)
-                        {
-                            var subQuery = lstRawResults.Where(rr => rr[question.quid].ToString() == answer.answid).ToList();
-                            foreach (IDictionary<string, object> rawVoter in subQuery)
-                            {
-                                BlockchainAddress blockChainAddress = new BlockchainAddress();
-                                blockChainAddress.quid = question.quid;
-                                blockChainAddress.ansid = answer.answid;
-                                blockChainAddress.account = rawVoter["senderAddress"].ToString();
-                                blockChainAddress.publicAddress = rawVoter["senderAddress"].ToString();
-                                blockChainAddress.blockNumber = rawVoter["blockNumber"].ToString();
-                                blockChainAddress.coins = rawVoter["balance"].ToString();
-                                blockChainAddress.contractNumber = contractNumber;
-                                if (blockChainAddress.coins != "0")
-                                {
-                                    blockchainAddresses.Add(blockChainAddress);
-                                }
-                            }
-                        }
-                    }
-                    ContractBlockchainAddresses contractBlockchainAddresses = new ContractBlockchainAddresses();
-                    contractBlockchainAddresses.contractNumber = contractNumber;
-                    contractBlockchainAddresses.blockchainAddreses = blockchainAddresses;
-                    contractBlockchainAddresses.lastModifiedDatetime = DateTime.Now.ToString();
-                    var filter = Builders<ContractBlockchainAddresses>.Filter.Eq("contractNumber", contractNumber);
-                    Context.contractBlockchainAddresses.DeleteMany(filter);
-                    Context.contractBlockchainAddresses.InsertOne(contractBlockchainAddresses);
-                }
-                else
-                {
-                    blockchainAddresses = Context.contractBlockchainAddresses.AsQueryable().Where(bc => bc.contractNumber == contractNumber).FirstOrDefault().blockchainAddreses;
-                }
-
-                string account = HttpContext.Session.GetString("account");
+                string meetingId = HttpContext.Session.GetString("displayResultsMeetingId");
+                string controlNumber = HttpContext.Session.GetString("ControlNumber");
+                List<BlockchainAddress> blockchainAddresses = Context.blockchainaddresses.AsQueryable().Where(bc => bc.meetingId == meetingId && bc.currentTransaction == true && bc.isFirstTransaction == false).ToList();
                 blockchainAddresses.ForEach(bc => bc.TotalVotes = Convert.ToDecimal(bc.coins) / coinWeight);
                 blockchainAddresses.ForEach(bc => bc.totalCoins = Convert.ToDecimal(bc.coins));
                 var voteCalculation = (from bc in blockchainAddresses
@@ -793,10 +856,13 @@ namespace VoteExplorer.Controllers
                                            totalCoins = grp.Sum(t => t.totalCoins)
                                        }).ToList();
 
+                List<Question> questions = Context.questions.AsQueryable().Where(q => q.MeetingId == meetingId).ToList();
+
                 List<Question> completedQuestions = questions.ToList();
+
                 foreach (Question question in completedQuestions)
                 {
-                    var answers = (from a1 in answersContext
+                    var answers = (from a1 in Context.answers.AsQueryable().ToList()
                                    join a2 in voteCalculation on a1.answid equals a2.ansid into a3
                                    from a2 in a3.DefaultIfEmpty()
                                    where a1.quid == question.quid && (a2 == null || a2.quid == question.quid)
@@ -840,38 +906,60 @@ namespace VoteExplorer.Controllers
                             break;
                     }
 
-                    List<BlockchainAddress> proxyChouce = Context.contractBlockchainAddresses.AsQueryable().Where(bca => bca.contractNumber == contractNumber).FirstOrDefault().blockchainAddreses.AsQueryable().Where(bc => bc.contractNumber == contractNumber && bc.account == account && bc.quid == question.quid).ToList();
-                    if (proxyChouce.Any())
+                    if (UserType == "SH")
                     {
-                        switch (proxyChouce.FirstOrDefault().ansid.ToUpper())
+                        List<BlockchainAddress> proxyChouce = Context.blockchainaddresses.AsQueryable().Where(bc => bc.meetingId == meetingId && bc.controlNumber == controlNumber && bc.quid == question.quid && bc.currentTransaction == true && bc.isFirstTransaction == false).ToList();
+                        if (proxyChouce.Any())
                         {
-                            case "A":
-                                question.ProxyChoice = "FOR";
-                                question.ProxyChoice_ru = "за";
-                                break;
-                            case "B":
-                                question.ProxyChoice = "AGAINST";
-                                question.ProxyChoice_ru = "против";
-                                break;
-                            default:
-                                question.ProxyChoice = "ABSTAIN";
-                                question.ProxyChoice_ru = "воздержался";
-                                break;
-                        }
+                            switch (proxyChouce.FirstOrDefault().ansid.ToUpper())
+                            {
+                                case "A":
+                                    question.ProxyChoice = "FOR";
+                                    question.ProxyChoice_ru = "за";
+                                    break;
+                                case "B":
+                                    question.ProxyChoice = "AGAINST";
+                                    question.ProxyChoice_ru = "против";
+                                    break;
+                                default:
+                                    question.ProxyChoice = "ABSTAIN";
+                                    question.ProxyChoice_ru = "воздержался";
+                                    break;
+                            }
 
+                        }
                     }
                     else
                     {
-                        question.ProxyChoice = "N/A";
-                        question.ProxyChoice_ru = "N/A";
+                        question.ProxyChoice = "FOR";
+                        question.ProxyChoice_ru = "за";
                     }
+
                     question.text = question.text.ToUpper();
                     question.WinningPercentage = (Convert.ToDecimal(winningAnswer.TotalVotes) / allAnswerVotesTotal).ToString("0.0%");
 
                 }
-                completedQuestions.ForEach(q => q.questionIndex = (Convert.ToInt32(q.questionIndex) + 1).ToString());
-                completedQuestions = completedQuestions.OrderBy(q => q.questionIndex).ToList();
+
+                //var answersWinnerTotal = (from a in answers
+                //                    group a by a.quid into q
+                //                    select new { q.First().quid,
+                //                                TotalVotes = q.Max(e=>e.TotalVotes) }).ToList();
+
+
+
+                //var completedQuestions = (from q in questions
+                //                                where q.state == 2
+                //                                select new
+                //                                {
+                //                                    quid = q.quid,
+                //                                    text = q.text,
+                //                                    block = q.block,
+                //                                    keyid = q.quid + "|"
+                //                                }
+                //                                                   ).ToList();
+
                 return Json(completedQuestions);
+
             }
             catch (Exception ex)
             {
@@ -885,8 +973,8 @@ namespace VoteExplorer.Controllers
         [HttpGet("_GetAnswerInformation/{quid}")]
         public ActionResult _GetAnswerInformation(string quid)
         {
-            string contractNumber = HttpContext.Session.GetString("contractNumber");
-            List<Question> questions = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Question>>(HttpContext.Session.GetString("questions"));
+            string meetingId = HttpContext.Session.GetString("displayResultsMeetingId");
+            List<Question> questions = Context.questions.AsQueryable().Where(q => q.MeetingId == meetingId).ToList();
             var question = (from q in questions
                             where q.quid == quid
                             select new
@@ -897,7 +985,7 @@ namespace VoteExplorer.Controllers
             string questionText = question.questionText;
             string questionText_ru = question.questionText_ru;
 
-            List<Answer> answers = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Answer>>(HttpContext.Session.GetString("answers"));
+            IMongoQueryable<Answer> answers = Context.answers.AsQueryable();
 
             List<AnswerPieChartVM> answersPieChartResult = (from a in answers
                                                             where a.quid == quid
@@ -931,6 +1019,8 @@ namespace VoteExplorer.Controllers
                                  ).ToList();
 
             var dynamicObjectAnswerFinalOutput = new ExpandoObject() as IDictionary<string, Object>;
+            List<IDictionary<string, Object>> dynamicObjAnsers = new List<IDictionary<string, object>>();
+
             dynamicObjectAnswerFinalOutput.Add("PieChartData", answersPieChartResult);
             dynamicObjectAnswerFinalOutput.Add("BarChartSchema", answersBarChartSchema);
             dynamicObjectAnswerFinalOutput.Add("BarChartData", answersBarChartSchema);
@@ -954,20 +1044,19 @@ namespace VoteExplorer.Controllers
             decimal coinWeight = Convert.ToDecimal(Configuration["coinWeight"]);
 
 
-            string contractNumber = HttpContext.Session.GetString("contractNumber");
-            List<Question> questions = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Question>>(HttpContext.Session.GetString("questions"));
+            string meetingId = HttpContext.Session.GetString("displayResultsMeetingId");
+            List<Question> questions = Context.questions.AsQueryable().Where(q => q.MeetingId == meetingId).ToList();
             var question = (from q in questions
                             where q.quid == quid
                             select new
                             {
-                                questionIndex = q.questionIndex,
                                 questionText = q.text,
                                 questionText_ru = q.text_ru
                             }).FirstOrDefault();
-            string questionText = string.Format("{0}: {1}", (Convert.ToInt32(question.questionIndex)+1).ToString(), question.questionText);
+            string questionText = question.questionText;
             string questionText_ru = question.questionText_ru;
 
-            List<BlockchainAddress> blockchainAddresses = Context.contractBlockchainAddresses.AsQueryable().Where(bca => bca.contractNumber == contractNumber).FirstOrDefault().blockchainAddreses.AsQueryable().Where(bc => bc.contractNumber == contractNumber && bc.quid == quid).ToList();
+            List<BlockchainAddress> blockchainAddresses = Context.blockchainaddresses.AsQueryable().Where(bc => bc.meetingId == meetingId && bc.quid == quid && bc.currentTransaction == true && bc.isFirstTransaction == false).ToList();
             blockchainAddresses.ForEach(bc => bc.TotalVotes = Convert.ToDecimal(bc.coins) / coinWeight);
             blockchainAddresses.ForEach(bc => bc.totalCoins = Convert.ToDecimal(bc.coins));
             var voteCalculation = (from bc in blockchainAddresses
@@ -982,8 +1071,7 @@ namespace VoteExplorer.Controllers
                                    }).ToList();
 
             //IMongoQueryable<Answer> answers = Context.answers.AsQueryable();
-            List<Answer> answersContext = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Answer>>(HttpContext.Session.GetString("answers"));
-            var answers = (from a1 in answersContext
+            var answers = (from a1 in Context.answers.AsQueryable().ToList()
                            join a2 in voteCalculation on a1.answid equals a2.ansid into a3
                            from a2 in a3.DefaultIfEmpty()
                            where a1.quid == quid && (a2 == null || a2.quid == quid)
@@ -1044,11 +1132,11 @@ namespace VoteExplorer.Controllers
         [HttpGet("_GetAnswerInformation/{quid}/{ansid}")]
         public ActionResult _GetAnswerInformation(string quid, string ansid)
         {
-            string contractNumber = HttpContext.Session.GetString("contractNumber");
-            List<Question> questions = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Question>>(HttpContext.Session.GetString("questions"));
+            string meetingId = HttpContext.Session.GetString("displayResultsMeetingId");
+            List<Question> questions = Context.questions.AsQueryable().Where(q => q.MeetingId == meetingId).ToList();
             Question questionDetails = questions.AsQueryable().Where(q => q.quid == quid).FirstOrDefault();
 
-            List<Answer> answers = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Answer>>(HttpContext.Session.GetString("answers"));
+            IMongoQueryable<Answer> answers = Context.answers.AsQueryable();
 
             Answer answerDocument = answers.AsQueryable().Where(a => a.quid == quid && a.answid == ansid).FirstOrDefault();
 
@@ -1086,11 +1174,11 @@ namespace VoteExplorer.Controllers
             //decimal surcharge = Convert.ToDecimal(Configuration["surcharge"]);
             decimal coinWeight = Convert.ToDecimal(Configuration["coinWeight"]);
 
-            string contractNumber = HttpContext.Session.GetString("contractNumber");
-            List<Question> questions = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Question>>(HttpContext.Session.GetString("questions"));
+            string meetingId = HttpContext.Session.GetString("displayResultsMeetingId");
+            List<Question> questions = Context.questions.AsQueryable().Where(q => q.MeetingId == meetingId).ToList();
             Question questionDetails = questions.AsQueryable().Where(q => q.quid == quid).FirstOrDefault();
 
-            List<BlockchainAddress> blockchainAddresses = Context.contractBlockchainAddresses.AsQueryable().Where(bca => bca.contractNumber == contractNumber).FirstOrDefault().blockchainAddreses.AsQueryable().Where(bc => bc.contractNumber == contractNumber && bc.quid == quid && bc.ansid == ansid).ToList();
+            List<BlockchainAddress> blockchainAddresses = Context.blockchainaddresses.AsQueryable().Where(bc => bc.meetingId == meetingId && bc.quid == quid && bc.ansid == ansid && bc.currentTransaction == true && bc.isFirstTransaction == false).ToList();
             blockchainAddresses.ForEach(bc => bc.TotalVotes = Convert.ToDecimal(bc.coins) / coinWeight);
             blockchainAddresses.ForEach(bc => bc.totalCoins = Convert.ToDecimal(bc.coins));
             var voteCalculation = (from bc in blockchainAddresses
@@ -1103,8 +1191,8 @@ namespace VoteExplorer.Controllers
                                        TotalVotes = grp.Sum(t => t.TotalVotes),
                                        totalCoins = grp.Sum(t => t.totalCoins)
                                    }).ToList();
-            List<Answer> answersContext = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Answer>>(HttpContext.Session.GetString("answers"));
-            var answers = (from a1 in answersContext
+
+            var answers = (from a1 in Context.answers.AsQueryable().ToList()
                            join a2 in voteCalculation on a1.answid equals a2.ansid into a3
                            from a2 in a3.DefaultIfEmpty()
                            where a1.quid == quid && (a2 == null || a2.quid == quid)
@@ -1125,10 +1213,9 @@ namespace VoteExplorer.Controllers
             var addresses = (from addr in blockchainAddresses
                              select new
                              {
-                                 keyvalue = addr.blockNumber + "|",
+                                 keyvalue = addr.publicAddress + "|",
                                  id = counter++,
                                  address = addr.publicAddress,
-                                 blockNumber = addr.blockNumber,
                                  totalVotes = addr.TotalVotes,
                                  totalCoins = addr.totalCoins
                              }).ToList();
@@ -1147,7 +1234,7 @@ namespace VoteExplorer.Controllers
         [HttpGet("_GetAnswersBarChartData/{quid}")]
         public ActionResult _GetAnswersBarChartData(string quid)
         {
-            List<Answer> answers = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Answer>>(HttpContext.Session.GetString("answers"));
+            IMongoQueryable<Answer> answers = Context.answers.AsQueryable();
 
             List<IDictionary<string, Object>> finalResult = new List<IDictionary<string, object>>();
             var dynamicObject = new ExpandoObject() as IDictionary<string, Object>;
@@ -1186,9 +1273,9 @@ namespace VoteExplorer.Controllers
             //decimal surcharge = Convert.ToDecimal(Configuration["surcharge"]);
             decimal coinWeight = Convert.ToDecimal(Configuration["coinWeight"]);
 
-            string contractNumber = HttpContext.Session.GetString("contractNumber");
-            string account = HttpContext.Session.GetString("account");
-            List<BlockchainAddress> blockchainAddresses = Context.contractBlockchainAddresses.AsQueryable().Where(bca => bca.contractNumber == contractNumber).FirstOrDefault().blockchainAddreses.AsQueryable().Where(bc => bc.contractNumber == contractNumber && bc.quid == quid).ToList();
+            string meetingId = HttpContext.Session.GetString("displayResultsMeetingId");
+            string controlNumber = HttpContext.Session.GetString("controlNumber");
+            List<BlockchainAddress> blockchainAddresses = Context.blockchainaddresses.AsQueryable().Where(bc => bc.meetingId == meetingId && bc.quid == quid && bc.currentTransaction == true && bc.isFirstTransaction == false).ToList();
             blockchainAddresses.ForEach(bc => bc.TotalVotes = Convert.ToDecimal(bc.coins) / coinWeight);
             blockchainAddresses.ForEach(bc => bc.totalCoins = Convert.ToDecimal(bc.coins));
             var voteCalculation = (from bc in blockchainAddresses
@@ -1202,8 +1289,8 @@ namespace VoteExplorer.Controllers
                                        totalCoins = grp.Sum(t => t.totalCoins)
                                    }).ToList();
 
-            List<Answer> answersContext = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Answer>>(HttpContext.Session.GetString("answers"));
-            var answers = (from a1 in answersContext
+            //IMongoQueryable<Answer> answers = Context.answers.AsQueryable();
+            var answers = (from a1 in Context.answers.AsQueryable().ToList()
                            join a2 in voteCalculation on a1.answid equals a2.ansid into a3
                            from a2 in a3.DefaultIfEmpty()
                            where a1.quid == quid && (a2 == null || a2.quid == quid)
@@ -1536,9 +1623,8 @@ namespace VoteExplorer.Controllers
 
             try
             {
-                string contractNumber = HttpContext.Session.GetString("contractNumber");
-
-                questions = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Question>>(HttpContext.Session.GetString("questions"));
+                string meetingId = HttpContext.Session.GetString("activeVoteMeetingId");
+                questions = Context.questions.AsQueryable().Where(q => q.MeetingId == meetingId).ToList();
             }
             catch (Exception ex)
             {
@@ -1551,7 +1637,7 @@ namespace VoteExplorer.Controllers
         [HttpGet("answers/BTCS")]
         public IActionResult GetAnswers()
         {
-            List<Answer> answers = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Answer>>(HttpContext.Session.GetString("answers"));
+            var answers = Context.answers.AsQueryable();
 
             return Ok(answers);
         }
@@ -1561,7 +1647,7 @@ namespace VoteExplorer.Controllers
         {
             try
             {
-                List<Answer> answers = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Answer>>(HttpContext.Session.GetString("answers")).Where(a => a.quid == quid).ToList();
+                List<Answer> answers = Context.answers.AsQueryable().Where(a => a.quid == quid).ToList();
                 return Ok(answers);
             }
             catch (Exception ex)

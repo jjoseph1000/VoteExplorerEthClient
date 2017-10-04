@@ -23,7 +23,7 @@ namespace VoteExplorer
                 .UseKestrel()
                 .UseUrls(Configuration["UseUrls"])
                 .UseContentRoot(Directory.GetCurrentDirectory())
-                .UseIISIntegration()
+                //.UseIISIntegration()
                 .UseStartup<Startup>()
                 .Build();
 

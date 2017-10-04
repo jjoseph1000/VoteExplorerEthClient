@@ -36,15 +36,14 @@ namespace VoteExplorer.Models
             }
         }
 
-        public IMongoCollection<VoteSubmission> votesubmission => Database.GetCollection<VoteSubmission>("votesubmission");
+        public IMongoCollection<Question> questions => Database.GetCollection<Question>("questions");
+        public IMongoCollection<Answer> answers => Database.GetCollection<Answer>("answers");
 
-        public IMongoCollection<VoteSubmissionTransaction> votesubmissiontransactions => Database.GetCollection<VoteSubmissionTransaction>("votesubmissiontransaction");
+        public IMongoCollection<VoteSubmission> votesubmission => Database.GetCollection<VoteSubmission>("votesubmission");
 
         public IMongoCollection<Alert> alerts => Database.GetCollection<Alert>("alerts");
 
         public IMongoCollection<Custodian> custodians => Database.GetCollection<Custodian>("custodian");
-
-        public IMongoCollection<ContractBlockchainAddresses> contractBlockchainAddresses => Database.GetCollection<ContractBlockchainAddresses>("contractblockchainaddresses");
 
         public IMongoCollection<Account> accounts => Database.GetCollection<Account>("account");
 
@@ -55,6 +54,8 @@ namespace VoteExplorer.Models
         public IMongoCollection<Meeting> meetings => Database.GetCollection<Meeting>("meeting");
 
         public IMongoCollection<Group> groups => Database.GetCollection<Group>("groups");
+
+        public IMongoCollection<BlockchainAddress> blockchainaddresses => Database.GetCollection<BlockchainAddress>("blockchainaddresses");
 
         public IMongoCollection<SHOAccount> shoaccounts => Database.GetCollection<SHOAccount>("shoaccounts");
 

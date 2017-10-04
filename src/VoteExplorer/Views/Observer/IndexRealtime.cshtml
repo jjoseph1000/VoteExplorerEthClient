@@ -9,15 +9,8 @@
         Layout = "_Layout";
     }
 
-    string winnerLeader = "WINNER";
+    string winnerLeader = (Model.meeting.VoteDeadline < DateTime.Now) ? "WINNER" : "LEADER";
 }
-<div id="window">
-    <strong><span id="dataretrievalStatus"></span></strong>
-    <p>
-        <div style="float:left;width:300px;" id="totalProgressBarResults"></div><div style="float:left;"> &nbsp; <span class="loadingStatusResults">0%</span></div>
-    </p>
-
-</div>
 <div class="right_col" role="main">
     <div class="">
         <div class="page-title">
@@ -39,7 +32,7 @@
                     else
                     {
 
-                        <small>@Model.voteTokenName</small>
+                        <small>Royal Dutch Shell plc</small>
 
                     }
                 </h3>
@@ -100,7 +93,7 @@
                             #: quid #|
                         </td>
                         <td class="details">
-                            #: questionIndex #: #: text #
+                            #: text #
                         </td>
                         <td class="voteresult">
                             <span>
@@ -125,7 +118,7 @@
 
                         </td>
                         <td class="details">
-                            #: questionIndex #: #: text #
+                            #: text #
                         </td>
                         <td class="voteresult">
                             <span>
@@ -144,208 +137,112 @@
                     </tr>
                 </script>
                 <script>
-                    var accountsResults;
-                    var accountResults;
+                    $(document).ready(function () {
 
-                    var voteSessionABIResults;
-                    var voteSessionContractResults;
-                    var deployedVotingSessionResults;
-                    var totalTokenVoters;
-                    var contractNumberResults = "@Model.contractNumber";
-                    var votes = [];
-                    var myWindow;
-                    var pb;
-                    var refreshDataFromBlockchain = "@Model.refreshDataFromBlockchain";
+                        $("#ddlMeetingList").kendoDropDownList({
 
-                    function pageLoad() {
-                        if (refreshDataFromBlockchain == "true") {
-                            $("#totalProgressBarResults").kendoProgressBar({
-                                orientation: "horizontal",
-                                showStatus: false,
-                                animation: false,
-                                change: function (e) {
-                                    $(".loadingStatusResults").text(e.value + "%");
-                                }
-                            });
-                            $("#dataretrievalStatus").text("Data Is Currently Being Retreived From the Blockchain...");
-                            pb = $("#totalProgressBarResults").data("kendoProgressBar");
-                            pb.value(0);
+                        });
 
-                            //myWindow.data("kendoDialog").open();
-                            myWindow = $("#window");
-
-                            myWindow.kendoWindow({
-                                width: "370px",
-                                title: "Please Wait",
-                                closable: false,
-                                modal: true,
-                                visible: false
-                            }).data("kendoWindow").center().open();
-
-                            var self = this;
-                            web3.eth.getAccounts(function (err, accs) {
-                                if (err != null) {
-                                    alert("There was an error fetching your accounts.");
-                                    return;
-                                }
-                                if (accs.length == 0) {
-                                    alert("Couldn't get any accounts! Make sure your Ethereum client is configured correctly.");
-                                    return;
-                                }
-
-                                accountsResults = accs;
-                                accountResults = accountsResults[0];
-                                web3.eth.defaultAccount = accountResults;
-                                voteSessionABIResults = "[ { \"constant\": false, \"inputs\": [ { \"name\": \"voteToken\", \"type\": \"address\" } ], \"name\": \"setVoteTokenAddress\", \"outputs\": [ { \"name\": \"setTokenId\", \"type\": \"bool\" } ], \"payable\": false, \"type\": \"function\" }, { \"constant\": false, \"inputs\": [ { \"name\": \"votedAddress\", \"type\": \"address\" }, { \"name\": \"voteSessionId\", \"type\": \"string\" }, { \"name\": \"transactionId\", \"type\": \"string\" } ], \"name\": \"setVoteTransactionId\", \"outputs\": [ { \"name\": \"Result\", \"type\": \"bool\" } ], \"payable\": false, \"type\": \"function\" }, { \"constant\": false, \"inputs\": [ { \"name\": \"indexVoter\", \"type\": \"uint256\" }, { \"name\": \"voterAddress\", \"type\": \"address\" } ], \"name\": \"getVoteAnswersByAddress\", \"outputs\": [ { \"name\": \"indexVoter1\", \"type\": \"uint256\" }, { \"name\": \"voter\", \"type\": \"address\" }, { \"name\": \"voteSessionId\", \"type\": \"string\" }, { \"name\": \"voteAnswers\", \"type\": \"string\" }, { \"name\": \"blockNumber\", \"type\": \"uint256\" }, { \"name\": \"balance\", \"type\": \"uint256\" } ], \"payable\": false, \"type\": \"function\" }, { \"constant\": false, \"inputs\": [ { \"name\": \"voterIndex\", \"type\": \"uint256\" } ], \"name\": \"getVoteAnswersByIndex\", \"outputs\": [ { \"name\": \"indexVoter1\", \"type\": \"uint256\" }, { \"name\": \"voter\", \"type\": \"address\" }, { \"name\": \"voteSessionId\", \"type\": \"string\" }, { \"name\": \"voteAnswers\", \"type\": \"string\" }, { \"name\": \"blockNumber\", \"type\": \"uint256\" }, { \"name\": \"balance\", \"type\": \"uint256\" } ], \"payable\": false, \"type\": \"function\" }, { \"constant\": false, \"inputs\": [], \"name\": \"totalVoters\", \"outputs\": [ { \"name\": \"totalVoters\", \"type\": \"uint256\" } ], \"payable\": false, \"type\": \"function\" }, { \"constant\": false, \"inputs\": [], \"name\": \"getLastVoteSessionId\", \"outputs\": [ { \"name\": \"voteSessionId1\", \"type\": \"string\" } ], \"payable\": false, \"type\": \"function\" }, { \"constant\": false, \"inputs\": [], \"name\": \"getVoteAnswers\", \"outputs\": [ { \"name\": \"indexVoter1\", \"type\": \"uint256\" }, { \"name\": \"voter\", \"type\": \"address\" }, { \"name\": \"voteSessionId\", \"type\": \"string\" }, { \"name\": \"voteAnswers\", \"type\": \"string\" }, { \"name\": \"blockNumber\", \"type\": \"uint256\" }, { \"name\": \"balance\", \"type\": \"uint256\" } ], \"payable\": false, \"type\": \"function\" }, { \"constant\": false, \"inputs\": [ { \"name\": \"questionIndex\", \"type\": \"uint256\" } ], \"name\": \"getQuestionByIndex\", \"outputs\": [ { \"name\": \"questionIndex1\", \"type\": \"uint256\" }, { \"name\": \"questionId\", \"type\": \"string\" }, { \"name\": \"questionTextRows\", \"type\": \"uint256\" }, { \"name\": \"boardRecommendation\", \"type\": \"string\" }, { \"name\": \"isActive\", \"type\": \"uint256\" } ], \"payable\": false, \"type\": \"function\" }, { \"constant\": false, \"inputs\": [ { \"name\": \"questionId\", \"type\": \"string\" }, { \"name\": \"questionTextRows\", \"type\": \"uint256\" }, { \"name\": \"questionText\", \"type\": \"bytes32\" }, { \"name\": \"boardRecommendation\", \"type\": \"string\" }, { \"name\": \"isActive\", \"type\": \"uint256\" } ], \"name\": \"insertUpdateQuestion\", \"outputs\": [ { \"name\": \"insertupdate\", \"type\": \"bool\" } ], \"payable\": false, \"type\": \"function\" }, { \"constant\": true, \"inputs\": [ { \"name\": \"x\", \"type\": \"bytes32\" } ], \"name\": \"bytes32ToString\", \"outputs\": [ { \"name\": \"\", \"type\": \"string\" } ], \"payable\": false, \"type\": \"function\" }, { \"constant\": false, \"inputs\": [ { \"name\": \"questionId\", \"type\": \"string\" }, { \"name\": \"questionTextRow\", \"type\": \"uint256\" } ], \"name\": \"getQuestionTextByRow\", \"outputs\": [ { \"name\": \"questionid\", \"type\": \"string\" }, { \"name\": \"row\", \"type\": \"uint256\" }, { \"name\": \"textLine\", \"type\": \"bytes32\" } ], \"payable\": false, \"type\": \"function\" }, { \"constant\": false, \"inputs\": [ { \"name\": \"questionId\", \"type\": \"string\" }, { \"name\": \"questionTextRow\", \"type\": \"uint256\" }, { \"name\": \"questionText\", \"type\": \"bytes32\" } ], \"name\": \"addQuestionTextRow\", \"outputs\": [ { \"name\": \"success\", \"type\": \"bool\" } ], \"payable\": false, \"type\": \"function\" }, { \"constant\": false, \"inputs\": [], \"name\": \"totalQuestions\", \"outputs\": [ { \"name\": \"totalQuestions\", \"type\": \"uint256\" } ], \"payable\": false, \"type\": \"function\" }, { \"constant\": false, \"inputs\": [ { \"name\": \"source\", \"type\": \"string\" } ], \"name\": \"stringToBytes32\", \"outputs\": [ { \"name\": \"result\", \"type\": \"bytes32\" } ], \"payable\": false, \"type\": \"function\" }, { \"constant\": false, \"inputs\": [], \"name\": \"getVoteTokenAddress\", \"outputs\": [ { \"name\": \"VoteToken\", \"type\": \"address\" } ], \"payable\": false, \"type\": \"function\" }, { \"constant\": false, \"inputs\": [ { \"name\": \"voteSessionId\", \"type\": \"string\" }, { \"name\": \"selectedAnswers\", \"type\": \"string\" } ], \"name\": \"vote\", \"outputs\": [ { \"name\": \"Result\", \"type\": \"bool\" } ], \"payable\": false, \"type\": \"function\" }, { \"inputs\": [], \"payable\": false, \"type\": \"constructor\" } ]";
-                                voteSessionContractResults = web3.eth.contract(JSON.parse(voteSessionABIResults));
-                                deployedVotingSessionResults = voteSessionContractResults.at(contractNumberResults);
-                                deployedVotingSessionResults.totalVoters.call(function (error, totalVoters) {
-                                    totalTokenVoters = totalVoters;
-                                    console.log("totalVoters = " + totalVoters);
-                                    votes = [];
-                                    for (var x = 0; x < totalVoters; x++) {
-                                        deployedVotingSessionResults.getVoteAnswersByIndex.call(x, function (error, voteAnswers) {
-                                            console.log("answers = " + voteAnswers);
-                                            var vote = {
-                                                "index": voteAnswers[0],
-                                                "senderAddress": voteAnswers[1],
-                                                "sessionId": voteAnswers[2],
-                                                "voteSelections": voteAnswers[3],
-                                                "blockNumber": voteAnswers[4],
-                                                "balance": voteAnswers[5]
-                                            };
-                                            votes.push(vote);
-                                            var percentRetrieved = parseInt((votes.length / totalTokenVoters * 100) + .5);
-                                            pb.value(percentRetrieved);
-
-                                            if (votes.length == totalVoters) {
-                                                $("#dataretrievalStatus").text("Compiling Results");
-                                                console.log(votes);
-                                                CompileResults(votes,"1");
-                                            } else {
-                                                console.log("false");
-                                            }
-                                        });
-                                    }
-                                });
-                            });
-                            //$("#ddlMeetingList").kendoDropDownList({
-
-                            //});
-                        } else {
-                            CompileResults("","0");
-                        }
-                    };
-
-                    function CompileResults(v,recompile) {
-                        var serviceURL = '/api/_GetCompletedQuestions_Realtime';
-
-                        if (recompile == "0") {
-                            v = [];
-                            var vote = {
-                                "index": "",
-                                "senderAddress": "",
-                                "sessionId": "",
-                                "voteSelections": "",
-                                "blockNumber": "",
-                                "balance": ""
-                            };
-                            v.push(vote);
-                        }
+                        var serviceURL = '/api/_GetCompletedQuestions_Realtime/@ViewBag.UserType';
 
                         $.ajax({
-                            type: "POST",
+                            type: "GET",
                             url: serviceURL,
                             contentType: "application/json; charset=utf-8",
                             dataType: "json",
-                            data: JSON.stringify(v),
-                            success: function (data, status) {
-                                console.log("processed votes = " + data);
-
-                                $("#dgCompletedProposals").kendoGrid({
-                                    dataSource: {
-                                        type: "json",
-                                        data: data
-                                    },
-                                    selectable: "single",
-                                    change: function (arg) {
-                                        var selected = $.map(this.select(), function (item) {
-                                            return $(item).text();
-                                        });
-
-                                        var quid = selected[0].split('|')[0].trim();
-                                        var UserType = "@ViewBag.UserType";
-
-                                        $(location).attr("href", "/Observer/en/QuestionRealtime/" + quid + "|" + UserType);
-
-                                    },
-                                    rowTemplate: kendo.template($("#rowTemplate").html()),
-                                    altRowTemplate: kendo.template($("#altRowTemplate").html())
-                                });
-
-
-
-                                ////
-                                for (var x = 0; x < data.length; x++) {
-                                    var serviceURL1 = '/api/_GetAnswerInformation_Realtime/' + data[x].quid;
-
-                                    $.ajax({
-                                        type: "GET",
-                                        url: serviceURL1,
-                                        data: { quid: data[x].quid },
-                                        contentType: "application/json; charset=utf-8",
-                                        dataType: "json",
-                                        success: function (data, status) {
-
-                                            dataSource = new kendo.data.DataSource({
-                                                data: data.PieChartData,
-                                                schema: {
-                                                    model: {
-                                                        fields: {
-                                                            value: "value"
-                                                        }
-                                                    }
-                                                }
-                                            });
-
-                                            $("#answerPieChart_" + data.PieChartData[0].quid).kendoChart({
-                                                dataSource: dataSource,
-                                                legend: {
-                                                    visible: false
-                                                },
-                                                seriesDefaults: {
-                                                    labels: {
-                                                        visible: false,
-                                                        background: "transparent",
-                                                        template: "#= getAnsText(category) # - #= kendo.format('{0:P}', percentage)#"
-                                                    }
-                                                },
-                                                tooltip: {
-                                                    visible: true,
-                                                    template: "#= getAnsText(category) # - #= kendo.format('{0:P}', percentage)#"
-                                                },
-                                                series: [{
-                                                    type: "pie",
-                                                    field: "value",
-                                                    categoryField: "category"
-                                                }]
-                                            });
-
-
-                                        },
-                                        error: errorFunc
-                                    });
-                                }
-                                ////
-                                myWindow.data("kendoWindow").close();
-                            },
+                            success: successFuncCompleted,
                             error: errorFunc
                         });
 
 
+                        //var jsonTest1 = @Html.Raw(Json.Serialize(Model.completedQuestions))
+                        //alert(jsonTest1[0].quid);
+
+
+
+
+                    });
+
+                    function dgCompletedProposals_onChange(arg) {
+                        var selected = $.map(this.select(), function (item) {
+                            return $(item).text();
+                        });
+
+                        var quid = selected[0].split('|')[0].trim();
+                        var UserType = "@ViewBag.UserType";
+
+                        $(location).attr("href", "/Observer/en/QuestionRealtime/" + quid + "|" + UserType);
 
                     }
-                           
+
+                    function successFuncCompleted(data, status) {
+                        $("#dgCompletedProposals").kendoGrid({
+                            dataSource: {
+                                type: "json",
+                                data: data
+                            },
+                            selectable: "single",
+                            change: dgCompletedProposals_onChange,
+                            rowTemplate: kendo.template($("#rowTemplate").html()),
+                            altRowTemplate: kendo.template($("#altRowTemplate").html())
+                        });
+
+
+
+                        ////
+                        for (var x = 0; x < data.length; x++) {
+                            var serviceURL1 = '/api/_GetAnswerInformation_Realtime/' + data[x].quid;
+
+                            $.ajax({
+                                type: "GET",
+                                url: serviceURL1,
+                                data: { quid: data[x].quid },
+                                contentType: "application/json; charset=utf-8",
+                                dataType: "json",
+                                success: function (data, status) {
+
+                                    dataSource = new kendo.data.DataSource({
+                                        data: data.PieChartData,
+                                        schema: {
+                                            model: {
+                                                fields: {
+                                                    value: "value"
+                                                }
+                                            }
+                                        }
+                                    });
+
+                                    $("#answerPieChart_" + data.PieChartData[0].quid).kendoChart({
+                                        dataSource: dataSource,
+                                        legend: {
+                                            visible: false
+                                        },
+                                        seriesDefaults: {
+                                            labels: {
+                                                visible: false,
+                                                background: "transparent",
+                                                template: "#= getAnsText(category) # - #= kendo.format('{0:P}', percentage)#"
+                                            }
+                                        },
+                                        tooltip: {
+                                            visible: true,
+                                            template: "#= getAnsText(category) # - #= kendo.format('{0:P}', percentage)#"
+                                        },
+                                        series: [{
+                                            type: "pie",
+                                            field: "value",
+                                            categoryField: "category"
+                                        }]
+                                    });
+
+
+                                },
+                                error: errorFunc
+                            });
+                        }
+                        ////
+                    }
+
                     function successFunc(data, status) {
 
 

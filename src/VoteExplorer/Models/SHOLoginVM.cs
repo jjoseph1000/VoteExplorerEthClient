@@ -8,10 +8,11 @@ namespace VoteExplorer.Models
 {
     public class SHOLoginVM
     {
-        public string contractNumber { get; set; }
-        public string tokenSymbol { get; set; }
-        public string tokenName { get; set; }
-        public string balance { get; set; }
+        [Required]
+        [ControlNumberExists(ErrorMessage = "Control Number Does Not Exist.")]
+        public string controlNumber { get; set; }
+
+
 
     }
 
@@ -31,7 +32,7 @@ namespace VoteExplorer.Models
                 VoteExplorerContext Context = new VoteExplorerContext();
                 List<SHOAccount> shoaccounts = Context.shoaccounts.AsQueryable().ToList();
 
-                return shoaccounts.Any(u => u.account == (string)value);
+                return shoaccounts.Any(u => u.ControlNumber == (string)value);
             }
             catch
             {

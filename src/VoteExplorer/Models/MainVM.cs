@@ -13,13 +13,11 @@ namespace VoteExplorer.Models
 
         public List<QuestionVM> activeQuestions { get; set; }
         public List<QuestionVM> completedQuestions { get; set; }
-        public string voteString { get; set; }
 
-        public string voteTokenName { get; set; }
         public string VoteSubmissionId { get; set; }
-        public string contractNumber { get; set; }
+
         public DateTime dateSubmitted { get; set; }
-        public string refreshDataFromBlockchain { get; set; }
+
         public VoteSubmissionStatus voteSubmissionStatus { get; set; }
 
         public Meeting meeting { get; set; }
@@ -57,11 +55,6 @@ namespace VoteExplorer.Models
         public string coin { get; set; }
         public string quid { get; set; }
         public string text { get; set; }
-        public string voteTokenName { get; set; }
-        public string blockchainExplorerUrl { get; set; }
-        public string boardRecommendation { get; set; }
-        public string questionIndex { get; set; }
-        public int orderNum { get; set; }
         public string text_ru { get; set; }
         public string block { get; set; }
         [DataType("Integer")]

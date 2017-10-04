@@ -12,9 +12,7 @@ namespace VoteExplorer.Models
     {
         [BsonRepresentation(BsonType.ObjectId)]
         public string _id { get; set; }
-        public string questionIndex { get; set; }
-        public string isActive { get; set; }
-        public string boardRecommendation { get; set; }
+        public string coin { get; set; }
         public string quid { get; set; }
         public string text { get; set; }
         [BsonIgnoreIfNull]
@@ -49,6 +47,6 @@ namespace VoteExplorer.Models
         public string ProxyChoice_ru { get; set; }
 
         [BsonIgnoreIfNull]
-        public string contractNumber { get; set; }
+        public string MeetingId { get; set; }
     }
 }

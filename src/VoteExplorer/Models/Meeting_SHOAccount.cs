@@ -14,9 +14,9 @@ namespace VoteExplorer.Models
         public string _id { get; set; }
 
         [BsonIgnoreIfNull]
-        public string contractNumber { get; set; }
+        public string meetingId { get; set; }
 
         [BsonIgnoreIfNull]
-        public string account { get; set; }
+        public string controlNumber { get; set; }
     }
 }

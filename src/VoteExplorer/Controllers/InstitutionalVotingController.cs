@@ -37,8 +37,8 @@ namespace VoteExplorer.Controllers
         {
             try
             {
-                List<Question> questions = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Question>>(HttpContext.Session.GetString("questions"));
-                List<Answer> answers = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Answer>>(HttpContext.Session.GetString("answers"));
+                IMongoQueryable<Question> questions = Context.questions.AsQueryable();
+                IMongoQueryable<Answer> answers = Context.answers.AsQueryable();
                 MainVM viewModel = new MainVM();
 
                 viewModel.activeQuestions = (from q in questions
@@ -97,8 +97,8 @@ namespace VoteExplorer.Controllers
         [HttpGet("Confirm/{id}")]
         public IActionResult Confirm(string id)
         {
-            List<Question> questions = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Question>>(HttpContext.Session.GetString("questions"));
-            List<Answer> answers = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Answer>>(HttpContext.Session.GetString("answers"));
+            IMongoQueryable<Question> questions = Context.questions.AsQueryable();
+            IMongoQueryable<Answer> answers = Context.answers.AsQueryable();
             IMongoQueryable<VoteSubmission> voteSubmission = Context.votesubmission.AsQueryable();
 
             var savedVotes = voteSubmission.Where(e => e._id == id);

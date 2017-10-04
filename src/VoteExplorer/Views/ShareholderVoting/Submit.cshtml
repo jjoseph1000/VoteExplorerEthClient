@@ -6,100 +6,67 @@
 }
 <script>
 
-    function pageLoad() {
+    $(document).ready(function () {
         $("#btnConfirm").click(function () {
-            var voteSubmissionId = "@Model.VoteSubmissionId";
-            var voteString = "@Model.voteString";
-            deployedVotingSession.vote(voteSubmissionId, voteString, function (error, transactionid) {
-                if (transactionid != null && transactionid != "") {
-                    var serviceURL = '/api/ConfirmVotes/' + voteSubmissionId + '/en/' + transactionid;
-
-                    $.ajax({
-                        type: "GET",
-                        url: serviceURL,
-                        contentType: "application/json; charset=utf-8",
-                        dataType: "json",
-                        success: function (data, status) {
-                            $(location).attr("href", "/ShareholderVoting/en/Confirm/@Model.VoteSubmissionId");
-                        },
-                        error: function (result) {
-                            for (var propertyName in result) {
-
-                                //alert(propertyName);
-                            }
-
-
-                            alert("error");
-                        }
-                    });
-                }
-            });
-
-
-
-            @*var dialog = $('#dialog');
+            var dialog = $('#dialog');
 
             dialog.kendoDialog({
                 width: "370px",
                 title: "Vote Submission",
                 closable: true,
                 modal: true,
-                content: "<strong>Your Votes will be submitted to the blockchain network and you will receive an email when confirmed.</strong>",
+                content: "<strong>Your Votes are being submitted to the blockchain network and you will receive an email when confirmed.</strong>",
                 actions: [
-                    {
-                        text: 'OK', action: function (e) {
-                            console.log("ConfirmVotes");
-
-
-                                var serviceURL = '/api/ConfirmVotes/@Model.VoteSubmissionId/en';
-
-                                $.ajax({
-                                    type: "GET",
-                                    url: serviceURL,
-                                    contentType: "application/json; charset=utf-8",
-                                    dataType: "json",
-                                    success: function (data, status) {
-                                        $(location).attr("href", "/ShareholderVoting/en/Confirm/@Model.VoteSubmissionId");
-                                    },
-                                    error: function (result) {
-                                        for (var propertyName in result) {
-
-                                            //alert(propertyName);
-                                        }
-
-
-                                        alert("error");
-                                    }
-                                });
-                        }
-                    }
+                    { text: 'OK', action: VoteSubmitted }
                 ],
                 //close: VoteSubmitted,
                 initOpen: Dialog_initopen
             });
 
-            dialog.data("kendoDialog").open();*@
+            dialog.data("kendoDialog").open();
 
         });
-    };
+    });
 
     function Dialog_initopen(e) {
 
     }
 
+    function VoteSubmitted(e) {
+        console.log ("ConfirmVotes");
+        var serviceURL = '/api/ConfirmVotes/@Model.VoteSubmissionId/en';
+
+        $.ajax({
+            type: "GET",
+            url: serviceURL,
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: voteConfirmStatusSuccessFunc,
+            error: errorFunc
+        });
+    }
 
 
+    function voteConfirmStatusSuccessFunc(data, status) {
+        $(location).attr("href", "/ShareholderVoting/en/Confirm/@Model.VoteSubmissionId");
+    }
+
+    function errorFunc(result) {
+        for (var propertyName in result) {
+
+            //alert(propertyName);
+        }
 
 
-
-
+        alert("error");
+    }
 
 </script>
 <div class="right_col" role="main">
     <div class="">
         <div class="page-title">
             <div class="title_left">
-                <h3>CONFIRM YOUR VOTE    <small> @Model.voteTokenName</small></h3>
+                <h3>CONFIRM YOUR VOTE    <small> Royal Dutch Shell plc</small></h3>
             </div>
             <div class="title_right">
                 <div class="col-md-5 col-sm-5 col-xs-12 form-group top_search">
@@ -123,7 +90,6 @@
                         <div class="clearfix"></div>
                     </div>
                     <div class="x_content">
-                        @Model.voteString
                         <p>Please confirm your vote selections are correct below:</p>
                         <!-- start project list -->
                         <table class="table table-striped projects">
@@ -142,7 +108,7 @@
                                 {
                                     VoteExplorer.Models.QuestionVM question = Model.activeQuestions[x];
                                     <tr>
-                                        <td>@question.orderNum</td>
+                                        <td>@question.proposalNumber</td>
                                         <td>
                                             <a>Proposal @question.proposalNumber</a>
                                             <br />
@@ -156,7 +122,7 @@
                                             </ul>
                                         </td>
                                         <td>
-                                            <button type="button" class="btn btn-success btn-xs">@question.boardRecommendation</button>
+                                            <button type="button" class="btn btn-success btn-xs">For</button>
                                         </td>
                                         <td>
                                             <div class="row">
@@ -224,7 +190,7 @@
                         </table>
                         <!-- end project list -->
                         <div style="text-align:center;">
-                            <a href="/ShareholderVoting/en/Index/1" class="btn btn-round btn-default">GO BACK</a>
+                            <a href="/ShareholderVoting/en/Index" class="btn btn-round btn-default">GO BACK</a>
                             <button id="btnConfirm" type="button" class="btn btn-round btn-success">
                                 CONFIRM VOTE SELECTIONS
                             </button>

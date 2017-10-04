@@ -50,14 +50,14 @@ namespace VoteExplorer.Controllers
             decimal coinWeight = Convert.ToDecimal(Configuration["coinWeight"]);
 
             ViewData["Message"] = "Your application description page.";
-            string contractNumber = HttpContext.Session.GetString("contractNumber");
+            string meetingId = HttpContext.Session.GetString("activeVoteMeetingId");
             List<SHOAccount> shoaccounts = Context.shoaccounts.AsQueryable().ToList();
 
             string publicAddress = "1zzzJv5hYmWbN79zHm5f4ZQRR8k9GWQTf";
-            if (contractNumber != "-1")
+            if (meetingId != "-1")
             {
                 ////////////////
-                List<Question> questions = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Question>>(HttpContext.Session.GetString("questions"));
+                List<Question> questions = Context.questions.AsQueryable().Where(q => q.MeetingId == meetingId).ToList();
                 List<BlockchainAddress> blockchainAddresses = new List<BlockchainAddress>();
 
                 foreach (SHOAccount shoaccount in shoaccounts)
@@ -71,8 +71,8 @@ namespace VoteExplorer.Controllers
                         blockchainAddress.isFirstTransaction = true;
                         blockchainAddress.publicAddress = publicAddress;
                         blockchainAddress.generalFundPublicAddress = publicAddress;
-                        blockchainAddress.contractNumber = contractNumber;
-                        blockchainAddress.account = shoaccount.account;
+                        blockchainAddress.meetingId = meetingId;
+                        blockchainAddress.controlNumber = shoaccount.ControlNumber;
                         blockchainAddress.quid = question.quid;
                         blockchainAddress.coins = totalCoins.ToString();
                         blockchainAddress.transactionId = transactionid;
@@ -109,6 +109,10 @@ namespace VoteExplorer.Controllers
 
 
                 }
+                Console.Write(DateTime.Now.ToString() + "\n");
+                Context.blockchainaddresses.InsertManyAsync(blockchainAddresses);
+                Console.Write(DateTime.Now.ToString() + "\n");
+
             }
             else
             {

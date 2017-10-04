@@ -17,17 +17,13 @@ namespace VoteExplorer.Models
         public int UserId { get; set; }
 
         [BsonIgnoreIfNull]
-        public string account { get; set; }
+        public string ControlNumber { get; set; }
 
         [BsonIgnoreIfNull]
-        public string contractNumber { get; set; }
+        public string MeetingId { get; set; }
 
         [BsonIgnoreIfNull]
         public List<QuestionVM> VoteSelections { get; set; }
-        [BsonIgnoreIfNull]
-        public string voteString { get; set; }
-        [BsonIgnoreIfNull]
-        public string transactionId{ get; set; }
 
         [BsonIgnoreIfNull]
         public VoteSubmissionStatus voteSubmissionStatus { get; set; }

@@ -14,7 +14,7 @@ namespace VoteExplorer.Models
         public string _id { get; set; }
 
         [BsonIgnoreIfNull]
-        public string account { get; set; }
+        public string ControlNumber { get; set; }
 
         [BsonIgnoreIfNull]
         public long AvailableShares { get; set; }

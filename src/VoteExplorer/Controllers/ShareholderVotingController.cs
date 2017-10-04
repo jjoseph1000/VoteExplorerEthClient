@@ -29,93 +29,69 @@ namespace VoteExplorer.Controllers
             Russian = 1
         }
 
-        public IActionResult Index_CodeBehind(LanguagePreference languagePreference, string revote)
+        public IActionResult Index_CodeBehind(LanguagePreference languagePreference)
         {
-            if (HttpContext.Session.GetString("contractNumber") == null)
-            {
-                return RedirectToAction("Login");
-            }
-
             List<VoteSubmission> voteSubmissions = Context.votesubmission.AsQueryable().ToList();
-            string voteSessionId = HttpContext.Session.GetString("voteSessionId");
-            string contractNumber = HttpContext.Session.GetString("contractNumber");
-            string account = HttpContext.Session.GetString("account");
-            string voteAnswerChoices = HttpContext.Session.GetString("voteAnswerChoices");
 
-            var existingVoteSubmissions = voteSubmissions.Where(v => v.account == HttpContext.Session.GetString("account") && v.voteSubmissionStatus == VoteSubmissionStatus.VotesConfirmed && v.contractNumber == HttpContext.Session.GetString("contractNumber"));
-            if (existingVoteSubmissions.Any())
+            if (HttpContext.Session.GetString("activeVoteMeetingId") == null)
             {
-                if (existingVoteSubmissions.Any(vs=>vs._id == voteSessionId))
+                if (languagePreference == LanguagePreference.Russian)
                 {
-                    var filterVoteSubmission = Builders<VoteSubmission>.Filter.Eq("_id", voteSessionId);
-                    Context.votesubmission.DeleteMany(filterVoteSubmission);
+                    return RedirectToAction("Login_Russian");
                 }
                 else
                 {
-                    if (languagePreference == LanguagePreference.Russian)
-                    {
-                        return RedirectToAction("Confirm_Russian", new { id = existingVoteSubmissions.FirstOrDefault()._id });
-                    }
-                    else
-                    {
-                        return RedirectToAction("Confirm", new { id = existingVoteSubmissions.FirstOrDefault()._id });
-                    }
+                    return RedirectToAction("Login");
+                }
+
+            }
+
+            string MeetingId = HttpContext.Session.GetString("activeVoteMeetingId");
+
+            var existingVoteSubmissions = voteSubmissions.Where(v => v.ControlNumber == HttpContext.Session.GetString("ControlNumber") && v.voteSubmissionStatus != VoteSubmissionStatus.VotesSubmitted && v.voteSubmissionStatus != VoteSubmissionStatus.VoteCoinsTransferredPendingDelete && v.MeetingId == MeetingId);
+            if (existingVoteSubmissions.Any())
+            {
+                if (languagePreference == LanguagePreference.Russian)
+                {
+                    return RedirectToAction("Confirm_Russian", new { id = existingVoteSubmissions.FirstOrDefault()._id });
+                }
+                else
+                {
+                    return RedirectToAction("Confirm", new { id = existingVoteSubmissions.FirstOrDefault()._id });
                 }
             }
             else
             {
-                if (revote == "0")
-                {
-                    var filterVoteSubmission = Builders<VoteSubmission>.Filter.Eq("account", account) & Builders<VoteSubmission>.Filter.Eq("contractNumber", contractNumber);
-                    Context.votesubmission.DeleteMany(filterVoteSubmission);
-                }
-            }
-
-            if (revote == "1" || voteAnswerChoices == "")
-            {
                 MainVM viewModel = new MainVM();
-                viewModel.voteTokenName = HttpContext.Session.GetString("voteTokenName");
-                if (contractNumber != "-1")
+
+                string meetingId =  HttpContext.Session.GetString("activeVoteMeetingId");
+
+                if (meetingId != "-1")
                 {
-                    List<Question> questions = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Question>>(HttpContext.Session.GetString("questions"));
+                    List<Question> questions = Context.questions.AsQueryable().Where(q=>q.MeetingId == meetingId).ToList();
+                    List<Answer> answers = Context.answers.AsQueryable().ToList();
 
                     viewModel.activeQuestions = (from q in questions
-                                                 orderby q.questionIndex                                                 
+                                                 where q.state == 2
                                                  select new QuestionVM
                                                  {
                                                      quid = q.quid,
-                                                     boardRecommendation = q.boardRecommendation,
                                                      text = q.text,
                                                      text_ru = q.text_ru,
-                                                     questionIndex = q.questionIndex,
+                                                     block = q.block,
                                                      keyid = q.quid + "|",
                                                      SelectedAnswerId = "Z"
                                                  }
                                                     ).ToList();
 
-                    viewModel.activeQuestions.ForEach(sv => sv.orderNum = Convert.ToInt32(sv.questionIndex)+1);
-
-                    List<Answer> answers = new List<Answer>();
-                    Answer answer = new Answer();
-                    answer.answid = "A";
-                    answer.test = "FOR";
-                    answers.Add(answer);
-                    Answer answer2 = new Answer();
-                    answer2.answid = "B";
-                    answer2.test = "AGAINST";
-                    answers.Add(answer2);
-                    Answer answer3 = new Answer();
-                    answer3.answid = "Z";
-                    answer3.test = "ABSTAIN";
-                    answers.Add(answer3);
-
                     foreach (QuestionVM question in viewModel.activeQuestions)
                     {
                         question.Answers = (from a in answers
+                                            where a.quid == question.quid
                                             orderby a.answid
                                             select new AnswerVM
                                             {
-                                                quid = question.quid,
+                                                quid = a.quid,
                                                 answid = a.answid,
                                                 text = a.test
                                             }
@@ -128,23 +104,13 @@ namespace VoteExplorer.Controllers
                 }
 
                 return View(viewModel);
-            }   
-            else
-            {
-                if (languagePreference == LanguagePreference.Russian)
-                {
-                    return RedirectToAction("Confirm_Russian", new { id = "0" });
-                }
-                else
-                {
-                    return RedirectToAction("Confirm", new { id = "0" });
-                }
+
             }
         }
 
         public IActionResult RevoteStatus_CodeBehind(LanguagePreference languagePreference)
         {
-            if (HttpContext.Session.GetString("contractNumber") == null)
+            if (HttpContext.Session.GetString("activeVoteMeetingId") == null)
             {
                 if (languagePreference == LanguagePreference.Russian)
                 {
@@ -154,6 +120,7 @@ namespace VoteExplorer.Controllers
                 {
                     return RedirectToAction("Login");
                 }
+
             }
 
             string meetingId = HttpContext.Session.GetString("activeVoteMeetingId");
@@ -169,11 +136,11 @@ namespace VoteExplorer.Controllers
 
             if (languagePreference == LanguagePreference.Russian)
             {
-                return RedirectToAction("Index_Russian", new { revote = "1" });
+                return RedirectToAction("Index_Russian");
             }
             else
             {
-                return RedirectToAction("Index", new { revote = "1" });
+                return RedirectToAction("Index");
             }
         }
 
@@ -185,12 +152,9 @@ namespace VoteExplorer.Controllers
 
             MainVM viewModel = new MainVM();
             viewModel.VoteSubmissionId = id;
-            viewModel.voteTokenName = HttpContext.Session.GetString("voteTokenName");
-
             if (savedVotes.Any())
             {
-                viewModel.activeQuestions = savedVotes.FirstOrDefault().VoteSelections.OrderBy(sv=>sv.orderNum).ToList();
-                viewModel.voteString = savedVotes.FirstOrDefault().voteString;
+                viewModel.activeQuestions = savedVotes.FirstOrDefault().VoteSelections;
             }
 
             return View(viewModel);
@@ -198,89 +162,80 @@ namespace VoteExplorer.Controllers
 
         public IActionResult Confirm_Codebehind(string id)
         {
-            if (HttpContext.Session.GetString("contractNumber") == null)
-            {
-                return RedirectToAction("Login");
-            }
+            IMongoQueryable<VoteSubmission> voteSubmission = Context.votesubmission.AsQueryable();
+
+            var savedVotes = voteSubmission.Where(e => e._id == id);
 
             MainVM viewModel = new MainVM();
-            viewModel.voteTokenName = HttpContext.Session.GetString("voteTokenName");
-
-            if (id != "0")
+            viewModel.VoteSubmissionId = id;
+            if (savedVotes.Any())
             {
-                IMongoQueryable<VoteSubmission> voteSubmission = Context.votesubmission.AsQueryable();
-
-                var savedVotes = voteSubmission.Where(e => e._id == id);
-
-                viewModel.VoteSubmissionId = id;
-                if (savedVotes.Any())
+                viewModel.activeQuestions = savedVotes.FirstOrDefault().VoteSelections;
+                viewModel.voteSubmissionStatus = savedVotes.FirstOrDefault().voteSubmissionStatus;
+                if (savedVotes.FirstOrDefault().dateSubmitted != null)
                 {
-                    viewModel.activeQuestions = savedVotes.FirstOrDefault().VoteSelections;
-                    viewModel.voteSubmissionStatus = savedVotes.FirstOrDefault().voteSubmissionStatus;
-                    if (savedVotes.FirstOrDefault().dateSubmitted != null)
-                    {
-                        viewModel.dateSubmitted = savedVotes.FirstOrDefault().dateSubmitted;
-                    }
-                    else
-                    {
-                        viewModel.dateSubmitted = DateTime.Now;
-                    }
+                    viewModel.dateSubmitted = savedVotes.FirstOrDefault().dateSubmitted;
                 }
-            }
-            else
-            {
-                string voteString = HttpContext.Session.GetString("voteAnswerChoices");
-                viewModel.VoteSubmissionId = id;
-                List<Question> questions = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Question>>(HttpContext.Session.GetString("questions"));
-
-                viewModel.activeQuestions = (from q in questions
-                                             orderby q.questionIndex                                             
-                                             select new QuestionVM
-                                             {
-                                                 quid = q.quid,
-                                                 boardRecommendation = q.boardRecommendation,
-                                                 text = q.text,
-                                                 text_ru = q.text_ru,
-                                                 questionIndex = q.questionIndex,
-                                                 keyid = q.quid + "|",
-                                                 SelectedAnswerId = "Z"                                                 
-                                             }
-                                                ).ToList();
-
-                viewModel.activeQuestions.ForEach(q => q.questionIndex = (Convert.ToInt32(q.questionIndex) + 1).ToString());
-                viewModel.activeQuestions = viewModel.activeQuestions.OrderBy(q => q.questionIndex).ToList();
-
-                for (int x=0;x<viewModel.activeQuestions.Count();x++)
+                else
                 {
-                    viewModel.activeQuestions[x].SelectedAnswerId = voteString.Substring(x, 1);
+                    viewModel.dateSubmitted = DateTime.Now;
                 }
-
-                viewModel.voteSubmissionStatus = VoteSubmissionStatus.VotesConfirmed;
             }
 
             return View(viewModel);
         }
 
-        public IActionResult Login_Codebehind(string contractNumber, LanguagePreference languagePreference)
+        public IActionResult Login_Codebehind(string controlNumber, LanguagePreference languagePreference)
         {
-            HttpContext.Session.SetString("contractNumber", contractNumber);
-
-            if (languagePreference == LanguagePreference.Russian)
+            List<Meeting> meetings = Context.meetings.AsQueryable().Where(q => q.VoteStart != null && q.VoteStart <= DateTime.Now && q.VoteDeadline != null && DateTime.Now <= q.VoteDeadline).ToList();
+            if (meetings.Any())
             {
-                return RedirectToAction("Index_Russian", new { revote = "0" });
+                HttpContext.Session.SetString("activeVoteMeetingId", meetings.FirstOrDefault()._id);
             }
             else
             {
-                return RedirectToAction("Index", new { revote = "0" });
+                HttpContext.Session.SetString("activeVoteMeetingId", "-1");
+            }
+
+            List<Meeting> meetingsDisplayResults = Context.meetings.AsQueryable().Where(q => q.DisplayResults == true).ToList();
+            if (meetingsDisplayResults.Any())
+            {
+                HttpContext.Session.SetString("displayResultsMeetingId", meetingsDisplayResults.FirstOrDefault()._id);
+            }
+            else
+            {
+                HttpContext.Session.SetString("displayResultsMeetingId", "-1");
+            }
+
+            HttpContext.Session.SetString("ControlNumber", controlNumber);
+
+            string meetingId = HttpContext.Session.GetString("activeVoteMeetingId");
+
+            var filterSubmittedAddresses = Builders<VoteSubmission>.Filter.Eq("ControlNumber", controlNumber) & Builders<VoteSubmission>.Filter.Eq("MeetingId", meetingId) & Builders<VoteSubmission>.Filter.Eq("voteSubmissionStatus", VoteSubmissionStatus.VotesSubmitted);
+            Context.votesubmission.DeleteMany(filterSubmittedAddresses);
+
+            var filter = Builders<VoteSubmission>.Filter.Eq("ControlNumber", controlNumber) & Builders<VoteSubmission>.Filter.Eq("MeetingId", meetingId) & Builders<VoteSubmission>.Filter.Eq("voteSubmissionStatus", VoteSubmissionStatus.VoteCoinsTransferredPendingDelete);
+            var update = Builders<VoteSubmission>.Update.Set("voteSubmissionStatus", VoteSubmissionStatus.VoteCoinsTransferred);
+
+            Context.votesubmission.UpdateOne(filter, update);
+
+
+            if (languagePreference == LanguagePreference.Russian)
+            {
+                return RedirectToAction("Index_Russian");
+            }
+            else
+            {
+                return RedirectToAction("Index");
             }
         }
 
-        [HttpGet("en/Index/{revote}")]
-        public IActionResult Index(string revote)
+        [HttpGet("en/Index")]
+        public IActionResult Index()
         {
             try
             {
-                return Index_CodeBehind(LanguagePreference.English, revote);
+                return Index_CodeBehind(LanguagePreference.English);
             }
             catch (Exception ex)
             {
@@ -290,12 +245,12 @@ namespace VoteExplorer.Controllers
 
         }
 
-        [HttpGet("ru/Index/{revote}")]
-        public IActionResult Index_Russian(string revote)
+        [HttpGet("ru/Index")]
+        public IActionResult Index_Russian()
         {
             try
             {
-                return Index_CodeBehind(LanguagePreference.Russian, revote);
+                return Index_CodeBehind(LanguagePreference.Russian);
             }
             catch (Exception ex)
             {
@@ -398,7 +353,7 @@ namespace VoteExplorer.Controllers
         {
             if (ModelState.IsValid)
             {
-                return Login_Codebehind(shLogin.contractNumber, LanguagePreference.English);
+                return Login_Codebehind(shLogin.controlNumber, LanguagePreference.English);
             }
             else
             {
