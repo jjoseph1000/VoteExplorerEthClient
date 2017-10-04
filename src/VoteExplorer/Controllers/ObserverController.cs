@@ -20,6 +20,12 @@ namespace VoteExplorer.Controllers
     public class ObserverController : Controller
     {
         public static readonly VoteExplorerContext Context = new VoteExplorerContext();
+        private VoteExplorerBlockchainContext _blockchainContext;
+
+        public ObserverController(VoteExplorerBlockchainContext blockchainContext)
+        {
+            _blockchainContext = blockchainContext;
+        }
 
         public enum LanguagePreference
         {
@@ -29,7 +35,7 @@ namespace VoteExplorer.Controllers
 
         public IActionResult Index_Codebehind(string UserType, LanguagePreference languagePreference)
         {
-            if (HttpContext.Session.GetString("displayResultsMeetingId") == null)
+            if (HttpContext.Session.GetString("displayResultsContractAddress") == null)
             {
                 if (languagePreference == LanguagePreference.Russian)
                 {
@@ -58,12 +64,12 @@ namespace VoteExplorer.Controllers
 
             MainVM viewModel = new MainVM();
 
-            string meetingId = HttpContext.Session.GetString("displayResultsMeetingId");
+            string meetingId = HttpContext.Session.GetString("displayResultsContractAddress");
 
 
             if (meetingId != "-1")
             {
-                List<Question> questions = Context.questions.AsQueryable().Where(q=>q.MeetingId== meetingId).ToList();
+                List<Question> questions = _blockchainContext.questions;
 
                 viewModel.completedQuestions = (from q in questions
                                                 select new QuestionVM
@@ -89,7 +95,7 @@ namespace VoteExplorer.Controllers
 
         public IActionResult IndexRealtime_Codebehind(string UserType, LanguagePreference languagePreference)
         {
-            if (HttpContext.Session.GetString("displayResultsMeetingId") == null)
+            if (HttpContext.Session.GetString("displayResultsContractAddress") == null)
             {
                 if (languagePreference == LanguagePreference.Russian)
                 {
@@ -118,11 +124,11 @@ namespace VoteExplorer.Controllers
 
             MainVM viewModel = new MainVM();
 
-            string meetingId = HttpContext.Session.GetString("displayResultsMeetingId");
+            string meetingId = HttpContext.Session.GetString("displayResultsContractAddress");
 
             if (meetingId != "-1")
             {
-                List<Question> questions = Context.questions.AsQueryable().Where(q => q.MeetingId == meetingId).ToList();
+                List<Question> questions = _blockchainContext.questions;
 
                 viewModel.completedQuestions = (from q in questions
                                                 select new QuestionVM
@@ -151,7 +157,7 @@ namespace VoteExplorer.Controllers
             string quid = quidAndUserType.Split('|')[0].ToString();
             string UserType = quidAndUserType.Split('|')[1].ToString();
 
-            if (HttpContext.Session.GetString("displayResultsMeetingId") == null)
+            if (HttpContext.Session.GetString("displayResultsContractAddress") == null)
             {
                 if (languagePreference == LanguagePreference.Russian)
                 {
@@ -179,7 +185,7 @@ namespace VoteExplorer.Controllers
             }
 
 
-            IMongoQueryable<Question> questions = Context.questions.AsQueryable();
+            List<Question> questions = _blockchainContext.questions;
             var question = questions.FirstOrDefault(q => q.quid == quid);
             QuestionVM questionVM = new QuestionVM();
             questionVM.quid = quid;
@@ -195,7 +201,7 @@ namespace VoteExplorer.Controllers
             string quid = quidAndUserType.Split('|')[0].ToString();
             string UserType = quidAndUserType.Split('|')[1].ToString();
 
-            if (HttpContext.Session.GetString("displayResultsMeetingId") == null)
+            if (HttpContext.Session.GetString("displayResultsContractAddress") == null)
             {
                 if (languagePreference == LanguagePreference.Russian)
                 {
@@ -222,7 +228,7 @@ namespace VoteExplorer.Controllers
 
             }
 
-            IMongoQueryable<Question> questions = Context.questions.AsQueryable();
+            List<Question> questions = _blockchainContext.questions;
             var question = questions.FirstOrDefault(q => q.quid == quid);
             QuestionVM questionVM = new QuestionVM();
             questionVM.quid = quid;

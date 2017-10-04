@@ -25,12 +25,14 @@ namespace VoteExplorer.Controllers
     public class HomeController : Controller
     {
         public static readonly VoteExplorerContext Context = new VoteExplorerContext();
+        private VoteExplorerBlockchainContext _blockchainContext;
         public static bool accessBlockChain = checkIfAccessBlockChain();
         readonly ILogger<HomeController> _log;
 
-        public HomeController(ILogger<HomeController> log)
+        public HomeController(ILogger<HomeController> log, VoteExplorerBlockchainContext blockchainContext)
         {
             _log = log;
+            _blockchainContext = blockchainContext;
         }
 
         public ActionResult Index()
@@ -50,14 +52,14 @@ namespace VoteExplorer.Controllers
             decimal coinWeight = Convert.ToDecimal(Configuration["coinWeight"]);
 
             ViewData["Message"] = "Your application description page.";
-            string meetingId = HttpContext.Session.GetString("activeVoteMeetingId");
+            string meetingId = HttpContext.Session.GetString("activeVoteContractAddress");
             List<SHOAccount> shoaccounts = Context.shoaccounts.AsQueryable().ToList();
 
             string publicAddress = "1zzzJv5hYmWbN79zHm5f4ZQRR8k9GWQTf";
             if (meetingId != "-1")
             {
                 ////////////////
-                List<Question> questions = Context.questions.AsQueryable().Where(q => q.MeetingId == meetingId).ToList();
+                List<Question> questions = _blockchainContext.questions;
                 List<BlockchainAddress> blockchainAddresses = new List<BlockchainAddress>();
 
                 foreach (SHOAccount shoaccount in shoaccounts)

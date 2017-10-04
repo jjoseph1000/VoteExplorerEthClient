@@ -12,7 +12,6 @@ namespace VoteExplorer.Models
         [BsonRepresentation(BsonType.ObjectId)]
         public string _id { get; set; }
         public string coin { get; set; }
-        public string quid { get; set; }
         public string answid { get; set; }
         public string test { get; set; }
 

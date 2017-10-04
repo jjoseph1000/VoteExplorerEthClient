@@ -30,12 +30,14 @@ namespace VoteExplorer.Controllers
     {
         Timer _tm = null;
         public static readonly VoteExplorerContext Context = new VoteExplorerContext();
+        private VoteExplorerBlockchainContext _blockchainContext;
         public static bool accessBlockChain = checkIfAccessBlockChain();
         readonly ILogger<VoteExplorerAPIController> _log;
 
-        public VoteExplorerAPIController(ILogger<VoteExplorerAPIController> log)
+        public VoteExplorerAPIController(ILogger<VoteExplorerAPIController> log, VoteExplorerBlockchainContext blockchainContext)
         {
             _log = log;
+            _blockchainContext = blockchainContext;
         }
 
         public static bool checkIfAccessBlockChain()
@@ -55,9 +57,9 @@ namespace VoteExplorer.Controllers
         [HttpPost("SubmitVotes")]
         public ActionResult SubmitVotes([FromBody]Newtonsoft.Json.Linq.JArray SubmittedVotes)
         {
-            string meetingId = HttpContext.Session.GetString("displayResultsMeetingId");
+            string meetingId = HttpContext.Session.GetString("displayResultsContractAddress");
             string controlNumber = HttpContext.Session.GetString("controlNumber");
-            List<Question> questions = Context.questions.AsQueryable().Where(q => q.MeetingId == meetingId).ToList();
+            List<Question> questions = _blockchainContext.questions;
             bool insufficientFunds = false;
             List<Meeting_SHOAccount> meeting_shoaccounts = Context.meeting_shoaccounts.AsQueryable().Where(m => m.meetingId == meetingId && m.controlNumber == controlNumber).ToList();
             Console.Write("Got to insufficient check");
@@ -81,7 +83,6 @@ namespace VoteExplorer.Controllers
             else
             {
                 List<QuestionVM> selectedVotes = (from q in questions
-                                                  where q.state == 2
                                                   select new QuestionVM
                                                   {
                                                       quid = q.quid,
@@ -150,7 +151,7 @@ namespace VoteExplorer.Controllers
         public ActionResult GetCurrentVoteSubmissionId()
         {
             VoteSubmissionSatusVM voteSubmissionStatusVM = new VoteSubmissionSatusVM();
-            string meetingId = HttpContext.Session.GetString("activeVoteMeetingId");
+            string meetingId = HttpContext.Session.GetString("activeVoteContractAddress");
             string controlNumber = HttpContext.Session.GetString("ControlNumber");
             List<VoteSubmission> voteSubmissions = Context.votesubmission.AsQueryable().Where(vs => vs.MeetingId == meetingId && vs.ControlNumber == controlNumber && vs.voteSubmissionStatus == VoteSubmissionStatus.VoteCoinsPendingTransfer).ToList();
             if (voteSubmissions.Any())
@@ -201,7 +202,7 @@ namespace VoteExplorer.Controllers
 
             Context.votesubmission.UpdateOneAsync(filter, update);
 
-            string meetingId = HttpContext.Session.GetString("activeVoteMeetingId");
+            string meetingId = HttpContext.Session.GetString("activeVoteContractAddress");
             string controlNumber = HttpContext.Session.GetString("ControlNumber");
 
             var filter1 = Builders<VoteSubmission>.Filter.Eq("ControlNumber", controlNumber) & Builders<VoteSubmission>.Filter.Eq("MeetingId", meetingId) & Builders<VoteSubmission>.Filter.Eq("voteSubmissionStatus", VoteSubmissionStatus.VoteCoinsTransferredPendingDelete);
@@ -755,21 +756,19 @@ namespace VoteExplorer.Controllers
         {
             try
             {
-                string meetingId = HttpContext.Session.GetString("displayResultsMeetingId");
+                string meetingId = HttpContext.Session.GetString("displayResultsContractAddress");
 
-                List<Question> questions = Context.questions.AsQueryable().Where(q => q.MeetingId == meetingId).ToList();
-                IMongoQueryable<Answer> answers = Context.answers.AsQueryable();
+                List<Question> questions = _blockchainContext.questions;
+                List<Answer> answers = _blockchainContext.answers;
 
-                List<Question> completedQuestions = questions.Where(q => q.state == 2).ToList();
+                List<Question> completedQuestions = questions;
 
                 foreach (Question question in completedQuestions)
                 {
                     decimal allAnswerVotesTotal = (from a in answers
-                                                   where a.quid == question.quid
                                                    select a.TotalVotes).Sum();
 
                     var winningAnswer = (from a in answers
-                                         where a.quid == question.quid
                                          orderby a.TotalVotes descending
                                          select new
                                          {
@@ -840,7 +839,7 @@ namespace VoteExplorer.Controllers
 
                 decimal coinWeight = Convert.ToDecimal(Configuration["coinWeight"]);
 
-                string meetingId = HttpContext.Session.GetString("displayResultsMeetingId");
+                string meetingId = HttpContext.Session.GetString("displayResultsContractAddress");
                 string controlNumber = HttpContext.Session.GetString("ControlNumber");
                 List<BlockchainAddress> blockchainAddresses = Context.blockchainaddresses.AsQueryable().Where(bc => bc.meetingId == meetingId && bc.currentTransaction == true && bc.isFirstTransaction == false).ToList();
                 blockchainAddresses.ForEach(bc => bc.TotalVotes = Convert.ToDecimal(bc.coins) / coinWeight);
@@ -856,19 +855,18 @@ namespace VoteExplorer.Controllers
                                            totalCoins = grp.Sum(t => t.totalCoins)
                                        }).ToList();
 
-                List<Question> questions = Context.questions.AsQueryable().Where(q => q.MeetingId == meetingId).ToList();
+                List<Question> questions = _blockchainContext.questions;
 
                 List<Question> completedQuestions = questions.ToList();
 
                 foreach (Question question in completedQuestions)
                 {
-                    var answers = (from a1 in Context.answers.AsQueryable().ToList()
+                    var answers = (from a1 in _blockchainContext.answers
                                    join a2 in voteCalculation on a1.answid equals a2.ansid into a3
                                    from a2 in a3.DefaultIfEmpty()
-                                   where a1.quid == question.quid && (a2 == null || a2.quid == question.quid)
                                    select new
                                    {
-                                       quid = a1.quid,
+                                       quid = question.quid,
                                        answid = a1.answid,
                                        test = a1.test,
                                        TotalVotes = (a2 == null) ? 0 : a2.TotalVotes,
@@ -973,8 +971,8 @@ namespace VoteExplorer.Controllers
         [HttpGet("_GetAnswerInformation/{quid}")]
         public ActionResult _GetAnswerInformation(string quid)
         {
-            string meetingId = HttpContext.Session.GetString("displayResultsMeetingId");
-            List<Question> questions = Context.questions.AsQueryable().Where(q => q.MeetingId == meetingId).ToList();
+            string meetingId = HttpContext.Session.GetString("displayResultsContractAddress");
+            List<Question> questions = _blockchainContext.questions;
             var question = (from q in questions
                             where q.quid == quid
                             select new
@@ -985,15 +983,14 @@ namespace VoteExplorer.Controllers
             string questionText = question.questionText;
             string questionText_ru = question.questionText_ru;
 
-            IMongoQueryable<Answer> answers = Context.answers.AsQueryable();
+            List<Answer> answers = _blockchainContext.answers;
 
             List<AnswerPieChartVM> answersPieChartResult = (from a in answers
-                                                            where a.quid == quid
                                                             orderby a.answid
                                                             select new AnswerPieChartVM
                                                             {
-                                                                keyvalue = a.quid + "/" + a.answid + "|",
-                                                                quid = a.quid,
+                                                                keyvalue = quid + "/" + a.answid + "|",
+                                                                quid = quid,
                                                                 answid = a.answid,
                                                                 text = a.test,
                                                                 TotalVotes = a.TotalVotes,
@@ -1005,13 +1002,12 @@ namespace VoteExplorer.Controllers
             answersPieChartResult.ForEach(a => a.text_ru = (a.text.ToUpper().Trim() == "FOR") ? "за" : ((a.text.ToUpper().Trim() == "AGAINST") ? "против" : "воздержался"));
 
             List<AnswerBarSchemaVM> answersBarChartSchema = (from a in answers
-                                                             where a.quid == quid
                                                              orderby a.answid
                                                              select new AnswerBarSchemaVM
                                                              {
                                                                  name = a.answid + ")",
                                                                  field = a.answid.ToLower(),
-                                                                 quid = a.quid,
+                                                                 quid = quid,
                                                                  answid = a.answid,
                                                                  text = a.test,
                                                                  TotalVotes = a.TotalVotes,
@@ -1044,8 +1040,8 @@ namespace VoteExplorer.Controllers
             decimal coinWeight = Convert.ToDecimal(Configuration["coinWeight"]);
 
 
-            string meetingId = HttpContext.Session.GetString("displayResultsMeetingId");
-            List<Question> questions = Context.questions.AsQueryable().Where(q => q.MeetingId == meetingId).ToList();
+            string meetingId = HttpContext.Session.GetString("displayResultsContractAddress");
+            List<Question> questions = _blockchainContext.questions;
             var question = (from q in questions
                             where q.quid == quid
                             select new
@@ -1071,13 +1067,12 @@ namespace VoteExplorer.Controllers
                                    }).ToList();
 
             //IMongoQueryable<Answer> answers = Context.answers.AsQueryable();
-            var answers = (from a1 in Context.answers.AsQueryable().ToList()
+            var answers = (from a1 in _blockchainContext.answers
                            join a2 in voteCalculation on a1.answid equals a2.ansid into a3
                            from a2 in a3.DefaultIfEmpty()
-                           where a1.quid == quid && (a2 == null || a2.quid == quid)
                            select new
                            {
-                               quid = a1.quid,
+                               quid = quid,
                                answid = a1.answid,
                                test = a1.test,
                                TotalVotes = (a2 == null) ? 0 : a2.TotalVotes,
@@ -1132,13 +1127,13 @@ namespace VoteExplorer.Controllers
         [HttpGet("_GetAnswerInformation/{quid}/{ansid}")]
         public ActionResult _GetAnswerInformation(string quid, string ansid)
         {
-            string meetingId = HttpContext.Session.GetString("displayResultsMeetingId");
-            List<Question> questions = Context.questions.AsQueryable().Where(q => q.MeetingId == meetingId).ToList();
+            string meetingId = HttpContext.Session.GetString("displayResultsContractAddress");
+            List<Question> questions = _blockchainContext.questions;
             Question questionDetails = questions.AsQueryable().Where(q => q.quid == quid).FirstOrDefault();
 
-            IMongoQueryable<Answer> answers = Context.answers.AsQueryable();
+            List<Answer> answers = _blockchainContext.answers;
 
-            Answer answerDocument = answers.AsQueryable().Where(a => a.quid == quid && a.answid == ansid).FirstOrDefault();
+            Answer answerDocument = answers.AsQueryable().Where(a => a.answid == ansid).FirstOrDefault();
 
             var answerDetails = new { ansid = answerDocument.answid, description = answerDocument.test, totalVotes = answerDocument.TotalVotes };
             int counter = 1;
@@ -1174,8 +1169,8 @@ namespace VoteExplorer.Controllers
             //decimal surcharge = Convert.ToDecimal(Configuration["surcharge"]);
             decimal coinWeight = Convert.ToDecimal(Configuration["coinWeight"]);
 
-            string meetingId = HttpContext.Session.GetString("displayResultsMeetingId");
-            List<Question> questions = Context.questions.AsQueryable().Where(q => q.MeetingId == meetingId).ToList();
+            string meetingId = HttpContext.Session.GetString("displayResultsContractAddress");
+            List<Question> questions = _blockchainContext.questions;
             Question questionDetails = questions.AsQueryable().Where(q => q.quid == quid).FirstOrDefault();
 
             List<BlockchainAddress> blockchainAddresses = Context.blockchainaddresses.AsQueryable().Where(bc => bc.meetingId == meetingId && bc.quid == quid && bc.ansid == ansid && bc.currentTransaction == true && bc.isFirstTransaction == false).ToList();
@@ -1192,13 +1187,12 @@ namespace VoteExplorer.Controllers
                                        totalCoins = grp.Sum(t => t.totalCoins)
                                    }).ToList();
 
-            var answers = (from a1 in Context.answers.AsQueryable().ToList()
+            var answers = (from a1 in _blockchainContext.answers
                            join a2 in voteCalculation on a1.answid equals a2.ansid into a3
                            from a2 in a3.DefaultIfEmpty()
-                           where a1.quid == quid && (a2 == null || a2.quid == quid)
                            select new
                            {
-                               quid = a1.quid,
+                               quid = quid,
                                answid = a1.answid,
                                test = a1.test,
                                TotalVotes = (a2 == null) ? 0 : a2.TotalVotes,
@@ -1234,17 +1228,16 @@ namespace VoteExplorer.Controllers
         [HttpGet("_GetAnswersBarChartData/{quid}")]
         public ActionResult _GetAnswersBarChartData(string quid)
         {
-            IMongoQueryable<Answer> answers = Context.answers.AsQueryable();
+            List<Answer> answers = _blockchainContext.answers;
 
             List<IDictionary<string, Object>> finalResult = new List<IDictionary<string, object>>();
             var dynamicObject = new ExpandoObject() as IDictionary<string, Object>;
             dynamicObject.Add("year", "2018");
             List<AnswerPieChartVM> answersPieChartResult = (from a in answers
-                                                            where a.quid == quid
                                                             orderby a.answid
                                                             select new AnswerPieChartVM
                                                             {
-                                                                quid = a.quid,
+                                                                quid = quid,
                                                                 answid = a.answid,
                                                                 text = a.test,
                                                                 TotalVotes = a.TotalVotes,
@@ -1273,7 +1266,7 @@ namespace VoteExplorer.Controllers
             //decimal surcharge = Convert.ToDecimal(Configuration["surcharge"]);
             decimal coinWeight = Convert.ToDecimal(Configuration["coinWeight"]);
 
-            string meetingId = HttpContext.Session.GetString("displayResultsMeetingId");
+            string meetingId = HttpContext.Session.GetString("displayResultsContractAddress");
             string controlNumber = HttpContext.Session.GetString("controlNumber");
             List<BlockchainAddress> blockchainAddresses = Context.blockchainaddresses.AsQueryable().Where(bc => bc.meetingId == meetingId && bc.quid == quid && bc.currentTransaction == true && bc.isFirstTransaction == false).ToList();
             blockchainAddresses.ForEach(bc => bc.TotalVotes = Convert.ToDecimal(bc.coins) / coinWeight);
@@ -1290,13 +1283,12 @@ namespace VoteExplorer.Controllers
                                    }).ToList();
 
             //IMongoQueryable<Answer> answers = Context.answers.AsQueryable();
-            var answers = (from a1 in Context.answers.AsQueryable().ToList()
+            var answers = (from a1 in _blockchainContext.answers
                            join a2 in voteCalculation on a1.answid equals a2.ansid into a3
                            from a2 in a3.DefaultIfEmpty()
-                           where a1.quid == quid && (a2 == null || a2.quid == quid)
                            select new
                            {
-                               quid = a1.quid,
+                               quid = quid,
                                answid = a1.answid,
                                test = a1.test,
                                TotalVotes = (a2 == null) ? 0 : a2.TotalVotes,
@@ -1623,8 +1615,8 @@ namespace VoteExplorer.Controllers
 
             try
             {
-                string meetingId = HttpContext.Session.GetString("activeVoteMeetingId");
-                questions = Context.questions.AsQueryable().Where(q => q.MeetingId == meetingId).ToList();
+                string meetingId = HttpContext.Session.GetString("activeVoteContractAddress");
+                questions = _blockchainContext.questions;
             }
             catch (Exception ex)
             {
@@ -1637,7 +1629,7 @@ namespace VoteExplorer.Controllers
         [HttpGet("answers/BTCS")]
         public IActionResult GetAnswers()
         {
-            var answers = Context.answers.AsQueryable();
+            var answers = _blockchainContext.answers;
 
             return Ok(answers);
         }
@@ -1647,7 +1639,7 @@ namespace VoteExplorer.Controllers
         {
             try
             {
-                List<Answer> answers = Context.answers.AsQueryable().Where(a => a.quid == quid).ToList();
+                List<Answer> answers = _blockchainContext.answers;
                 return Ok(answers);
             }
             catch (Exception ex)

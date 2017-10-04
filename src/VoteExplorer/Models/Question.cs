@@ -16,7 +16,7 @@ namespace VoteExplorer.Models
         public string _id { get; set; }
 
         [Parameter("uint", 1)]
-        public int questionIndex1 { get; set; }
+        public int questionIndex { get; set; }
 
         [Parameter("string", 2)]
         public string quid { get; set; }
@@ -35,7 +35,6 @@ namespace VoteExplorer.Models
         [BsonIgnoreIfNull]
         public string text_ru { get; set; }
         public string block { get; set; }
-        public int state { get; set; }
         public string owner { get; set; }
         public string title { get; set; }
 

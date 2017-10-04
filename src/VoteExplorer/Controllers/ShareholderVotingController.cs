@@ -21,8 +21,14 @@ namespace VoteExplorer.Controllers
     public class ShareholderVotingController : Controller
     {
         public static readonly VoteExplorerContext Context = new VoteExplorerContext();
-        public static readonly VoteExplorerBlockchainContext BlockchainContext = new VoteExplorerBlockchainContext();
+        private VoteExplorerBlockchainContext _blockchainContext;
         // GET: /<controller>/
+
+        public ShareholderVotingController(VoteExplorerBlockchainContext blockchainContext)
+        {
+            _blockchainContext = blockchainContext;
+        }
+
 
         public enum LanguagePreference
         {
@@ -34,7 +40,7 @@ namespace VoteExplorer.Controllers
         {
             List<VoteSubmission> voteSubmissions = Context.votesubmission.AsQueryable().ToList();
 
-            if (HttpContext.Session.GetString("activeVoteMeetingId") == null)
+            if (HttpContext.Session.GetString("activeVoteContractAddress") == null)
             {
                 if (languagePreference == LanguagePreference.Russian)
                 {
@@ -47,7 +53,7 @@ namespace VoteExplorer.Controllers
 
             }
 
-            string MeetingId = HttpContext.Session.GetString("activeVoteMeetingId");
+            string MeetingId = HttpContext.Session.GetString("activeVoteContractAddress");
 
             var existingVoteSubmissions = voteSubmissions.Where(v => v.ControlNumber == HttpContext.Session.GetString("ControlNumber") && v.voteSubmissionStatus != VoteSubmissionStatus.VotesSubmitted && v.voteSubmissionStatus != VoteSubmissionStatus.VoteCoinsTransferredPendingDelete && v.MeetingId == MeetingId);
             if (existingVoteSubmissions.Any())
@@ -65,15 +71,14 @@ namespace VoteExplorer.Controllers
             {
                 MainVM viewModel = new MainVM();
 
-                string meetingId =  HttpContext.Session.GetString("activeVoteMeetingId");
+                string meetingId =  HttpContext.Session.GetString("activeVoteContractAddress");
 
                 if (meetingId != "-1")
                 {
-                    List<Question> questions = Context.questions.AsQueryable().Where(q=>q.MeetingId == meetingId).ToList();
-                    List<Answer> answers = Context.answers.AsQueryable().ToList();
+                    List<Question> questions = _blockchainContext.questions;
+                    List<Answer> answers = _blockchainContext.answers;
 
                     viewModel.activeQuestions = (from q in questions
-                                                 where q.state == 2
                                                  select new QuestionVM
                                                  {
                                                      quid = q.quid,
@@ -88,11 +93,10 @@ namespace VoteExplorer.Controllers
                     foreach (QuestionVM question in viewModel.activeQuestions)
                     {
                         question.Answers = (from a in answers
-                                            where a.quid == question.quid
                                             orderby a.answid
                                             select new AnswerVM
                                             {
-                                                quid = a.quid,
+                                                quid = question.quid,
                                                 answid = a.answid,
                                                 text = a.test
                                             }
@@ -111,7 +115,7 @@ namespace VoteExplorer.Controllers
 
         public IActionResult RevoteStatus_CodeBehind(LanguagePreference languagePreference)
         {
-            if (HttpContext.Session.GetString("activeVoteMeetingId") == null)
+            if (HttpContext.Session.GetString("activeVoteContractAddress") == null)
             {
                 if (languagePreference == LanguagePreference.Russian)
                 {
@@ -124,7 +128,7 @@ namespace VoteExplorer.Controllers
 
             }
 
-            string meetingId = HttpContext.Session.GetString("activeVoteMeetingId");
+            string meetingId = HttpContext.Session.GetString("activeVoteContractAddress");
             string controlNumber = HttpContext.Session.GetString("ControlNumber");
 
             var filter = Builders<VoteSubmission>.Filter.Eq("ControlNumber", controlNumber) & Builders<VoteSubmission>.Filter.Eq("MeetingId", meetingId) & Builders<VoteSubmission>.Filter.Eq("voteSubmissionStatus",VoteSubmissionStatus.VoteCoinsTransferred);
@@ -191,26 +195,26 @@ namespace VoteExplorer.Controllers
             List<Meeting> meetings = Context.meetings.AsQueryable().Where(q => q.VoteStart != null && q.VoteStart <= DateTime.Now && q.VoteDeadline != null && DateTime.Now <= q.VoteDeadline).ToList();
             if (meetings.Any())
             {
-                HttpContext.Session.SetString("activeVoteMeetingId", meetings.FirstOrDefault()._id);
+                HttpContext.Session.SetString("activeVoteContractAddress", meetings.FirstOrDefault().ContractAddress);
             }
             else
             {
-                HttpContext.Session.SetString("activeVoteMeetingId", "-1");
+                HttpContext.Session.SetString("activeVoteContractAddress", "-1");
             }
 
             List<Meeting> meetingsDisplayResults = Context.meetings.AsQueryable().Where(q => q.DisplayResults == true).ToList();
             if (meetingsDisplayResults.Any())
             {
-                HttpContext.Session.SetString("displayResultsMeetingId", meetingsDisplayResults.FirstOrDefault()._id);
+                HttpContext.Session.SetString("displayResultsContractAddress", meetingsDisplayResults.FirstOrDefault().ContractAddress);
             }
             else
             {
-                HttpContext.Session.SetString("displayResultsMeetingId", "-1");
+                HttpContext.Session.SetString("displayResultsContractAddress", "-1");
             }
 
             HttpContext.Session.SetString("ControlNumber", controlNumber);
 
-            string meetingId = HttpContext.Session.GetString("activeVoteMeetingId");
+            string meetingId = HttpContext.Session.GetString("activeVoteContractAddress");
 
             var filterSubmittedAddresses = Builders<VoteSubmission>.Filter.Eq("ControlNumber", controlNumber) & Builders<VoteSubmission>.Filter.Eq("MeetingId", meetingId) & Builders<VoteSubmission>.Filter.Eq("voteSubmissionStatus", VoteSubmissionStatus.VotesSubmitted);
             Context.votesubmission.DeleteMany(filterSubmittedAddresses);

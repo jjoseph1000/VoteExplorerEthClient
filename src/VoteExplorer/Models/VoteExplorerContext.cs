@@ -36,8 +36,6 @@ namespace VoteExplorer.Models
             }
         }
 
-        public IMongoCollection<Question> questions => Database.GetCollection<Question>("questions");
-        public IMongoCollection<Answer> answers => Database.GetCollection<Answer>("answers");
 
         public IMongoCollection<VoteSubmission> votesubmission => Database.GetCollection<VoteSubmission>("votesubmission");
 

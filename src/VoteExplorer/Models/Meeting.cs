@@ -55,5 +55,8 @@ namespace VoteExplorer.Models
         [BsonIgnoreIfNull]
         public string VoteStatus { get; set; }
 
+        [BsonIgnoreIfNull]
+        public string ContractAddress { get; set; }
+
     }
 }

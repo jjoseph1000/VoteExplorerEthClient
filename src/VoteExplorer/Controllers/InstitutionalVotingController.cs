@@ -18,11 +18,13 @@ namespace VoteExplorer.Controllers
     public class InstitutionalVotingController : Controller
     {
         public static readonly VoteExplorerContext Context = new VoteExplorerContext();
+        private VoteExplorerBlockchainContext _blockchainContext;
         private GroupService groupService;
 
-        public InstitutionalVotingController()
+        public InstitutionalVotingController(VoteExplorerBlockchainContext blockchainContext)
         {
             groupService = new GroupService(Context);
+            _blockchainContext = blockchainContext;
         }
 
         // GET: /<controller>/
@@ -37,12 +39,11 @@ namespace VoteExplorer.Controllers
         {
             try
             {
-                IMongoQueryable<Question> questions = Context.questions.AsQueryable();
-                IMongoQueryable<Answer> answers = Context.answers.AsQueryable();
+                List<Question> questions = _blockchainContext.questions;
+                List<Answer> answers = _blockchainContext.answers;
                 MainVM viewModel = new MainVM();
 
                 viewModel.activeQuestions = (from q in questions
-                                             where q.state == 2
                                              select new QuestionVM
                                              {
                                                  quid = q.quid,
@@ -56,11 +57,10 @@ namespace VoteExplorer.Controllers
                 foreach (QuestionVM question in viewModel.activeQuestions)
                 {
                     question.Answers = (from a in answers
-                                        where a.quid == question.quid
                                         orderby a.answid
                                         select new AnswerVM
                                         {
-                                            quid = a.quid,
+                                            quid = question.quid,
                                             answid = a.answid,
                                             text = a.test
                                         }
@@ -97,8 +97,8 @@ namespace VoteExplorer.Controllers
         [HttpGet("Confirm/{id}")]
         public IActionResult Confirm(string id)
         {
-            IMongoQueryable<Question> questions = Context.questions.AsQueryable();
-            IMongoQueryable<Answer> answers = Context.answers.AsQueryable();
+            List<Question> questions = _blockchainContext.questions;
+            List<Answer> answers = _blockchainContext.answers;
             IMongoQueryable<VoteSubmission> voteSubmission = Context.votesubmission.AsQueryable();
 
             var savedVotes = voteSubmission.Where(e => e._id == id);
@@ -136,11 +136,11 @@ namespace VoteExplorer.Controllers
             List<Meeting> meetingsDisplayResults = Context.meetings.AsQueryable().Where(q => q.DisplayResults == true).ToList();
             if (meetingsDisplayResults.Any())
             {
-                HttpContext.Session.SetString("displayResultsMeetingId", meetingsDisplayResults.FirstOrDefault()._id);
+                HttpContext.Session.SetString("displayResultsContractAddress", meetingsDisplayResults.FirstOrDefault()._id);
             }
             else
             {
-                HttpContext.Session.SetString("displayResultsMeetingId", "-1");
+                HttpContext.Session.SetString("displayResultsContractAddress", "-1");
             }
 
             return View();

@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using VoteExplorer.Models;
 
 namespace VoteExplorer
 {
@@ -32,6 +33,7 @@ namespace VoteExplorer
             services.AddKendo();
             services.AddDistributedMemoryCache(); // Adds a default in-memory implementation of IDistributedCache
             services.AddSession();
+            services.AddSingleton<VoteExplorerBlockchainContext>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
