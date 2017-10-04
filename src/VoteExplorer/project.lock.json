@@ -3,6 +3,34 @@
   "version": 2,
   "targets": {
     ".NETCoreApp,Version=v1.0": {
+      "EdjCase.JsonRpc.Client/1.1.0": {
+        "type": "package",
+        "dependencies": {
+          "EdjCase.JsonRpc.Core": "1.1.0",
+          "NETStandard.Library": "1.6.0",
+          "Newtonsoft.Json": "9.0.1",
+          "System.Net.Http": "4.1.0"
+        },
+        "compile": {
+          "lib/netstandard1.1/EdjCase.JsonRpc.Client.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard1.1/EdjCase.JsonRpc.Client.dll": {}
+        }
+      },
+      "EdjCase.JsonRpc.Core/1.1.0": {
+        "type": "package",
+        "dependencies": {
+          "NETStandard.Library": "1.6.0",
+          "Newtonsoft.Json": "9.0.1"
+        },
+        "compile": {
+          "lib/netstandard1.1/EdjCase.JsonRpc.Core.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard1.1/EdjCase.JsonRpc.Core.dll": {}
+        }
+      },
       "HtmlAgilityPack/1.5.1": {
         "type": "package",
         "dependencies": {
@@ -1625,6 +1653,77 @@
           "lib/netstandard1.5/MongoDB.Driver.GridFS.dll": {}
         }
       },
+      "Nethereum.ABI/1.0.6": {
+        "type": "package",
+        "dependencies": {
+          "NETStandard.Library": "1.6.0",
+          "Nethereum.Hex": "1.0.6",
+          "Portable.BouncyCastle": "1.8.1"
+        },
+        "compile": {
+          "lib/netstandard1.1/Nethereum.ABI.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard1.1/Nethereum.ABI.dll": {}
+        }
+      },
+      "Nethereum.Hex/1.0.6": {
+        "type": "package",
+        "dependencies": {
+          "NETStandard.Library": "1.6.0",
+          "Newtonsoft.Json": "9.0.1"
+        },
+        "compile": {
+          "lib/netstandard1.1/Nethereum.Hex.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard1.1/Nethereum.Hex.dll": {}
+        }
+      },
+      "Nethereum.JsonRpc.Client/1.0.6": {
+        "type": "package",
+        "dependencies": {
+          "EdjCase.JsonRpc.Client": "1.0.6",
+          "NETStandard.Library": "1.6.0",
+          "Newtonsoft.Json": "9.0.1"
+        },
+        "compile": {
+          "lib/netstandard1.1/Nethereum.JsonRpc.Client.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard1.1/Nethereum.JsonRpc.Client.dll": {}
+        }
+      },
+      "Nethereum.RPC/1.0.6": {
+        "type": "package",
+        "dependencies": {
+          "NETStandard.Library": "1.6.0",
+          "Nethereum.Hex": "1.0.6",
+          "Nethereum.JsonRpc.Client": "1.0.6",
+          "Portable.BouncyCastle": "1.8.1"
+        },
+        "compile": {
+          "lib/netstandard1.1/Nethereum.RPC.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard1.1/Nethereum.RPC.dll": {}
+        }
+      },
+      "Nethereum.Web3/1.0.6": {
+        "type": "package",
+        "dependencies": {
+          "NETStandard.Library": "1.6.0",
+          "Nethereum.ABI": "1.0.6",
+          "Nethereum.Hex": "1.0.6",
+          "Nethereum.RPC": "1.0.6"
+        },
+        "compile": {
+          "lib/netstandard1.1/Nethereum.Web3.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard1.1/Nethereum.Web3.dll": {}
+        }
+      },
       "NETStandard.Library/1.6.1": {
         "type": "package",
         "dependencies": {
@@ -1912,6 +2011,31 @@
         },
         "runtime": {
           "lib/netstandard1.0/NuGet.Versioning.dll": {}
+        }
+      },
+      "Portable.BouncyCastle/1.8.1": {
+        "type": "package",
+        "dependencies": {
+          "System.Collections": "4.0.10",
+          "System.Diagnostics.Debug": "4.0.10",
+          "System.Globalization": "4.0.10",
+          "System.IO": "4.0.10",
+          "System.IO.FileSystem": "4.0.0",
+          "System.IO.FileSystem.Primitives": "4.0.0",
+          "System.Linq": "4.0.0",
+          "System.Reflection": "4.0.10",
+          "System.Reflection.Extensions": "4.0.0",
+          "System.Runtime": "4.0.20",
+          "System.Runtime.Extensions": "4.0.10",
+          "System.Text.Encoding": "4.0.10",
+          "System.Threading": "4.0.10",
+          "System.Threading.Tasks": "4.0.10"
+        },
+        "compile": {
+          "lib/dotnet/crypto.dll": {}
+        },
+        "runtime": {
+          "lib/dotnet/crypto.dll": {}
         }
       },
       "runtime.debian.8-x64.runtime.native.System.Security.Cryptography.OpenSsl/4.3.0": {
@@ -4374,6 +4498,34 @@
       }
     },
     ".NETCoreApp,Version=v1.0/ubuntu.14.04-x64": {
+      "EdjCase.JsonRpc.Client/1.1.0": {
+        "type": "package",
+        "dependencies": {
+          "EdjCase.JsonRpc.Core": "1.1.0",
+          "NETStandard.Library": "1.6.0",
+          "Newtonsoft.Json": "9.0.1",
+          "System.Net.Http": "4.1.0"
+        },
+        "compile": {
+          "lib/netstandard1.1/EdjCase.JsonRpc.Client.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard1.1/EdjCase.JsonRpc.Client.dll": {}
+        }
+      },
+      "EdjCase.JsonRpc.Core/1.1.0": {
+        "type": "package",
+        "dependencies": {
+          "NETStandard.Library": "1.6.0",
+          "Newtonsoft.Json": "9.0.1"
+        },
+        "compile": {
+          "lib/netstandard1.1/EdjCase.JsonRpc.Core.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard1.1/EdjCase.JsonRpc.Core.dll": {}
+        }
+      },
       "HtmlAgilityPack/1.5.1": {
         "type": "package",
         "dependencies": {
@@ -5968,6 +6120,77 @@
           "lib/netstandard1.5/MongoDB.Driver.GridFS.dll": {}
         }
       },
+      "Nethereum.ABI/1.0.6": {
+        "type": "package",
+        "dependencies": {
+          "NETStandard.Library": "1.6.0",
+          "Nethereum.Hex": "1.0.6",
+          "Portable.BouncyCastle": "1.8.1"
+        },
+        "compile": {
+          "lib/netstandard1.1/Nethereum.ABI.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard1.1/Nethereum.ABI.dll": {}
+        }
+      },
+      "Nethereum.Hex/1.0.6": {
+        "type": "package",
+        "dependencies": {
+          "NETStandard.Library": "1.6.0",
+          "Newtonsoft.Json": "9.0.1"
+        },
+        "compile": {
+          "lib/netstandard1.1/Nethereum.Hex.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard1.1/Nethereum.Hex.dll": {}
+        }
+      },
+      "Nethereum.JsonRpc.Client/1.0.6": {
+        "type": "package",
+        "dependencies": {
+          "EdjCase.JsonRpc.Client": "1.0.6",
+          "NETStandard.Library": "1.6.0",
+          "Newtonsoft.Json": "9.0.1"
+        },
+        "compile": {
+          "lib/netstandard1.1/Nethereum.JsonRpc.Client.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard1.1/Nethereum.JsonRpc.Client.dll": {}
+        }
+      },
+      "Nethereum.RPC/1.0.6": {
+        "type": "package",
+        "dependencies": {
+          "NETStandard.Library": "1.6.0",
+          "Nethereum.Hex": "1.0.6",
+          "Nethereum.JsonRpc.Client": "1.0.6",
+          "Portable.BouncyCastle": "1.8.1"
+        },
+        "compile": {
+          "lib/netstandard1.1/Nethereum.RPC.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard1.1/Nethereum.RPC.dll": {}
+        }
+      },
+      "Nethereum.Web3/1.0.6": {
+        "type": "package",
+        "dependencies": {
+          "NETStandard.Library": "1.6.0",
+          "Nethereum.ABI": "1.0.6",
+          "Nethereum.Hex": "1.0.6",
+          "Nethereum.RPC": "1.0.6"
+        },
+        "compile": {
+          "lib/netstandard1.1/Nethereum.Web3.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard1.1/Nethereum.Web3.dll": {}
+        }
+      },
       "NETStandard.Library/1.6.1": {
         "type": "package",
         "dependencies": {
@@ -6255,6 +6478,31 @@
         },
         "runtime": {
           "lib/netstandard1.0/NuGet.Versioning.dll": {}
+        }
+      },
+      "Portable.BouncyCastle/1.8.1": {
+        "type": "package",
+        "dependencies": {
+          "System.Collections": "4.0.10",
+          "System.Diagnostics.Debug": "4.0.10",
+          "System.Globalization": "4.0.10",
+          "System.IO": "4.0.10",
+          "System.IO.FileSystem": "4.0.0",
+          "System.IO.FileSystem.Primitives": "4.0.0",
+          "System.Linq": "4.0.0",
+          "System.Reflection": "4.0.10",
+          "System.Reflection.Extensions": "4.0.0",
+          "System.Runtime": "4.0.20",
+          "System.Runtime.Extensions": "4.0.10",
+          "System.Text.Encoding": "4.0.10",
+          "System.Threading": "4.0.10",
+          "System.Threading.Tasks": "4.0.10"
+        },
+        "compile": {
+          "lib/dotnet/crypto.dll": {}
+        },
+        "runtime": {
+          "lib/dotnet/crypto.dll": {}
         }
       },
       "runtime.any.System.Collections/4.3.0": {
@@ -8904,6 +9152,34 @@
       }
     },
     ".NETCoreApp,Version=v1.0/win10-x64": {
+      "EdjCase.JsonRpc.Client/1.1.0": {
+        "type": "package",
+        "dependencies": {
+          "EdjCase.JsonRpc.Core": "1.1.0",
+          "NETStandard.Library": "1.6.0",
+          "Newtonsoft.Json": "9.0.1",
+          "System.Net.Http": "4.1.0"
+        },
+        "compile": {
+          "lib/netstandard1.1/EdjCase.JsonRpc.Client.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard1.1/EdjCase.JsonRpc.Client.dll": {}
+        }
+      },
+      "EdjCase.JsonRpc.Core/1.1.0": {
+        "type": "package",
+        "dependencies": {
+          "NETStandard.Library": "1.6.0",
+          "Newtonsoft.Json": "9.0.1"
+        },
+        "compile": {
+          "lib/netstandard1.1/EdjCase.JsonRpc.Core.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard1.1/EdjCase.JsonRpc.Core.dll": {}
+        }
+      },
       "HtmlAgilityPack/1.5.1": {
         "type": "package",
         "dependencies": {
@@ -10498,6 +10774,77 @@
           "lib/netstandard1.5/MongoDB.Driver.GridFS.dll": {}
         }
       },
+      "Nethereum.ABI/1.0.6": {
+        "type": "package",
+        "dependencies": {
+          "NETStandard.Library": "1.6.0",
+          "Nethereum.Hex": "1.0.6",
+          "Portable.BouncyCastle": "1.8.1"
+        },
+        "compile": {
+          "lib/netstandard1.1/Nethereum.ABI.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard1.1/Nethereum.ABI.dll": {}
+        }
+      },
+      "Nethereum.Hex/1.0.6": {
+        "type": "package",
+        "dependencies": {
+          "NETStandard.Library": "1.6.0",
+          "Newtonsoft.Json": "9.0.1"
+        },
+        "compile": {
+          "lib/netstandard1.1/Nethereum.Hex.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard1.1/Nethereum.Hex.dll": {}
+        }
+      },
+      "Nethereum.JsonRpc.Client/1.0.6": {
+        "type": "package",
+        "dependencies": {
+          "EdjCase.JsonRpc.Client": "1.0.6",
+          "NETStandard.Library": "1.6.0",
+          "Newtonsoft.Json": "9.0.1"
+        },
+        "compile": {
+          "lib/netstandard1.1/Nethereum.JsonRpc.Client.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard1.1/Nethereum.JsonRpc.Client.dll": {}
+        }
+      },
+      "Nethereum.RPC/1.0.6": {
+        "type": "package",
+        "dependencies": {
+          "NETStandard.Library": "1.6.0",
+          "Nethereum.Hex": "1.0.6",
+          "Nethereum.JsonRpc.Client": "1.0.6",
+          "Portable.BouncyCastle": "1.8.1"
+        },
+        "compile": {
+          "lib/netstandard1.1/Nethereum.RPC.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard1.1/Nethereum.RPC.dll": {}
+        }
+      },
+      "Nethereum.Web3/1.0.6": {
+        "type": "package",
+        "dependencies": {
+          "NETStandard.Library": "1.6.0",
+          "Nethereum.ABI": "1.0.6",
+          "Nethereum.Hex": "1.0.6",
+          "Nethereum.RPC": "1.0.6"
+        },
+        "compile": {
+          "lib/netstandard1.1/Nethereum.Web3.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard1.1/Nethereum.Web3.dll": {}
+        }
+      },
       "NETStandard.Library/1.6.1": {
         "type": "package",
         "dependencies": {
@@ -10785,6 +11132,31 @@
         },
         "runtime": {
           "lib/netstandard1.0/NuGet.Versioning.dll": {}
+        }
+      },
+      "Portable.BouncyCastle/1.8.1": {
+        "type": "package",
+        "dependencies": {
+          "System.Collections": "4.0.10",
+          "System.Diagnostics.Debug": "4.0.10",
+          "System.Globalization": "4.0.10",
+          "System.IO": "4.0.10",
+          "System.IO.FileSystem": "4.0.0",
+          "System.IO.FileSystem.Primitives": "4.0.0",
+          "System.Linq": "4.0.0",
+          "System.Reflection": "4.0.10",
+          "System.Reflection.Extensions": "4.0.0",
+          "System.Runtime": "4.0.20",
+          "System.Runtime.Extensions": "4.0.10",
+          "System.Text.Encoding": "4.0.10",
+          "System.Threading": "4.0.10",
+          "System.Threading.Tasks": "4.0.10"
+        },
+        "compile": {
+          "lib/dotnet/crypto.dll": {}
+        },
+        "runtime": {
+          "lib/dotnet/crypto.dll": {}
         }
       },
       "runtime.any.System.Collections/4.3.0": {
@@ -13396,6 +13768,30 @@
     }
   },
   "libraries": {
+    "EdjCase.JsonRpc.Client/1.1.0": {
+      "sha512": "T4zlhgPC5dumqtEVT9sMPakb9WcYGEX3yivwWMcS5B4GQDj19UMd+W8f0aZhUROO85OWWAxldwgobNpxGpJSog==",
+      "type": "package",
+      "path": "EdjCase.JsonRpc.Client/1.1.0",
+      "files": [
+        "EdjCase.JsonRpc.Client.1.1.0.nupkg.sha512",
+        "EdjCase.JsonRpc.Client.nuspec",
+        "lib/net451/EdjCase.JsonRpc.Client.dll",
+        "lib/netstandard1.1/EdjCase.JsonRpc.Client.dll",
+        "lib/portable45-net45+win8+wpa81/EdjCase.JsonRpc.Client.dll"
+      ]
+    },
+    "EdjCase.JsonRpc.Core/1.1.0": {
+      "sha512": "7/YCqdpXGZcSGBA17iGl/oXSxyraNXcQ+et3zNX5GvMGzAGlERpm8CCHj3W/1PACBHuaYkuJ8D9oe1fQc2iJmg==",
+      "type": "package",
+      "path": "EdjCase.JsonRpc.Core/1.1.0",
+      "files": [
+        "EdjCase.JsonRpc.Core.1.1.0.nupkg.sha512",
+        "EdjCase.JsonRpc.Core.nuspec",
+        "lib/net451/EdjCase.JsonRpc.Core.dll",
+        "lib/netstandard1.1/EdjCase.JsonRpc.Core.dll",
+        "lib/portable45-net45+win8+wpa81/EdjCase.JsonRpc.Core.dll"
+      ]
+    },
     "HtmlAgilityPack/1.5.1": {
       "sha512": "MvyOKuM+j4UAr++VDsK85cAPySz7lc+VttQt6PMd16S9rSdCyzKl2Ctz31vhBgPD41ImQxmYxubUqzTVM4grjg==",
       "type": "package",
@@ -16481,6 +16877,70 @@
         "mongodb.driver.gridfs.nuspec"
       ]
     },
+    "Nethereum.ABI/1.0.6": {
+      "sha512": "HLYYaaZmalfuWVOKKal216gQCV/JTDFxU+pPcqxLU4LsttqkG5wKh70RUWH4b+G7wwRCpL68Vh93qa7O/fTlbA==",
+      "type": "package",
+      "path": "Nethereum.ABI/1.0.6",
+      "files": [
+        "Nethereum.ABI.1.0.6.nupkg.sha512",
+        "Nethereum.ABI.nuspec",
+        "lib/net451/Nethereum.ABI.dll",
+        "lib/net451/Nethereum.ABI.xml",
+        "lib/netstandard1.1/Nethereum.ABI.dll",
+        "lib/portable45-net45+win8+wpa81/Nethereum.ABI.dll"
+      ]
+    },
+    "Nethereum.Hex/1.0.6": {
+      "sha512": "U8Y6uceNPeR2el7Hc56Dbevl5+MiuVSaik8YVcu+NV+PVtiDLkmLbkkS44cII92XhXRrcTP81Lgx9JclcPq98g==",
+      "type": "package",
+      "path": "Nethereum.Hex/1.0.6",
+      "files": [
+        "Nethereum.Hex.1.0.6.nupkg.sha512",
+        "Nethereum.Hex.nuspec",
+        "lib/net451/Nethereum.Hex.dll",
+        "lib/net451/Nethereum.Hex.xml",
+        "lib/netstandard1.1/Nethereum.Hex.dll",
+        "lib/portable45-net45+win8+wpa81/Nethereum.Hex.dll"
+      ]
+    },
+    "Nethereum.JsonRpc.Client/1.0.6": {
+      "sha512": "Nzz4oVzFYmHS0HzcvsXRRZNrC0czBMqMAwe/iG8rMNQNHHOLjSHIOQFYNyDK7TGOAfseaGWHsDP6jhpGafSUxQ==",
+      "type": "package",
+      "path": "Nethereum.JsonRpc.Client/1.0.6",
+      "files": [
+        "Nethereum.JsonRpc.Client.1.0.6.nupkg.sha512",
+        "Nethereum.JsonRpc.Client.nuspec",
+        "lib/net451/Nethereum.JsonRpc.Client.dll",
+        "lib/netstandard1.1/Nethereum.JsonRpc.Client.dll",
+        "lib/portable45-net45+win8+wpa81/Nethereum.JsonRpc.Client.dll"
+      ]
+    },
+    "Nethereum.RPC/1.0.6": {
+      "sha512": "rQUtfytcWNgJZY0p6TXF8ixA+iuUjK9LfETGhT+4ss611UxSnz0qoQfs+SnDCkc6dLOUXL1Uc46fitMWm8sfAw==",
+      "type": "package",
+      "path": "Nethereum.RPC/1.0.6",
+      "files": [
+        "Nethereum.RPC.1.0.6.nupkg.sha512",
+        "Nethereum.RPC.nuspec",
+        "lib/net451/Nethereum.RPC.dll",
+        "lib/net451/Nethereum.RPC.xml",
+        "lib/netstandard1.1/Nethereum.RPC.dll",
+        "lib/portable45-net45+win8+wpa81/Nethereum.RPC.dll"
+      ]
+    },
+    "Nethereum.Web3/1.0.6": {
+      "sha512": "lhNebCJNMwBiwwkMbjJXIfk7SMLbavi8g5nJtR+m2XzdYr2XTA/gUw9xfWjosZH4d1+obadubPlHTSnxTlopCg==",
+      "type": "package",
+      "path": "Nethereum.Web3/1.0.6",
+      "files": [
+        "Nethereum.Web3.1.0.6.nupkg.sha512",
+        "Nethereum.Web3.nuspec",
+        "lib/net451/Nethereum.Web3.dll",
+        "lib/net451/Nethereum.Web3.xml",
+        "lib/netstandard1.1/Nethereum.Web3.dll",
+        "lib/portable45-net45+win8+wpa81/Nethereum.Web3.dll"
+      ]
+    },
     "NETStandard.Library/1.6.1": {
       "sha512": "WcSp3+vP+yHNgS8EV5J7pZ9IRpeDuARBPN28by8zqff1wJQXm26PVU8L3/fYLBJVU7BtDyqNVWq2KlCVvSSR4A==",
       "type": "package",
@@ -16698,6 +17158,52 @@
         "lib/net45/NuGet.Versioning.xml",
         "lib/netstandard1.0/NuGet.Versioning.dll",
         "lib/netstandard1.0/NuGet.Versioning.xml"
+      ]
+    },
+    "Portable.BouncyCastle/1.8.1": {
+      "sha512": "Z4yqqo0gur6HvGQbEtXjiyKCW+Y7e87gU/Tng10Dgwhs6Pt2KCMiIcrlr6P4QViYNZArsKSKwQvFnQma/NES+Q==",
+      "type": "package",
+      "path": "Portable.BouncyCastle/1.8.1",
+      "files": [
+        "Portable.BouncyCastle.1.8.1.nupkg.sha512",
+        "Portable.BouncyCastle.nuspec",
+        "Readme.html",
+        "lib/MonoAndroid/crypto.dll",
+        "lib/MonoAndroid/crypto.pdb",
+        "lib/MonoAndroid/crypto.xml",
+        "lib/MonoTouch/crypto.dll",
+        "lib/MonoTouch/crypto.pdb",
+        "lib/MonoTouch/crypto.xml",
+        "lib/XamarinIos/crypto.dll",
+        "lib/XamarinIos/crypto.pdb",
+        "lib/XamarinIos/crypto.xml",
+        "lib/XamarinMac/crypto.dll",
+        "lib/XamarinMac/crypto.pdb",
+        "lib/XamarinMac/crypto.xml",
+        "lib/dotnet/crypto.dll",
+        "lib/dotnet/crypto.pdb",
+        "lib/dotnet/crypto.xml",
+        "lib/net45/crypto.dll",
+        "lib/net45/crypto.pdb",
+        "lib/net45/crypto.xml",
+        "lib/net46/crypto.dll",
+        "lib/net46/crypto.pdb",
+        "lib/net46/crypto.xml",
+        "lib/portable-net4+sl5+wp8+win8+wpa81+MonoTouch10+MonoAndroid10+xamarinmac20+xamarinios10/crypto.dll",
+        "lib/portable-net4+sl5+wp8+win8+wpa81+MonoTouch10+MonoAndroid10+xamarinmac20+xamarinios10/crypto.pdb",
+        "lib/portable-net4+sl5+wp8+win8+wpa81+MonoTouch10+MonoAndroid10+xamarinmac20+xamarinios10/crypto.xml",
+        "lib/portable-net45+win8+wpa81+MonoTouch10+MonoAndroid10+xamarinmac20+xamarinios10/crypto.dll",
+        "lib/portable-net45+win8+wpa81+MonoTouch10+MonoAndroid10+xamarinmac20+xamarinios10/crypto.pdb",
+        "lib/portable-net45+win8+wpa81+MonoTouch10+MonoAndroid10+xamarinmac20+xamarinios10/crypto.xml",
+        "lib/uap10.0/crypto.dll",
+        "lib/uap10.0/crypto.pdb",
+        "lib/uap10.0/crypto.xml",
+        "lib/win8/crypto.dll",
+        "lib/win8/crypto.pdb",
+        "lib/win8/crypto.xml",
+        "lib/wpa81/crypto.dll",
+        "lib/wpa81/crypto.pdb",
+        "lib/wpa81/crypto.xml"
       ]
     },
     "runtime.any.System.Collections/4.3.0": {
@@ -22877,6 +23383,11 @@
       "MongoDB.Driver >= 2.4.3",
       "MongoDB.Driver.Core >= 2.4.3",
       "MongoDB.Driver.GridFS >= 2.4.3",
+      "Nethereum.ABI >= 1.0.6",
+      "Nethereum.Hex >= 1.0.6",
+      "Nethereum.JsonRpc.Client >= 1.0.6",
+      "Nethereum.RPC >= 1.0.6",
+      "Nethereum.Web3 >= 1.0.6",
       "Serilog.Extensions.Logging.File >= 1.1.0",
       "System.Threading.Timer >= 4.3.0",
       "Telerik.UI.for.AspNet.Core.Trial >= 2017.1.223"

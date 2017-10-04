@@ -13,6 +13,11 @@
     "MongoDB.Bson": "2.4.3",
     "MongoDB.Driver.Core": "2.4.3",
     "MongoDB.Driver.GridFS": "2.4.3",
+    "Nethereum.ABI": "1.0.6",
+    "Nethereum.Hex": "1.0.6",
+    "Nethereum.JsonRpc.Client": "1.0.6",
+    "Nethereum.RPC": "1.0.6",
+    "Nethereum.Web3": "1.0.6",
     "Microsoft.AspNetCore.Server.IISIntegration": "1.1.1",
     "Microsoft.AspNetCore.Server.Kestrel": "1.1.1",
     "Microsoft.AspNetCore.StaticFiles": "1.1.1",
@@ -29,7 +34,8 @@
     "Microsoft.AspNetCore.Session": "1.1.2",
     "System.Threading.Timer": "4.3.0",
     "Serilog.Extensions.Logging.File": "1.1.0",
-    "HtmlAgilityPack": "1.5.1" },
+    "HtmlAgilityPack": "1.5.1"
+  },
 
   "tools": {
     "BundlerMinifier.Core": "2.4.337",

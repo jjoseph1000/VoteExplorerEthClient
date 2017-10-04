@@ -21,6 +21,7 @@ namespace VoteExplorer.Controllers
     public class ShareholderVotingController : Controller
     {
         public static readonly VoteExplorerContext Context = new VoteExplorerContext();
+        public static readonly VoteExplorerBlockchainContext BlockchainContext = new VoteExplorerBlockchainContext();
         // GET: /<controller>/
 
         public enum LanguagePreference
