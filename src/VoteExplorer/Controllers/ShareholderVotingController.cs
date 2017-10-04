@@ -79,16 +79,20 @@ namespace VoteExplorer.Controllers
                     List<Answer> answers = _blockchainContext.answers;
 
                     viewModel.activeQuestions = (from q in questions
+                                                 orderby q.questionIndex
                                                  select new QuestionVM
                                                  {
                                                      quid = q.quid,
                                                      text = q.text,
                                                      text_ru = q.text_ru,
+                                                     questionIndex = q.questionIndex,
                                                      block = q.block,
                                                      keyid = q.quid + "|",
                                                      SelectedAnswerId = "Z"
                                                  }
                                                     ).ToList();
+
+                    viewModel.activeQuestions.ForEach(sv => sv.orderNum = Convert.ToInt32(sv.questionIndex) + 1);
 
                     foreach (QuestionVM question in viewModel.activeQuestions)
                     {

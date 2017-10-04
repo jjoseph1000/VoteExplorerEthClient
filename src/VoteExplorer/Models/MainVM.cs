@@ -56,6 +56,11 @@ namespace VoteExplorer.Models
         public string quid { get; set; }
         public string text { get; set; }
         public string text_ru { get; set; }
+
+        public int questionIndex { get; set; }
+
+        public int orderNum { get; set; }
+
         public string block { get; set; }
         [DataType("Integer")]
         public int state { get; set; }

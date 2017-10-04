@@ -18,6 +18,8 @@ namespace VoteExplorer.Models
         [Parameter("uint", 1)]
         public int questionIndex { get; set; }
 
+        public int orderNum { get; set; }
+
         [Parameter("string", 2)]
         public string quid { get; set; }
 
