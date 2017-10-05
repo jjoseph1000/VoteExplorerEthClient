@@ -46,8 +46,6 @@ namespace VoteExplorer.Controllers
 
             List<VoteSubmission> voteSubmissions = Context.votesubmission.AsQueryable().ToList();
 
-            Voter test = await _blockchainContext.getVoteAnswersByVoterId("fce7fce0735c4accb01bb909334cfdd1");
-
             string controlNumber = HttpContext.Session.GetString("ControlNumber");
 
             SHOAccount shoaccount = Context.shoaccounts.AsQueryable().Where(sho => sho.ControlNumber == controlNumber).FirstOrDefault();

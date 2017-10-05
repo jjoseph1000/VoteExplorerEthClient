@@ -57,7 +57,7 @@ namespace VoteExplorer.Controllers
         [HttpPost("SubmitVotes")]
         public ActionResult SubmitVotes([FromBody]Newtonsoft.Json.Linq.JArray SubmittedVotes)
         {
-            string controlNumber = HttpContext.Session.GetString("controlNumber");
+            string controlNumber = HttpContext.Session.GetString("ControlNumber");
             List<Question> questions = _blockchainContext.questions;
             List<QuestionVM> selectedVotes = (from q in questions
                                               select new QuestionVM
@@ -1291,7 +1291,7 @@ namespace VoteExplorer.Controllers
             decimal coinWeight = Convert.ToDecimal(Configuration["coinWeight"]);
 
             string meetingId = HttpContext.Session.GetString("displayResultsContractAddress");
-            string controlNumber = HttpContext.Session.GetString("controlNumber");
+            string controlNumber = HttpContext.Session.GetString("ControlNumber");
             List<BlockchainAddress> blockchainAddresses = Context.blockchainaddresses.AsQueryable().Where(bc => bc.meetingId == meetingId && bc.quid == quid && bc.currentTransaction == true && bc.isFirstTransaction == false).ToList();
             blockchainAddresses.ForEach(bc => bc.TotalVotes = Convert.ToDecimal(bc.coins) / coinWeight);
             blockchainAddresses.ForEach(bc => bc.totalCoins = Convert.ToDecimal(bc.coins));
