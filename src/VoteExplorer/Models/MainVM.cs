@@ -74,6 +74,7 @@ namespace VoteExplorer.Models
         public string SelectedAnswerId { get; set; }
 
         public List<AnswerVM> Answers { get; set; }
+        public string boardRecommendation { get; internal set; }
     }
 
     public class AnswerVM

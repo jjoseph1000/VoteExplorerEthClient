@@ -72,6 +72,17 @@ namespace VoteExplorer.Models
             return result;
         }
 
+        public async Task<string> getLastVoteSessionId(string voterId)
+        {
+            var contract = web3.Eth.GetContract(abi, contractAddress);
+            var function = contract.GetFunction("getLastVoteSessionId");
+            object[] param = new object[1];
+            param[0] = voterId;
+
+            string result = await function.CallAsync<string>(param);
+            return result;
+        }
+
         public List<Question> questions { get { return _questions; } }
 
         public List<Answer> answers { get { return _answers; } }

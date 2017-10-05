@@ -38,67 +38,122 @@ namespace VoteExplorer.Controllers
 
         public async Task<IActionResult> Index_CodeBehind(LanguagePreference languagePreference, string revote)
         {
+            string voteAnswerChoices = "";
             if (HttpContext.Session.GetString("ControlNumber") == null)
             {
                 return await Task.Run<IActionResult>(() => { return RedirectToAction("Login"); });                
             }
 
-            Voter test = await _blockchainContext.getVoteAnswersByVoterId("fce7fce0735c4accb01bb909334cfdd1");
-
             List<VoteSubmission> voteSubmissions = Context.votesubmission.AsQueryable().ToList();
 
-            if (HttpContext.Session.GetString("activeVoteContractAddress") == null)
+            Voter test = await _blockchainContext.getVoteAnswersByVoterId("fce7fce0735c4accb01bb909334cfdd1");
+
+            string controlNumber = HttpContext.Session.GetString("ControlNumber");
+
+            SHOAccount shoaccount = Context.shoaccounts.AsQueryable().Where(sho => sho.ControlNumber == controlNumber).FirstOrDefault();
+            if (shoaccount.maskedVoters != null && shoaccount.maskedVoters.Any())
             {
-                if (languagePreference == LanguagePreference.Russian)
+                List<string> voteSessionIds = new List<string>();
+                string voteSessionId = "";
+                string firstVoteSessionId = "";
+                bool allTheSame = true;
+                for (int x=0;x<shoaccount.maskedVoters.Count();x++)
                 {
-                    return await Task.Run<IActionResult>(() => { return RedirectToAction("Login_Russian"); });                    
+                    VoteMask voteMask = shoaccount.maskedVoters[x];
+                    Voter voter1 = await _blockchainContext.getVoteAnswersByVoterId(voteMask.voterId);
+                    voteAnswerChoices = voter1.voteAnswers;
+                    string voteSessionId1 = voter1.voteSessionId;
+                    voteSessionIds.Add(voteSessionId1);
+                    if (x==0)
+                    {
+                        firstVoteSessionId = voteSessionId1;
+                    }
+                    else
+                    {
+                        if (firstVoteSessionId != voteSessionId1)
+                        {
+                            allTheSame = false;
+                        }
+                    }
+                }
+
+                if (allTheSame)
+                {
+                    voteSessionId = firstVoteSessionId;
                 }
                 else
                 {
-                    return await Task.Run<IActionResult>(() => { return RedirectToAction("Login"); });                    
+
                 }
-            }
 
-            string MeetingId = HttpContext.Session.GetString("activeVoteContractAddress");
-
-            var existingVoteSubmissions = voteSubmissions.Where(v => v.ControlNumber == HttpContext.Session.GetString("ControlNumber") && v.voteSubmissionStatus != VoteSubmissionStatus.VotesSubmitted && v.voteSubmissionStatus != VoteSubmissionStatus.VoteCoinsTransferredPendingDelete && v.MeetingId == MeetingId);
-            if (existingVoteSubmissions.Any())
-            {
-                if (languagePreference == LanguagePreference.Russian)
+                var existingVoteSubmissions = voteSubmissions.Where(v => v.ControlNumber == controlNumber && v.voteSubmissionStatus == VoteSubmissionStatus.VotesConfirmed);
+                if (existingVoteSubmissions.Any())
                 {
-                    return await Task.Run<IActionResult>(() => { return RedirectToAction("Confirm_Russian", new { id = existingVoteSubmissions.FirstOrDefault()._id }); });
+                    if (existingVoteSubmissions.Any(vs => vs._id == voteSessionId) && allTheSame)
+                    {
+                        var filterVoteSubmission = Builders<VoteSubmission>.Filter.Eq("_id", voteSessionId);
+                        Context.votesubmission.DeleteMany(filterVoteSubmission);
+                    }
+                    else
+                    {
+                        if (languagePreference == LanguagePreference.Russian)
+                        {
+                            return RedirectToAction("Confirm_Russian", new { id = existingVoteSubmissions.FirstOrDefault()._id });
+                        }
+                        else
+                        {
+                            return RedirectToAction("Confirm", new { id = existingVoteSubmissions.FirstOrDefault()._id });
+                        }
+                    }
                 }
                 else
                 {
-                    return await Task.Run<IActionResult>(() => { return RedirectToAction("Confirm", new { id = existingVoteSubmissions.FirstOrDefault()._id }); });
+                    if (revote == "0")
+                    {
+                        var filterVoteSubmission = Builders<VoteSubmission>.Filter.Eq("ControlNumber", controlNumber);
+                        Context.votesubmission.DeleteMany(filterVoteSubmission);
+                    }
                 }
+
+
             }
-            else
+
+            if (revote == "1" || voteAnswerChoices == "")
             {
                 MainVM viewModel = new MainVM();
-
-                string meetingId = HttpContext.Session.GetString("activeVoteContractAddress");
-
-                if (meetingId != "-1")
+                if (controlNumber != "-1")
                 {
                     List<Question> questions = _blockchainContext.questions;
-                    List<Answer> answers = _blockchainContext.answers;
 
                     viewModel.activeQuestions = (from q in questions
                                                  orderby q.questionIndex
                                                  select new QuestionVM
                                                  {
                                                      quid = q.quid,
+                                                     boardRecommendation = q.boardRecommendation,
                                                      text = q.text,
                                                      text_ru = q.text_ru,
                                                      questionIndex = q.questionIndex,
-                                                     block = q.block,
                                                      keyid = q.quid + "|",
                                                      SelectedAnswerId = "Z"
                                                  }
                                                     ).ToList();
 
                     viewModel.activeQuestions.ForEach(sv => sv.orderNum = Convert.ToInt32(sv.questionIndex) + 1);
+
+                    List<Answer> answers = new List<Answer>();
+                    Answer answer = new Answer();
+                    answer.answid = "A";
+                    answer.test = "FOR";
+                    answers.Add(answer);
+                    Answer answer2 = new Answer();
+                    answer2.answid = "B";
+                    answer2.test = "AGAINST";
+                    answers.Add(answer2);
+                    Answer answer3 = new Answer();
+                    answer3.answid = "Z";
+                    answer3.test = "ABSTAIN";
+                    answers.Add(answer3);
 
                     foreach (QuestionVM question in viewModel.activeQuestions)
                     {
@@ -118,9 +173,19 @@ namespace VoteExplorer.Controllers
                     viewModel.activeQuestions = new List<QuestionVM>();
                 }
 
-                return await Task.Run<IActionResult>(() => { return View(viewModel); });
-
+                return await Task.Run<IActionResult>(() => { return View(viewModel); });                
             }
+            else
+            {
+                if (languagePreference == LanguagePreference.Russian)
+                {
+                    return await Task.Run<IActionResult>(() => { return RedirectToAction("Confirm_Russian", new { id = "0" }); });                    
+                }
+                else
+                {
+                    return await Task.Run<IActionResult>(() => { return RedirectToAction("Confirm", new { id = "0" }); });
+                }
+            }            
         }
 
         public async Task<IActionResult> RevoteStatus_CodeBehind(LanguagePreference languagePreference)
