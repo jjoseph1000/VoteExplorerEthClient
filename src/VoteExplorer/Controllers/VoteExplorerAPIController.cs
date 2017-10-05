@@ -57,61 +57,43 @@ namespace VoteExplorer.Controllers
         [HttpPost("SubmitVotes")]
         public ActionResult SubmitVotes([FromBody]Newtonsoft.Json.Linq.JArray SubmittedVotes)
         {
-            string meetingId = HttpContext.Session.GetString("displayResultsContractAddress");
             string controlNumber = HttpContext.Session.GetString("controlNumber");
             List<Question> questions = _blockchainContext.questions;
-            bool insufficientFunds = false;
-            List<Meeting_SHOAccount> meeting_shoaccounts = Context.meeting_shoaccounts.AsQueryable().Where(m => m.meetingId == meetingId && m.controlNumber == controlNumber).ToList();
-            Console.Write("Got to insufficient check");
-            if (meeting_shoaccounts.Any())
+            List<QuestionVM> selectedVotes = (from q in questions
+                                              select new QuestionVM
+                                              {
+                                                  quid = q.quid,
+                                                  text = q.text,
+                                                  text_ru = q.text_ru,
+                                                  boardRecommendation = q.boardRecommendation,
+                                                  questionIndex = q.questionIndex,
+                                                  keyid = q.quid + "|"
+                                              }
+                                                ).ToList();
+            selectedVotes.ForEach(sv => sv.orderNum = Convert.ToInt32(sv.questionIndex) + 1);
+
+            string voteString = "";
+            for (int x = 0; x < SubmittedVotes.Count(); x++)
             {
-                for (int x = 0; x < questions.Count(); x++)
+                string quid = SubmittedVotes[x]["quid"].ToString();
+                string selectedAnswerId = SubmittedVotes[x]["selectedAnswerId"].ToString();
+                var questionVote = selectedVotes.Where(v => v.quid == quid);
+                if (questionVote.Any())
                 {
-                    Question question = questions[x];
-                    string walletAccountName = string.Format("{0}_{1}_{2}", meetingId, controlNumber, question.quid);
-                    if (Convert.ToDecimal(GetBalance(walletAccountName)) <= 0)
-                    {
-                        insufficientFunds = true;
-                    }
+                    selectedVotes.FirstOrDefault(v => v.quid == quid).SelectedAnswerId = selectedAnswerId;
+                    voteString += selectedAnswerId;
                 }
             }
 
-            if (insufficientFunds)
-            {
-                return Json("Insufficient");
-            }
-            else
-            {
-                List<QuestionVM> selectedVotes = (from q in questions
-                                                  select new QuestionVM
-                                                  {
-                                                      quid = q.quid,
-                                                      text = q.text,
-                                                      text_ru = q.text_ru,
-                                                      block = q.block,
-                                                      keyid = q.quid + "|"
-                                                  }
-                                                    ).ToList();
+            VoteSubmission voteSubmission = new VoteSubmission();
+            voteSubmission.ControlNumber = controlNumber;
+            voteSubmission.VoteSelections = selectedVotes;
+            voteSubmission.voteString = voteString;
+            voteSubmission.voteSubmissionStatus = VoteSubmissionStatus.VotesSubmitted;
 
-                for (int x = 0; x < SubmittedVotes.Count(); x++)
-                {
-                    var questionVote = selectedVotes.Where(v => v.quid == SubmittedVotes[x]["quid"].ToString());
-                    if (questionVote.Any())
-                    {
-                        selectedVotes.FirstOrDefault(v => v.quid == SubmittedVotes[x]["quid"].ToString()).SelectedAnswerId = SubmittedVotes[x]["selectedAnswerId"].ToString();
-                    }
-                }
+            Context.votesubmission.InsertOne(voteSubmission);
 
-                VoteSubmission voteSubmission = new VoteSubmission();
-                voteSubmission.ControlNumber = HttpContext.Session.GetString("ControlNumber");
-                voteSubmission.MeetingId = meetingId;
-                voteSubmission.VoteSelections = selectedVotes;
-                voteSubmission.voteSubmissionStatus = VoteSubmissionStatus.VotesSubmitted;
-
-                Context.votesubmission.InsertOne(voteSubmission);
-
-                return Json(voteSubmission._id.ToString());
-            }
+            return Json(voteSubmission._id.ToString());
         }
 
         [HttpGet("GetVoteSubmissionStatus/{id}")]

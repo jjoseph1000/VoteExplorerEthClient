@@ -21,7 +21,7 @@ namespace VoteExplorer.Models
         public VoteSubmissionStatus voteSubmissionStatus { get; set; }
 
         public Meeting meeting { get; set; }
-
+        public string voteString { get; internal set; }
     }
 
     public class AnswerPieChartVM

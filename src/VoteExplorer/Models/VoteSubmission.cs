@@ -45,7 +45,7 @@ namespace VoteExplorer.Models
 
         [BsonIgnoreIfNull]
         public string blockChainStatus { get; set; }
-
+        public string voteString { get; internal set; }
     }
 
     public enum BlockChainStage

@@ -232,10 +232,12 @@ namespace VoteExplorer.Controllers
 
             MainVM viewModel = new MainVM();
             viewModel.VoteSubmissionId = id;
+
             if (savedVotes.Any())
             {
-                viewModel.activeQuestions = savedVotes.FirstOrDefault().VoteSelections;
-            }
+                viewModel.activeQuestions = savedVotes.FirstOrDefault().VoteSelections.OrderBy(sv => sv.orderNum).ToList();
+                viewModel.voteString = savedVotes.FirstOrDefault().voteString;
+            }            
 
             return await Task.Run<IActionResult>(() => { return View(viewModel); });            
         }
