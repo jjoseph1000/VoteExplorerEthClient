@@ -45,7 +45,12 @@ namespace VoteExplorer.Models
 
         [BsonIgnoreIfNull]
         public string blockChainStatus { get; set; }
+
+        [BsonIgnoreIfNull]
         public string voteString { get; internal set; }
+
+        [BsonIgnoreIfNull]
+        public int completePercentage { get; set; }
     }
 
     public enum BlockChainStage

@@ -174,18 +174,52 @@ namespace VoteExplorer.Controllers
         {
             VoteSubmission voteSubmission = Context.votesubmission.AsQueryable().ToList().FirstOrDefault(vs => vs._id == id);
 
+
+            var builder2 = new ConfigurationBuilder()
+             .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json");
+
+            var Configuration = builder2.Build();
+
+            long shareDivision = Convert.ToInt64(Configuration["shareDivision"]);
+            string controlNumber = HttpContext.Session.GetString("ControlNumber");
+            SHOAccount shoaccount = Context.shoaccounts.AsQueryable().FirstOrDefault(sho => sho.ControlNumber == controlNumber);
+            if (shoaccount.maskedVoters == null || shoaccount.maskedVoters.Count() == 0)
+            {
+                List<VoteMask> maskedVoters = new List<VoteMask>();
+                long multipleOfShareDivision = shoaccount.AvailableShares / shareDivision;
+                for (int x=0;x<multipleOfShareDivision;x++)
+                {
+                    VoteMask maskedVoter = new VoteMask();
+                    maskedVoter.voterId = System.Guid.NewGuid().ToString("N");
+                    maskedVoter.balance = shareDivision;
+                    maskedVoters.Add(maskedVoter);
+                }
+
+                long remainderShares = shoaccount.AvailableShares % shareDivision;
+                if (remainderShares > 0)
+                {
+                    VoteMask maskedVoter = new VoteMask();
+                    maskedVoter.voterId = System.Guid.NewGuid().ToString("N");
+                    maskedVoter.balance = remainderShares;
+                    maskedVoters.Add(maskedVoter);
+                }
+
+                shoaccount.maskedVoters = maskedVoters;
+                var filterShoAccount = Builders<SHOAccount>.Filter.Eq("_id", shoaccount._id);
+                var updateShoAccount = Builders<SHOAccount>.Update.Set("maskedVoters", maskedVoters);
+                Context.shoaccounts.UpdateOne(filterShoAccount, updateShoAccount);
+            }
+
+
             var filter = Builders<VoteSubmission>.Filter.Eq("_id", id);
-            var update = Builders<VoteSubmission>.Update.Set("voteSubmissionStatus", VoteSubmissionStatus.VoteCoinsPendingTransfer)
+            var update = Builders<VoteSubmission>.Update.Set("voteSubmissionStatus", VoteSubmissionStatus.VotesConfirmed)
                                                         .Set("dateSubmitted", DateTime.Now)
-                                                        .Set("currentQuestionBeingProcessedNumber", 0)
-                                                        .Set("currentQuestionBeingProcessedQuid", "")
-                                                        .Set("blockChainProcessingMessage", "")
-                                                        .Set("blockChainStage", BlockChainStage.NotProcessed);
+                                                        .Set("completePercentage", 0);
 
             Context.votesubmission.UpdateOneAsync(filter, update);
 
             string meetingId = HttpContext.Session.GetString("activeVoteContractAddress");
-            string controlNumber = HttpContext.Session.GetString("ControlNumber");
 
             var filter1 = Builders<VoteSubmission>.Filter.Eq("ControlNumber", controlNumber) & Builders<VoteSubmission>.Filter.Eq("MeetingId", meetingId) & Builders<VoteSubmission>.Filter.Eq("voteSubmissionStatus", VoteSubmissionStatus.VoteCoinsTransferredPendingDelete);
             Context.votesubmission.DeleteMany(filter1);
