@@ -36,21 +36,27 @@ namespace VoteExplorer.Controllers
             Russian = 1
         }
 
-        public IActionResult Index_CodeBehind(LanguagePreference languagePreference)
+        public async Task<IActionResult> Index_CodeBehind(LanguagePreference languagePreference, string revote)
         {
+            if (HttpContext.Session.GetString("ControlNumber") == null)
+            {
+                return await Task.Run<IActionResult>(() => { return RedirectToAction("Login"); });                
+            }
+
+            Voter test = await _blockchainContext.getVoteAnswersByVoterId("fce7fce0735c4accb01bb909334cfdd1");
+
             List<VoteSubmission> voteSubmissions = Context.votesubmission.AsQueryable().ToList();
 
             if (HttpContext.Session.GetString("activeVoteContractAddress") == null)
             {
                 if (languagePreference == LanguagePreference.Russian)
                 {
-                    return RedirectToAction("Login_Russian");
+                    return await Task.Run<IActionResult>(() => { return RedirectToAction("Login_Russian"); });                    
                 }
                 else
                 {
-                    return RedirectToAction("Login");
+                    return await Task.Run<IActionResult>(() => { return RedirectToAction("Login"); });                    
                 }
-
             }
 
             string MeetingId = HttpContext.Session.GetString("activeVoteContractAddress");
@@ -60,18 +66,18 @@ namespace VoteExplorer.Controllers
             {
                 if (languagePreference == LanguagePreference.Russian)
                 {
-                    return RedirectToAction("Confirm_Russian", new { id = existingVoteSubmissions.FirstOrDefault()._id });
+                    return await Task.Run<IActionResult>(() => { return RedirectToAction("Confirm_Russian", new { id = existingVoteSubmissions.FirstOrDefault()._id }); });
                 }
                 else
                 {
-                    return RedirectToAction("Confirm", new { id = existingVoteSubmissions.FirstOrDefault()._id });
+                    return await Task.Run<IActionResult>(() => { return RedirectToAction("Confirm", new { id = existingVoteSubmissions.FirstOrDefault()._id }); });
                 }
             }
             else
             {
                 MainVM viewModel = new MainVM();
 
-                string meetingId =  HttpContext.Session.GetString("activeVoteContractAddress");
+                string meetingId = HttpContext.Session.GetString("activeVoteContractAddress");
 
                 if (meetingId != "-1")
                 {
@@ -112,22 +118,22 @@ namespace VoteExplorer.Controllers
                     viewModel.activeQuestions = new List<QuestionVM>();
                 }
 
-                return View(viewModel);
+                return await Task.Run<IActionResult>(() => { return View(viewModel); });
 
             }
         }
 
-        public IActionResult RevoteStatus_CodeBehind(LanguagePreference languagePreference)
+        public async Task<IActionResult> RevoteStatus_CodeBehind(LanguagePreference languagePreference)
         {
             if (HttpContext.Session.GetString("activeVoteContractAddress") == null)
             {
                 if (languagePreference == LanguagePreference.Russian)
                 {
-                    return RedirectToAction("Login_Russian");
+                    return await Task.Run<IActionResult>(() => { return RedirectToAction("Login_Russian"); });                    
                 }
                 else
                 {
-                    return RedirectToAction("Login");
+                    return await Task.Run<IActionResult>(() => { return RedirectToAction("Login"); });                    
                 }
 
             }
@@ -145,15 +151,15 @@ namespace VoteExplorer.Controllers
 
             if (languagePreference == LanguagePreference.Russian)
             {
-                return RedirectToAction("Index_Russian");
+                return await Task.Run<IActionResult>(() => { return RedirectToAction("Index_Russian"); });
             }
             else
             {
-                return RedirectToAction("Index");
+                return await Task.Run<IActionResult>(() => { return RedirectToAction("Index"); });                
             }
         }
 
-        public IActionResult Submit_Codebehind(string id)
+        public async Task<IActionResult> Submit_Codebehind(string id)
         {
             IMongoQueryable<VoteSubmission> voteSubmission = Context.votesubmission.AsQueryable();
 
@@ -166,10 +172,10 @@ namespace VoteExplorer.Controllers
                 viewModel.activeQuestions = savedVotes.FirstOrDefault().VoteSelections;
             }
 
-            return View(viewModel);
+            return await Task.Run<IActionResult>(() => { return View(viewModel); });            
         }
 
-        public IActionResult Confirm_Codebehind(string id)
+        public async Task<IActionResult> Confirm_Codebehind(string id)
         {
             IMongoQueryable<VoteSubmission> voteSubmission = Context.votesubmission.AsQueryable();
 
@@ -191,195 +197,163 @@ namespace VoteExplorer.Controllers
                 }
             }
 
-            return View(viewModel);
+            return await Task.Run<IActionResult>(() => { return View(viewModel); });
         }
 
-        public IActionResult Login_Codebehind(string controlNumber, LanguagePreference languagePreference)
+        public async Task<IActionResult> Login_Codebehind(string controlNumber, LanguagePreference languagePreference)
         {
-            List<Meeting> meetings = Context.meetings.AsQueryable().Where(q => q.VoteStart != null && q.VoteStart <= DateTime.Now && q.VoteDeadline != null && DateTime.Now <= q.VoteDeadline).ToList();
-            if (meetings.Any())
-            {
-                HttpContext.Session.SetString("activeVoteContractAddress", meetings.FirstOrDefault().ContractAddress);
-            }
-            else
-            {
-                HttpContext.Session.SetString("activeVoteContractAddress", "-1");
-            }
-
-            List<Meeting> meetingsDisplayResults = Context.meetings.AsQueryable().Where(q => q.DisplayResults == true).ToList();
-            if (meetingsDisplayResults.Any())
-            {
-                HttpContext.Session.SetString("displayResultsContractAddress", meetingsDisplayResults.FirstOrDefault().ContractAddress);
-            }
-            else
-            {
-                HttpContext.Session.SetString("displayResultsContractAddress", "-1");
-            }
-
             HttpContext.Session.SetString("ControlNumber", controlNumber);
-
-            string meetingId = HttpContext.Session.GetString("activeVoteContractAddress");
-
-            var filterSubmittedAddresses = Builders<VoteSubmission>.Filter.Eq("ControlNumber", controlNumber) & Builders<VoteSubmission>.Filter.Eq("MeetingId", meetingId) & Builders<VoteSubmission>.Filter.Eq("voteSubmissionStatus", VoteSubmissionStatus.VotesSubmitted);
-            Context.votesubmission.DeleteMany(filterSubmittedAddresses);
-
-            var filter = Builders<VoteSubmission>.Filter.Eq("ControlNumber", controlNumber) & Builders<VoteSubmission>.Filter.Eq("MeetingId", meetingId) & Builders<VoteSubmission>.Filter.Eq("voteSubmissionStatus", VoteSubmissionStatus.VoteCoinsTransferredPendingDelete);
-            var update = Builders<VoteSubmission>.Update.Set("voteSubmissionStatus", VoteSubmissionStatus.VoteCoinsTransferred);
-
-            Context.votesubmission.UpdateOne(filter, update);
-
-
+            
             if (languagePreference == LanguagePreference.Russian)
             {
-                return RedirectToAction("Index_Russian");
+                return await Task.Run<IActionResult>(() => { return RedirectToAction("Index_Russian", new { revote = "0" }); });                
             }
             else
             {
-                return RedirectToAction("Index");
+                return await Task.Run<IActionResult>(() => { return RedirectToAction("Index", new { revote = "0" }); });                
             }
         }
 
-        [HttpGet("en/Index")]
-        public IActionResult Index()
+        [HttpGet("en/Index/{revote}")]
+        public async Task<IActionResult> Index(string revote)
         {
             try
-            {
-                return Index_CodeBehind(LanguagePreference.English);
+            {                
+                return await Index_CodeBehind(LanguagePreference.English, revote);
             }
             catch (Exception ex)
             {
             }
 
-            return View();
-
+            return await Task.Run<IActionResult>(() => { return View(); });
         }
 
-        [HttpGet("ru/Index")]
-        public IActionResult Index_Russian()
+        [HttpGet("ru/Index/{revote}")]
+        public async Task<IActionResult> Index_Russian(string revote)
         {
             try
             {
-                return Index_CodeBehind(LanguagePreference.Russian);
+                return await Index_CodeBehind(LanguagePreference.Russian, revote);
             }
             catch (Exception ex)
             {
             }
 
-            return View();
+            return await Task.Run<IActionResult>(() => { return View(); });
         }
 
         [HttpGet("en/Help")]
-        public IActionResult Help()
+        public async Task<IActionResult> Help()
         {
-            return View();
+            return await Task.Run<IActionResult>(() => { return View(); });
         }
 
         [HttpGet("ru/Help")]
-        public IActionResult Help_Russian()
+        public async Task<IActionResult> Help_Russian()
         {
-            return View();
+            return await Task.Run<IActionResult>(() => { return View(); });
         }
 
         [HttpGet("en/RevoteStatus")]
-        public IActionResult RevoteStatus()
+        public async Task<IActionResult> RevoteStatus()
         {
-            return RevoteStatus_CodeBehind(LanguagePreference.English);
+            return await RevoteStatus_CodeBehind(LanguagePreference.English);
         }
 
         [HttpGet("ru/RevoteStatus")]
-        public IActionResult RevoteStatus_Russian()
+        public async Task<IActionResult> RevoteStatus_Russian()
         {
-            return RevoteStatus_CodeBehind(LanguagePreference.Russian);
+            return await RevoteStatus_CodeBehind(LanguagePreference.Russian);
         }
 
         [HttpGet("en/Submit/{id}")]
-        public IActionResult Submit(string id)
+        public async Task<IActionResult> Submit(string id)
         {
-            return Submit_Codebehind(id);
+            return await Submit_Codebehind(id);
         }
 
         [HttpGet("ru/Submit/{id}")]
-        public IActionResult Submit_Russian(string id)
+        public async Task<IActionResult> Submit_Russian(string id)
         {
-            return Submit_Codebehind(id);
+            return await Submit_Codebehind(id);
         }
 
 
         [HttpGet("en/Confirm/{id}")]
-        public IActionResult Confirm(string id)
+        public async Task<IActionResult> Confirm(string id)
         {
-            return Confirm_Codebehind(id);
+            return await Confirm_Codebehind(id);
         }
 
         [HttpGet("ru/Confirm/{id}")]
-        public IActionResult Confirm_Russian(string id)
+        public async Task<IActionResult> Confirm_Russian(string id)
         {
-            return Confirm_Codebehind(id);
+            return await Confirm_Codebehind(id);
         }
 
         [HttpGet("en/Attend")]
-        public IActionResult Attend()
+        public async Task<IActionResult> Attend()
         {
-            return View();
+            return await Task.Run<IActionResult>(() => { return View(); });            
         }
 
         [HttpGet("ru/Attend")]
-        public IActionResult Attend_Russian()
+        public async Task<IActionResult> Attend_Russian()
         {
-            return View();
+            return await Task.Run<IActionResult>(() => { return View(); });            
         }
 
         [HttpGet("en/AttendConfirm")]
-        public IActionResult AttendConfirm()
+        public async Task<IActionResult> AttendConfirm()
         {
-            return View();
+            return await Task.Run<IActionResult>(() => { return View(); });            
         }
 
         [HttpGet("ru/AttendConfirm")]
-        public IActionResult AttendConfirm_Russian()
+        public async Task<IActionResult> AttendConfirm_Russian()
         {
-            return View();
+            return await Task.Run<IActionResult>(() => { return View(); });
         }
 
         [HttpGet("en/Login")]
-        public IActionResult Login()
+        public async Task<IActionResult> Login()
         {
             HttpContext.Session.Clear();
 
-            return View();
+            return await Task.Run<IActionResult>(() => { return View(); });
         }
 
         [HttpGet("ru/Login")]
-        public IActionResult Login_Russian()
+        public async Task<IActionResult> Login_Russian()
         {
             HttpContext.Session.Clear();
 
-            return View();
+            return await Task.Run<IActionResult>(() => { return View(); });
         }
 
         [HttpPost("en/Login")]
-        public IActionResult Login(Models.SHOLoginVM shLogin)
+        public async Task<IActionResult> Login(Models.SHOLoginVM shLogin)
         {
             if (ModelState.IsValid)
             {
-                return Login_Codebehind(shLogin.controlNumber, LanguagePreference.English);
+                return await Login_Codebehind(shLogin.controlNumber, LanguagePreference.English);
             }
             else
             {
-                return View();
+                return await Task.Run<IActionResult>(() => { return View(); });                
             }
         }
 
         [HttpPost("ru/Login")]
-        public IActionResult Login_Russian(Models.SHOLogin_Russian_VM shLogin)
+        public async Task<IActionResult> Login_Russian(Models.SHOLogin_Russian_VM shLogin)
         {
             if (ModelState.IsValid)
             {
-                return Login_Codebehind(shLogin.controlNumber, LanguagePreference.Russian);
+                return await Login_Codebehind(shLogin.controlNumber, LanguagePreference.Russian);
             }
             else
             {
-                return View();
+                return await Task.Run<IActionResult>(() => { return View(); });
             }
         }
     }

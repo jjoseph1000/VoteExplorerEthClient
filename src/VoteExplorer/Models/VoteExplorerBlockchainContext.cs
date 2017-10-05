@@ -60,6 +60,18 @@ namespace VoteExplorer.Models
             }
         }
 
+        public async Task<Voter> getVoteAnswersByVoterId(string voterId)
+        {
+            var contract = web3.Eth.GetContract(abi, contractAddress);
+            var function = contract.GetFunction("getVoteAnswersByVoterId");
+            object[] param = new object[2];
+            param[0] = 0;
+            param[1] = voterId;
+
+            Voter result = await function.CallDeserializingToObjectAsync<Voter>(param);
+            return result;
+        }
+
         public List<Question> questions { get { return _questions; } }
 
         public List<Answer> answers { get { return _answers; } }

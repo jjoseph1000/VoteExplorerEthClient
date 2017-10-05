@@ -19,5 +19,8 @@ namespace VoteExplorer.Models
         [BsonIgnoreIfNull]
         public long AvailableShares { get; set; }
 
+        [BsonIgnoreIfNull]
+        public List<VoteMask> maskedVoters { get; set; }
+
     }
 }
