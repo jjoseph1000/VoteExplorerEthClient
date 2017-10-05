@@ -174,7 +174,6 @@ namespace VoteExplorer.Controllers
         {
             VoteSubmission voteSubmission = Context.votesubmission.AsQueryable().ToList().FirstOrDefault(vs => vs._id == id);
 
-
             var builder2 = new ConfigurationBuilder()
              .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("appsettings.json");
@@ -219,14 +218,23 @@ namespace VoteExplorer.Controllers
 
             Context.votesubmission.UpdateOneAsync(filter, update);
 
-            string meetingId = HttpContext.Session.GetString("activeVoteContractAddress");
-
-            var filter1 = Builders<VoteSubmission>.Filter.Eq("ControlNumber", controlNumber) & Builders<VoteSubmission>.Filter.Eq("MeetingId", meetingId) & Builders<VoteSubmission>.Filter.Eq("voteSubmissionStatus", VoteSubmissionStatus.VoteCoinsTransferredPendingDelete);
-            Context.votesubmission.DeleteMany(filter1);
-
-            string voteSubmissionId_controlNumber_MeetingId = string.Format("{0}_{1}_{2}_{3}", id, controlNumber, meetingId, languagePreference);
-
-            _tm = new Timer(VoteOnBlockchain, voteSubmissionId_controlNumber_MeetingId, 2000, 2000);
+            BlockchainVoteRequest blockchainVoteRequest = new BlockchainVoteRequest();
+            blockchainVoteRequest.ControlNumber = controlNumber;
+            blockchainVoteRequest.VoteSubmissionId = id;
+            blockchainVoteRequest.dateSubmitted = DateTime.Now;
+            blockchainVoteRequest.voteString = voteSubmission.voteString;
+            blockchainVoteRequest.maskedVoters = new List<Voter>();
+            foreach (VoteMask voteMask in shoaccount.maskedVoters)
+            {
+                Voter voter = new Voter();
+                voter.voterId = voteMask.voterId;
+                voter.voteSessionId = id;
+                voter.voteAnswers = voteSubmission.voteString;
+                voter.balance = voteMask.balance;
+                blockchainVoteRequest.maskedVoters.Add(voter);
+            }
+            blockchainVoteRequest.blockchainVoterRequestStatus = BlockchainVoterRequestStatus.Submitted;
+            Context.blockchainvoterequests.InsertOne(blockchainVoteRequest);
 
             return Json(voteSubmission);
         }
