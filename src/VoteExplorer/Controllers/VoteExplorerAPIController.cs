@@ -100,26 +100,10 @@ namespace VoteExplorer.Controllers
         public ActionResult GetVoteSubmissionStatus(string id)
         {
             VoteSubmission voteSubmission = Context.votesubmission.AsQueryable().ToList().FirstOrDefault(vs => vs._id == id);
-            List<QuestionVM> voteSelections = voteSubmission.VoteSelections;
-            QuestionVM lastQuestion = voteSelections[voteSelections.Count() - 1];
-            string meetingId = voteSubmission.MeetingId;
-            string controlNumber = voteSubmission.ControlNumber;
-            List<BlockchainAddress> blockchainAddresses = Context.blockchainaddresses.AsQueryable().Where(bc => bc.meetingId == meetingId && bc.controlNumber == controlNumber && bc.quid == lastQuestion.quid && bc.currentTransaction == true && bc.isFirstTransaction == false).ToList();
-
-            if (blockchainAddresses.Any())
+            var blockchainvoterequests = Context.blockchainvoterequests.AsQueryable().ToList();
+            if (blockchainvoterequests.Any(bc=>bc.VoteSubmissionId == id && bc.blockchainVoterRequestStatus == BlockchainVoterRequestStatus.AcceptedByBlockchain))
             {
-                string transactionId = blockchainAddresses.FirstOrDefault().transactionId;
-                string url = "http://192.81.216.69:2750/tx/" + transactionId;
-                var webGet = new HtmlWeb();
-                HtmlAgilityPack.HtmlDocument document = webGet.Load(url);
-                if (document.DocumentNode.InnerText.ToUpper().Contains("HASH:"))
-                {
-                    voteSubmission.blockChainStatus = "Accepted";
-                }
-                else
-                {
-                    voteSubmission.blockChainStatus = "NotAccepted";
-                }
+                voteSubmission.blockChainStatus = "Accepted";
             }
             else
             {

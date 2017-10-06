@@ -242,24 +242,66 @@ namespace VoteExplorer.Controllers
 
         public async Task<IActionResult> Confirm_Codebehind(string id)
         {
-            IMongoQueryable<VoteSubmission> voteSubmission = Context.votesubmission.AsQueryable();
-
-            var savedVotes = voteSubmission.Where(e => e._id == id);
+            if (HttpContext.Session.GetString("ControlNumber") == null)
+            {
+                return await Task.Run<IActionResult>(() => { return RedirectToAction("Login"); });
+            }
 
             MainVM viewModel = new MainVM();
-            viewModel.VoteSubmissionId = id;
-            if (savedVotes.Any())
+
+            if (id != "0")
             {
-                viewModel.activeQuestions = savedVotes.FirstOrDefault().VoteSelections;
-                viewModel.voteSubmissionStatus = savedVotes.FirstOrDefault().voteSubmissionStatus;
-                if (savedVotes.FirstOrDefault().dateSubmitted != null)
+                IMongoQueryable<VoteSubmission> voteSubmission = Context.votesubmission.AsQueryable();
+
+                var savedVotes = voteSubmission.Where(e => e._id == id);
+
+                viewModel.VoteSubmissionId = id;
+                if (savedVotes.Any())
                 {
-                    viewModel.dateSubmitted = savedVotes.FirstOrDefault().dateSubmitted;
+                    viewModel.activeQuestions = savedVotes.FirstOrDefault().VoteSelections;
+                    viewModel.activeQuestions.ForEach(q => q.orderNum = (q.questionIndex) + 1);
+                    viewModel.activeQuestions = viewModel.activeQuestions.OrderBy(q => q.orderNum).ToList();
+
+                    viewModel.voteSubmissionStatus = savedVotes.FirstOrDefault().voteSubmissionStatus;
+                    if (savedVotes.FirstOrDefault().dateSubmitted != null)
+                    {
+                        viewModel.dateSubmitted = savedVotes.FirstOrDefault().dateSubmitted;
+                    }
+                    else
+                    {
+                        viewModel.dateSubmitted = DateTime.Now;
+                    }
                 }
-                else
+            }
+            else
+            {
+                string voteString = HttpContext.Session.GetString("voteAnswerChoices");
+                viewModel.VoteSubmissionId = id;
+                List<Question> questions = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Question>>(HttpContext.Session.GetString("questions"));
+
+                viewModel.activeQuestions = (from q in questions
+                                             orderby q.questionIndex
+                                             select new QuestionVM
+                                             {
+                                                 quid = q.quid,
+                                                 boardRecommendation = q.boardRecommendation,
+                                                 text = q.text,
+                                                 text_ru = q.text_ru,
+                                                 questionIndex = q.questionIndex,
+                                                 keyid = q.quid + "|",
+                                                 SelectedAnswerId = "Z"
+                                             }
+                                                ).ToList();
+
+                viewModel.activeQuestions.ForEach(q => q.orderNum = (q.questionIndex) + 1);
+                viewModel.activeQuestions = viewModel.activeQuestions.OrderBy(q => q.orderNum).ToList();
+
+                for (int x = 0; x < viewModel.activeQuestions.Count(); x++)
                 {
-                    viewModel.dateSubmitted = DateTime.Now;
+                    viewModel.activeQuestions[x].SelectedAnswerId = voteString.Substring(x, 1);
                 }
+
+                viewModel.voteSubmissionStatus = VoteSubmissionStatus.VotesConfirmed;
             }
 
             return await Task.Run<IActionResult>(() => { return View(viewModel); });
