@@ -20,13 +20,14 @@ namespace VoteExplorer.Controllers
     [Route("ShareholderVoting")]
     public class ShareholderVotingController : Controller
     {
-        public static readonly VoteExplorerContext Context = new VoteExplorerContext();
+        private VoteExplorerContext _context;
         private VoteExplorerBlockchainContext _blockchainContext;
         // GET: /<controller>/
 
-        public ShareholderVotingController(VoteExplorerBlockchainContext blockchainContext)
+        public ShareholderVotingController(VoteExplorerBlockchainContext blockchainContext, VoteExplorerContext Context)
         {
             _blockchainContext = blockchainContext;
+            _context = Context;
         }
 
 
@@ -44,11 +45,11 @@ namespace VoteExplorer.Controllers
                 return await Task.Run<IActionResult>(() => { return RedirectToAction("Login"); });                
             }
 
-            List<VoteSubmission> voteSubmissions = Context.votesubmission.AsQueryable().ToList();
+            List<VoteSubmission> voteSubmissions = _context.votesubmission.AsQueryable().ToList();
 
             string controlNumber = HttpContext.Session.GetString("ControlNumber");
 
-            SHOAccount shoaccount = Context.shoaccounts.AsQueryable().Where(sho => sho.ControlNumber == controlNumber).FirstOrDefault();
+            SHOAccount shoaccount = _context.shoaccounts.AsQueryable().Where(sho => sho.ControlNumber == controlNumber).FirstOrDefault();
             if (shoaccount.maskedVoters != null && shoaccount.maskedVoters.Any())
             {
                 List<string> voteSessionIds = new List<string>();
@@ -90,7 +91,7 @@ namespace VoteExplorer.Controllers
                     if (existingVoteSubmissions.Any(vs => vs._id == voteSessionId) && allTheSame)
                     {
                         var filterVoteSubmission = Builders<VoteSubmission>.Filter.Eq("_id", voteSessionId);
-                        Context.votesubmission.DeleteMany(filterVoteSubmission);
+                        _context.votesubmission.DeleteMany(filterVoteSubmission);
                     }
                     else
                     {
@@ -109,7 +110,7 @@ namespace VoteExplorer.Controllers
                     if (revote == "0")
                     {
                         var filterVoteSubmission = Builders<VoteSubmission>.Filter.Eq("ControlNumber", controlNumber);
-                        Context.votesubmission.DeleteMany(filterVoteSubmission);
+                        _context.votesubmission.DeleteMany(filterVoteSubmission);
                     }
                 }
 
@@ -207,7 +208,7 @@ namespace VoteExplorer.Controllers
             var filter = Builders<VoteSubmission>.Filter.Eq("ControlNumber", controlNumber) & Builders<VoteSubmission>.Filter.Eq("MeetingId", meetingId) & Builders<VoteSubmission>.Filter.Eq("voteSubmissionStatus",VoteSubmissionStatus.VoteCoinsTransferred);
             var update = Builders<VoteSubmission>.Update.Set("voteSubmissionStatus", VoteSubmissionStatus.VoteCoinsTransferredPendingDelete);
 
-            Context.votesubmission.UpdateOne(filter, update);
+            _context.votesubmission.UpdateOne(filter, update);
 
             //var filterSubmittedAddresses = Builders<BlockchainAddress>.Filter.Eq("meetingId", meetingId) & Builders<BlockchainAddress>.Filter.Eq("controlNumber", controlNumber);
             //Context.blockchainaddresses.DeleteMany(filterSubmittedAddresses);
@@ -224,7 +225,7 @@ namespace VoteExplorer.Controllers
 
         public async Task<IActionResult> Submit_Codebehind(string id)
         {
-            IMongoQueryable<VoteSubmission> voteSubmission = Context.votesubmission.AsQueryable();
+            IMongoQueryable<VoteSubmission> voteSubmission = _context.votesubmission.AsQueryable();
 
             var savedVotes = voteSubmission.Where(e => e._id == id);
 
@@ -247,11 +248,13 @@ namespace VoteExplorer.Controllers
                 return await Task.Run<IActionResult>(() => { return RedirectToAction("Login"); });
             }
 
+            string controlNumber = HttpContext.Session.GetString("ControlNumber");
+
             MainVM viewModel = new MainVM();
 
             if (id != "0")
             {
-                IMongoQueryable<VoteSubmission> voteSubmission = Context.votesubmission.AsQueryable();
+                IMongoQueryable<VoteSubmission> voteSubmission = _context.votesubmission.AsQueryable();
 
                 var savedVotes = voteSubmission.Where(e => e._id == id);
 
@@ -275,9 +278,11 @@ namespace VoteExplorer.Controllers
             }
             else
             {
-                string voteString = HttpContext.Session.GetString("voteAnswerChoices");
                 viewModel.VoteSubmissionId = id;
-                List<Question> questions = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Question>>(HttpContext.Session.GetString("questions"));
+                SHOAccount shoaccount = _context.shoaccounts.AsQueryable().Where(sho => sho.ControlNumber == controlNumber).FirstOrDefault();
+                Voter voter1 = await _blockchainContext.getVoteAnswersByVoterId(shoaccount.maskedVoters[0].voterId);
+                string voteString = voter1.voteAnswers;
+                List<Question> questions = _blockchainContext.questions;
 
                 viewModel.activeQuestions = (from q in questions
                                              orderby q.questionIndex

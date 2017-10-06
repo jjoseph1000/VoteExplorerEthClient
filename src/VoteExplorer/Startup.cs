@@ -34,6 +34,7 @@ namespace VoteExplorer
             services.AddDistributedMemoryCache(); // Adds a default in-memory implementation of IDistributedCache
             services.AddSession();
             services.AddSingleton<VoteExplorerBlockchainContext>();
+            services.AddSingleton<VoteExplorerContext>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
