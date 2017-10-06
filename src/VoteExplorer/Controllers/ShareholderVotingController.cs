@@ -315,7 +315,8 @@ namespace VoteExplorer.Controllers
         public async Task<IActionResult> Login_Codebehind(string controlNumber, LanguagePreference languagePreference)
         {
             HttpContext.Session.SetString("ControlNumber", controlNumber);
-            
+            SHOAccount shoAccount = _context.shoaccounts.AsQueryable().FirstOrDefault(a => a.ControlNumber == controlNumber);
+            HttpContext.Session.SetString("AvailableShares", shoAccount.AvailableShares.ToString());
             if (languagePreference == LanguagePreference.Russian)
             {
                 return await Task.Run<IActionResult>(() => { return RedirectToAction("Index_Russian", new { revote = "0" }); });                

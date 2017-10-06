@@ -115,6 +115,7 @@ namespace VoteExplorer.Controllers
         {
             VoteSubmissionSatusVM voteSubmissionStatusVM = new VoteSubmissionSatusVM();
             string controlNumber = HttpContext.Session.GetString("ControlNumber");
+            voteSubmissionStatusVM.availableShares = HttpContext.Session.GetString("AvailableShares");
             List<VoteSubmission> voteSubmissions = Context.votesubmission.AsQueryable().Where(vs => vs.ControlNumber == controlNumber && vs.voteSubmissionStatus == VoteSubmissionStatus.VotesConfirmed).ToList();
             if (voteSubmissions.Any())
             {

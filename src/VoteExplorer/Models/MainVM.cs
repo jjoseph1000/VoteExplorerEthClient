@@ -90,6 +90,8 @@ namespace VoteExplorer.Models
         public string id { get; set; }
         public string voteSubmissionStatus { get; set; }
 
+        public string availableShares { get; set; }
+
     }
 
 }

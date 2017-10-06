@@ -156,6 +156,13 @@
                         <div class="nav toggle">
                             <a id="menu_toggle"><i class="fa fa-bars"></i></a>
                         </div>
+                        <div class="nav toggle" style="padding-left: 20px;">
+                            <strong>Balance:</strong>
+                        </div>
+                        <div class="nav toggle" style="padding-left: 10px;">
+                            <span id="balance"></span>
+                        </div>
+
                         <ul class="nav navbar-nav navbar-right">
                             <li class="">
                                 <a href="javascript:;" class="user-profile dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
@@ -238,6 +245,11 @@
                 success: function (data, status) {
                     voteSubmissionId = data.id;
                     $("#voteSubmissionStatus1").text(data.voteSubmissionStatus);
+                    var decimals = 0;
+                    var formattedBalance = parseFloat(data.availableShares).toFixed(decimals).toLocaleString();
+                    var balanceWithCommas = numberWithCommas(formattedBalance);
+                    $("#balance").text(balanceWithCommas);
+
 
                     if (voteSubmissionId != "") {
                         voteSubmissionStatus = "VoteCoinsPendingTransfer";
@@ -267,6 +279,10 @@
             });
 
         });
+
+        function numberWithCommas(x) {
+            return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
 
         function onChange(e) {
             $(".loadingStatus1").text(e.value + "%");
