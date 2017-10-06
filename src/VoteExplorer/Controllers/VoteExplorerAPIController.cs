@@ -29,15 +29,16 @@ namespace VoteExplorer.Controllers
     public class VoteExplorerAPIController : Controller
     {
         Timer _tm = null;
-        public static readonly VoteExplorerContext Context = new VoteExplorerContext();
+        private VoteExplorerContext Context;
         private VoteExplorerBlockchainContext _blockchainContext;
         public static bool accessBlockChain = checkIfAccessBlockChain();
         readonly ILogger<VoteExplorerAPIController> _log;
 
-        public VoteExplorerAPIController(ILogger<VoteExplorerAPIController> log, VoteExplorerBlockchainContext blockchainContext)
+        public VoteExplorerAPIController(ILogger<VoteExplorerAPIController> log, VoteExplorerBlockchainContext blockchainContext, VoteExplorerContext Context1)
         {
             _log = log;
             _blockchainContext = blockchainContext;
+            Context = Context1;
         }
 
         public static bool checkIfAccessBlockChain()
@@ -99,15 +100,24 @@ namespace VoteExplorer.Controllers
         [HttpGet("GetVoteSubmissionStatus/{id}")]
         public ActionResult GetVoteSubmissionStatus(string id)
         {
-            VoteSubmission voteSubmission = Context.votesubmission.AsQueryable().ToList().FirstOrDefault(vs => vs._id == id);
-            var blockchainvoterequests = Context.blockchainvoterequests.AsQueryable().ToList();
-            if (blockchainvoterequests.Any(bc=>bc.VoteSubmissionId == id && bc.blockchainVoterRequestStatus == BlockchainVoterRequestStatus.AcceptedByBlockchain))
+            VoteSubmission voteSubmission = new VoteSubmission();
+
+            if (id != "0")
             {
-                voteSubmission.blockChainStatus = "Accepted";
+                voteSubmission = Context.votesubmission.AsQueryable().ToList().FirstOrDefault(vs => vs._id == id);
+                var blockchainvoterequests = Context.blockchainvoterequests.AsQueryable().ToList();
+                if (blockchainvoterequests.Any(bc => bc.VoteSubmissionId == id && bc.blockchainVoterRequestStatus == BlockchainVoterRequestStatus.AcceptedByBlockchain))
+                {
+                    voteSubmission.blockChainStatus = "Accepted";
+                }
+                else
+                {
+                    voteSubmission.blockChainStatus = "NotAccepted";
+                }
             }
             else
             {
-                voteSubmission.blockChainStatus = "NotAccepted";
+                voteSubmission.blockChainStatus = "Accepted";
             }
 
             return Json(voteSubmission);
