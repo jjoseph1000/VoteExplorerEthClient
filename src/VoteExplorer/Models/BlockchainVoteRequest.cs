@@ -27,7 +27,7 @@ namespace VoteExplorer.Models
 
         [BsonIgnoreIfNull]
         public List<Voter> maskedVoters { get; set; }
-
+        
         [BsonIgnoreIfNull]
         public BlockchainVoterRequestStatus blockchainVoterRequestStatus { get; set; }
     }

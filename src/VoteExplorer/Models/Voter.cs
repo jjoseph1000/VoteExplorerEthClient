@@ -1,4 +1,5 @@
-﻿using Nethereum.ABI.FunctionEncoding.Attributes;
+﻿using MongoDB.Bson.Serialization.Attributes;
+using Nethereum.ABI.FunctionEncoding.Attributes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,6 +27,9 @@ namespace VoteExplorer.Models
 
         [Parameter("uint256", 6)]
         public long balance { get; set; }
+
+        [BsonIgnoreIfNull]
+        public string transactionId { get; set; }
 
     }
 }
