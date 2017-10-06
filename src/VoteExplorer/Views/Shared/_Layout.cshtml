@@ -115,18 +115,10 @@
                                         <div id="voteStatus1">
                                             <div class="loading1">
                                                 <div class="loadingInfo1">
-                                                    <h7>Processing Question <span class="currentQuestionNum1">0</span> of <span class="totalQuestionNum1"></span></h7>
-                                                    <div class="statusContainer1">
-                                                        <span class="chunkStatus1">0</span> of 3 Tasks Complete<br />
-                                                    </div>
-                                                    <div>
-                                                        <small><span class="blockchainMessage"></span></small>
-                                                    </div>
+                                                    <h7>Submitting Votes To Blockchain</h7>
+
                                                 </div>
                                             </div>
-                                            <p>
-                                                <div style="float:left;width:170px;" id="loadingProgressBar1"></div>
-                                            </p>
                                             <p>
                                                 <div style="float:left;width:170px;" id="totalProgressBar1"></div><div style="float:left;"> &nbsp; <span class="loadingStatus1">0%</span></div>
                                             </p>
@@ -243,17 +235,29 @@
                 url: serviceURL,
                 contentType: "application/json; charset=utf-8",
                 dataType: "json",
-                success: currentVoteSubmissionSuccessFunc,
+                success: function (data, status) {
+                    voteSubmissionId = data.id;
+                    $("#voteSubmissionStatus1").text(data.voteSubmissionStatus);
+
+                    if (voteSubmissionId != "") {
+                        voteSubmissionStatus = "VoteCoinsPendingTransfer";
+                        $("#voteSubmissionStatus1").text("Votes Pending");
+
+                        var interval = setInterval(function () {
+                            if (voteSubmissionStatus == "VoteCoinsPendingTransfer") {
+
+                                GetVoteSubmissionStatus();
+                            } else {
+                                clearInterval(interval);
+                            }
+                        }, 4000);
+                    }
+                    else {
+                    }
+                },
                 error: errorFunc
             });
 
-            $("#loadingProgressBar1").kendoProgressBar({
-                type: "chunk",
-                chunkCount: 3,
-                min: 0,
-                max: 3,
-                orientation: "horizontal",
-            });
 
             $("#totalProgressBar1").kendoProgressBar({
                 orientation: "horizontal",
@@ -267,31 +271,7 @@
         function onChange(e) {
             $(".loadingStatus1").text(e.value + "%");
         }
-
-        function currentVoteSubmissionSuccessFunc(data, status)
-        {
-            voteSubmissionId = data.id;
-            $("#voteSubmissionStatus1").text(data.voteSubmissionStatus);
-
-            if (voteSubmissionId != "")
-            {
-                voteSubmissionStatus = "VoteCoinsPendingTransfer";
-                $("#voteSubmissionStatus1").text("Votes Pending");
-
-                var interval = setInterval(function () {
-                    if (voteSubmissionStatus == "VoteCoinsPendingTransfer") {
-
-                        GetVoteSubmissionStatus();
-                    } else {
-                        clearInterval(interval);
-                    }
-                }, 4000);
-            }
-            else
-            {
-            }
-        }
-
+        
         function GetVoteSubmissionStatus() {
             var serviceURL = '/api/GetVoteSubmissionStatus/' + voteSubmissionId;
 
@@ -300,56 +280,45 @@
                 url: serviceURL,
                 contentType: "application/json; charset=utf-8",
                 dataType: "json",
-                success: voteSubmissionStatusSuccessFunc,
+                success: function (data, status) {
+
+                    if (data.completePercentage != "100") {
+                        var percentage = parseInt(data.completePercentage);
+
+                        var pb = $("#totalProgressBar1").data("kendoProgressBar");
+                        pb.value(percentage);
+
+
+                        $("#voteStatusBox1").css('visibility', 'visible');//.show();
+                        $("#voteSubmissionStatus1").text("");
+
+                        console.log(data.currentQuestionBeingProcessedNumber + '/' + data.voteSelections.length);
+
+                        if ($BODY.hasClass('nav-sm')) {
+                            $SIDEBAR_MENU.find('li.active-sm ul').show();
+                            $SIDEBAR_MENU.find('li.active-sm').addClass('active').removeClass('active-sm');
+                            $BODY.toggleClass('nav-md nav-sm');
+                        }
+
+
+                        $('.dataTable').each(function () { $(this).dataTable().fnDraw(); });
+
+                    }
+                    else {
+                        voteSubmissionStatus = "VoteCoinsTransferred";
+                        $("#voteStatusBox1").css('visibility', 'hidden');//.hide();
+                        $("#voteStatus1").hide();
+                        $("#voteSubmissionStatus1").text("Submitted Successfully");
+                    }
+                },
                 error: errorFunc
             });
         }
 
-        function voteSubmissionStatusSuccessFunc(data, status) {
-            $(".totalQuestionNum1").text(data.voteSelections.length);
-            if (data.voteSubmissionStatus == "2") {
-                var percentage = parseInt((parseInt(data.currentQuestionBeingProcessedNumber) / parseInt(data.voteSelections.length)) * 100 + .5);
-
-                $(".currentQuestionNum1").text(data.currentQuestionBeingProcessedNumber);
-
-                var pb = $("#totalProgressBar1").data("kendoProgressBar");
-                pb.value(percentage);
-
-                var total = $("#loadingProgressBar1").data("kendoProgressBar");
-                total.value(data.blockChainStage);
-
-                $(".chunkStatus1").text(data.blockChainStage);
-
-                $(".blockchainMessage").text(data.blockChainProcessingMessage);
-                $("#voteStatusBox1").css('visibility', 'visible');//.show();
-                $("#voteSubmissionStatus1").text("");
-
-                console.log(data.currentQuestionBeingProcessedNumber + '/' + data.voteSelections.length);
-
-                if ($BODY.hasClass('nav-sm')) {
-                    $SIDEBAR_MENU.find('li.active-sm ul').show();
-                    $SIDEBAR_MENU.find('li.active-sm').addClass('active').removeClass('active-sm');
-                    $BODY.toggleClass('nav-md nav-sm');
-                }
-
-
-                $('.dataTable').each(function () { $(this).dataTable().fnDraw(); });
-
-            }
-            else {
-                voteSubmissionStatus = "VoteCoinsTransferred";
-                $("#voteStatusBox1").css('visibility', 'hidden');//.hide();
-                $("#voteStatus1").hide();
-                $("#voteSubmissionStatus1").text("Submitted Successfully");
-            }
-        }
-
         function onComplete(e) {
-            var total = $("#loadingProgressBar1").data("kendoProgressBar");
-            total.value(total.value() + 1);
+
 
             if (total.value() < total.options.max) {
-                $(".chunkStatus1").text(total.value());
                 $(".loadingInfo1").text(itemsToLoad[total.value()]);
 
                 //load();
@@ -366,7 +335,6 @@
 
         function onTotalComplete(e) {
             $(".loadingInfo1").text("All Votes Have Been Successfully Cast");
-            $(".statusContainer1").hide();
         }
 
         function errorFunc(result) {

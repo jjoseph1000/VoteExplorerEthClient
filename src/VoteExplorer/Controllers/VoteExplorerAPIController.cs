@@ -101,23 +101,10 @@ namespace VoteExplorer.Controllers
         public ActionResult GetVoteSubmissionStatus(string id)
         {
             VoteSubmission voteSubmission = new VoteSubmission();
-
-            if (id != "0")
+            var voteSubmissions = Context.votesubmission.AsQueryable().Where(vs => vs._id == id);
+            if (voteSubmissions.Any())
             {
-                voteSubmission = Context.votesubmission.AsQueryable().ToList().FirstOrDefault(vs => vs._id == id);
-                var blockchainvoterequests = Context.blockchainvoterequests.AsQueryable().ToList();
-                if (blockchainvoterequests.Any(bc => bc.VoteSubmissionId == id && bc.blockchainVoterRequestStatus == BlockchainVoterRequestStatus.AcceptedByBlockchain))
-                {
-                    voteSubmission.blockChainStatus = "Accepted";
-                }
-                else
-                {
-                    voteSubmission.blockChainStatus = "NotAccepted";
-                }
-            }
-            else
-            {
-                voteSubmission.blockChainStatus = "Accepted";
+                voteSubmission = voteSubmissions.FirstOrDefault();
             }
 
             return Json(voteSubmission);
@@ -127,9 +114,8 @@ namespace VoteExplorer.Controllers
         public ActionResult GetCurrentVoteSubmissionId()
         {
             VoteSubmissionSatusVM voteSubmissionStatusVM = new VoteSubmissionSatusVM();
-            string meetingId = HttpContext.Session.GetString("activeVoteContractAddress");
             string controlNumber = HttpContext.Session.GetString("ControlNumber");
-            List<VoteSubmission> voteSubmissions = Context.votesubmission.AsQueryable().Where(vs => vs.MeetingId == meetingId && vs.ControlNumber == controlNumber && vs.voteSubmissionStatus == VoteSubmissionStatus.VoteCoinsPendingTransfer).ToList();
+            List<VoteSubmission> voteSubmissions = Context.votesubmission.AsQueryable().Where(vs => vs.ControlNumber == controlNumber && vs.voteSubmissionStatus == VoteSubmissionStatus.VotesConfirmed).ToList();
             if (voteSubmissions.Any())
             {
                 voteSubmissionStatusVM.id = voteSubmissions.FirstOrDefault()._id;
@@ -139,25 +125,43 @@ namespace VoteExplorer.Controllers
                 voteSubmissionStatusVM.id = "";
             }
 
-            List<VoteSubmission> voteSubmissions1 = Context.votesubmission.AsQueryable().Where(vs => vs.MeetingId == meetingId && vs.ControlNumber == controlNumber).ToList();
+            List<VoteSubmission> voteSubmissions1 = Context.votesubmission.AsQueryable().Where(vs => vs.ControlNumber == controlNumber).ToList();
             if (voteSubmissions1.Any())
             {
-                switch (voteSubmissions1.FirstOrDefault().voteSubmissionStatus)
+                if (voteSubmissions1.FirstOrDefault().voteSubmissionStatus == VoteSubmissionStatus.VotesConfirmed)
                 {
-                    case VoteSubmissionStatus.VoteCoinsPendingTransfer:
-                        voteSubmissionStatusVM.voteSubmissionStatus = "Votes Pending";
-                        break;
-                    case VoteSubmissionStatus.VotesSubmitted:
+                    var blockchainVoteRequests = Context.blockchainvoterequests.AsQueryable().Where(bc => bc.VoteSubmissionId == voteSubmissions1.FirstOrDefault()._id);
+                    if (blockchainVoteRequests.Any())
+                    {
+                        if (blockchainVoteRequests.FirstOrDefault().blockchainVoterRequestStatus == BlockchainVoterRequestStatus.AcceptedByBlockchain)
+                        {
+                            voteSubmissionStatusVM.voteSubmissionStatus = "Submitted Successfully";
+                        }
+                        else
+                        {
+                            voteSubmissionStatusVM.voteSubmissionStatus = "Votes Pending";
+                        }
+                    }
+                    else
+                    {
                         voteSubmissionStatusVM.voteSubmissionStatus = "No Votes Submitted";
-                        break;
-                    default:
-                        voteSubmissionStatusVM.voteSubmissionStatus = "Submitted Successfully";
-                        break;
+                    }
+                }
+                else
+                {
+                    voteSubmissionStatusVM.voteSubmissionStatus = "No Votes Submitted";
                 }
             }
             else
             {
-                voteSubmissionStatusVM.voteSubmissionStatus = "No Votes Submitted";
+                if (Context.blockchainvoterequests.AsQueryable().Any(bc=>bc.ControlNumber == controlNumber && bc.blockchainVoterRequestStatus == BlockchainVoterRequestStatus.AcceptedByBlockchain))
+                {
+                    voteSubmissionStatusVM.voteSubmissionStatus = "Submitted Successfully";
+                }
+                else
+                {
+                    voteSubmissionStatusVM.voteSubmissionStatus = "No Votes Submitted";
+                }
             }
 
             return Json(voteSubmissionStatusVM);
