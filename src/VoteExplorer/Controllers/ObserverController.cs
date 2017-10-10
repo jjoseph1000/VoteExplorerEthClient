@@ -97,6 +97,12 @@ namespace VoteExplorer.Controllers
 
         public IActionResult IndexRealtime_Codebehind(string UserType, LanguagePreference languagePreference)
         {
+            if (HttpContext.Session.GetString("ControlNumber") == null)
+            {
+                return RedirectToAction("Login", "ShareholderVoting");
+            }
+
+
             var builder = new ConfigurationBuilder()
                  .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json");
@@ -170,41 +176,26 @@ namespace VoteExplorer.Controllers
 
         public IActionResult QuestionRealtime_Codebehind(string quidAndUserType, LanguagePreference languagePreference)
         {
+            if (HttpContext.Session.GetString("ControlNumber") == null)
+            {
+                return RedirectToAction("Login", "ShareholderVoting");
+            }
+
+            var builder = new ConfigurationBuilder()
+                 .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json");
+
+            IConfigurationRoot Configuration = builder.Build();
+
             string quid = quidAndUserType.Split('|')[0].ToString();
             string UserType = quidAndUserType.Split('|')[1].ToString();
-
-            if (HttpContext.Session.GetString("displayResultsContractAddress") == null)
-            {
-                if (languagePreference == LanguagePreference.Russian)
-                {
-                    if (UserType == "IVY")
-                    {
-                        return RedirectToAction("Login_Russian", "InstitutionalVoting");
-                    }
-                    else
-                    {
-                        return RedirectToAction("Login_Russian", "ShareholderVoting");
-                    }
-                }
-                else
-                {
-                    if (UserType == "IVY")
-                    {
-                        return RedirectToAction("Login", "InstitutionalVoting");
-                    }
-                    else
-                    {
-                        return RedirectToAction("Login", "ShareholderVoting");
-                    }
-                }
-
-            }
 
             List<Question> questions = _blockchainContext.questions;
             var question = questions.FirstOrDefault(q => q.quid == quid);
             QuestionVM questionVM = new QuestionVM();
             questionVM.quid = quid;
             questionVM.text = question.text;
+            questionVM.blockchainExplorerUrl = Configuration["blockchainExplorerUrl"].ToString();
 
             ViewBag.UserType = UserType;
 

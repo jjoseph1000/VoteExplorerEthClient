@@ -1020,8 +1020,8 @@ namespace VoteExplorer.Controllers
                     question.WinningPercentage = (Convert.ToDecimal(winningAnswer.TotalVotes) / allAnswerVotesTotal).ToString("0.0%");
 
                 }
-                completedQuestions.ForEach(q => q.questionIndex = (Convert.ToInt32(q.questionIndex) + 1));
-                completedQuestions = completedQuestions.OrderBy(q => q.questionIndex).ToList();
+                completedQuestions.ForEach(q => q.orderNum = (Convert.ToInt32(q.questionIndex) + 1));
+                completedQuestions = completedQuestions.OrderBy(q => q.orderNum).ToList();
                 return Json(completedQuestions);
             }
             catch (Exception ex)
@@ -1237,11 +1237,11 @@ namespace VoteExplorer.Controllers
             //decimal surcharge = Convert.ToDecimal(Configuration["surcharge"]);
             decimal coinWeight = Convert.ToDecimal(Configuration["coinWeight"]);
 
-            string meetingId = HttpContext.Session.GetString("displayResultsContractAddress");
+            string contractNumber = "0xD63b2c39F9b3a6E68B6fec69B1FeC886ceF49c2A";
             List<Question> questions = _blockchainContext.questions;
             Question questionDetails = questions.AsQueryable().Where(q => q.quid == quid).FirstOrDefault();
 
-            List<BlockchainAddress> blockchainAddresses = Context.blockchainaddresses.AsQueryable().Where(bc => bc.meetingId == meetingId && bc.quid == quid && bc.ansid == ansid && bc.currentTransaction == true && bc.isFirstTransaction == false).ToList();
+            List<BlockchainAddress> blockchainAddresses = Context.contractBlockchainAddresses.AsQueryable().Where(bca => bca.contractNumber == contractNumber).FirstOrDefault().blockchainAddreses.AsQueryable().Where(bc => bc.contractNumber == contractNumber && bc.quid == quid && bc.ansid == ansid).ToList();
             blockchainAddresses.ForEach(bc => bc.TotalVotes = Convert.ToDecimal(bc.coins) / coinWeight);
             blockchainAddresses.ForEach(bc => bc.totalCoins = Convert.ToDecimal(bc.coins));
             var voteCalculation = (from bc in blockchainAddresses
@@ -1254,13 +1254,14 @@ namespace VoteExplorer.Controllers
                                        TotalVotes = grp.Sum(t => t.TotalVotes),
                                        totalCoins = grp.Sum(t => t.totalCoins)
                                    }).ToList();
-
-            var answers = (from a1 in _blockchainContext.answers
+            List<Answer> answersContext = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Answer>>(HttpContext.Session.GetString("answers"));
+            var answers = (from a1 in answersContext
                            join a2 in voteCalculation on a1.answid equals a2.ansid into a3
                            from a2 in a3.DefaultIfEmpty()
+                           where a1.quid == quid && (a2 == null || a2.quid == quid)
                            select new
                            {
-                               quid = quid,
+                               quid = a1.quid,
                                answid = a1.answid,
                                test = a1.test,
                                TotalVotes = (a2 == null) ? 0 : a2.TotalVotes,
@@ -1275,9 +1276,10 @@ namespace VoteExplorer.Controllers
             var addresses = (from addr in blockchainAddresses
                              select new
                              {
-                                 keyvalue = addr.publicAddress + "|",
+                                 keyvalue = addr.blockNumber + "|",
                                  id = counter++,
                                  address = addr.publicAddress,
+                                 blockNumber = addr.blockNumber,
                                  totalVotes = addr.TotalVotes,
                                  totalCoins = addr.totalCoins
                              }).ToList();
@@ -1334,9 +1336,9 @@ namespace VoteExplorer.Controllers
             //decimal surcharge = Convert.ToDecimal(Configuration["surcharge"]);
             decimal coinWeight = Convert.ToDecimal(Configuration["coinWeight"]);
 
-            string meetingId = HttpContext.Session.GetString("displayResultsContractAddress");
-            string controlNumber = HttpContext.Session.GetString("ControlNumber");
-            List<BlockchainAddress> blockchainAddresses = Context.blockchainaddresses.AsQueryable().Where(bc => bc.meetingId == meetingId && bc.quid == quid && bc.currentTransaction == true && bc.isFirstTransaction == false).ToList();
+            string contractNumber = "0xD63b2c39F9b3a6E68B6fec69B1FeC886ceF49c2A";
+            //string account = HttpContext.Session.GetString("account");
+            List<BlockchainAddress> blockchainAddresses = Context.contractBlockchainAddresses.AsQueryable().Where(bca => bca.contractNumber == contractNumber).FirstOrDefault().blockchainAddreses.AsQueryable().Where(bc => bc.contractNumber == contractNumber && bc.quid == quid).ToList();
             blockchainAddresses.ForEach(bc => bc.TotalVotes = Convert.ToDecimal(bc.coins) / coinWeight);
             blockchainAddresses.ForEach(bc => bc.totalCoins = Convert.ToDecimal(bc.coins));
             var voteCalculation = (from bc in blockchainAddresses
@@ -1350,13 +1352,14 @@ namespace VoteExplorer.Controllers
                                        totalCoins = grp.Sum(t => t.totalCoins)
                                    }).ToList();
 
-            //IMongoQueryable<Answer> answers = Context.answers.AsQueryable();
-            var answers = (from a1 in _blockchainContext.answers
+            List<Answer> answersContext = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Answer>>(HttpContext.Session.GetString("answers"));
+            var answers = (from a1 in answersContext
                            join a2 in voteCalculation on a1.answid equals a2.ansid into a3
                            from a2 in a3.DefaultIfEmpty()
+                           where a1.quid == quid && (a2 == null || a2.quid == quid)
                            select new
                            {
-                               quid = quid,
+                               quid = a1.quid,
                                answid = a1.answid,
                                test = a1.test,
                                TotalVotes = (a2 == null) ? 0 : a2.TotalVotes,

@@ -62,7 +62,7 @@ namespace VoteExplorer.Models
         public string text_ru { get; set; }
 
         public int questionIndex { get; set; }
-
+        public string blockchainExplorerUrl { get; set; }
         public int orderNum { get; set; }
 
         public string block { get; set; }
