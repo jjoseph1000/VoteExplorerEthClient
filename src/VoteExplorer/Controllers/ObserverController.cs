@@ -12,6 +12,8 @@ using MongoDB.Driver.Linq;
 using System.Dynamic;
 using Newtonsoft.Json;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
+using System.IO;
 
 namespace VoteExplorer.Controllers
 {
@@ -95,58 +97,28 @@ namespace VoteExplorer.Controllers
 
         public IActionResult IndexRealtime_Codebehind(string UserType, LanguagePreference languagePreference)
         {
-            if (HttpContext.Session.GetString("displayResultsContractAddress") == null)
-            {
-                if (languagePreference == LanguagePreference.Russian)
-                {
-                    if (UserType == "IVY")
-                    {
-                        return RedirectToAction("Login_Russian", "InstitutionalVoting");
-                    }
-                    else
-                    {
-                        return RedirectToAction("Login_Russian", "ShareholderVoting");
-                    }
-                }
-                else
-                {
-                    if (UserType == "IVY")
-                    {
-                        return RedirectToAction("Login", "InstitutionalVoting");
-                    }
-                    else
-                    {
-                        return RedirectToAction("Login", "ShareholderVoting");
-                    }
-                }
+            var builder = new ConfigurationBuilder()
+                 .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json");
 
-            }
+            IConfigurationRoot Configuration = builder.Build();
+
+            int refreshBlockchainDataInSeconds = Convert.ToInt32(Configuration["refreshBlockchainDataInSeconds"]);
+
+            string contractNumber = "0xD63b2c39F9b3a6E68B6fec69B1FeC886ceF49c2A";
+            List<ContractBlockchainAddresses> contractBlockchainAddresses = Context.contractBlockchainAddresses.AsQueryable().ToList();
 
             MainVM viewModel = new MainVM();
-
-            string meetingId = HttpContext.Session.GetString("displayResultsContractAddress");
-
-            if (meetingId != "-1")
+            if (contractBlockchainAddresses.Any(bc => bc.contractNumber == contractNumber && Convert.ToDateTime(bc.lastModifiedDatetime).AddSeconds(refreshBlockchainDataInSeconds) > DateTime.Now))
             {
-                List<Question> questions = _blockchainContext.questions;
-
-                viewModel.completedQuestions = (from q in questions
-                                                select new QuestionVM
-                                                {
-                                                    quid = q.quid,
-                                                    text = q.text,
-                                                    block = q.block,
-                                                    keyid = q.quid + "|"
-                                                }
-                                                                   ).ToList();
-
-                viewModel.meeting = Context.meetings.AsQueryable().Where(m => m._id == meetingId).FirstOrDefault();
+                viewModel.refreshDataFromBlockchain = "false";
             }
             else
             {
-                viewModel.completedQuestions = new List<QuestionVM>();
+                viewModel.refreshDataFromBlockchain = "true";
             }
 
+            viewModel.contractNumber = contractNumber;
             ViewBag.UserType = UserType;
 
             return View(viewModel);

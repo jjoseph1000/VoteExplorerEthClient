@@ -41,6 +41,8 @@ namespace VoteExplorer.Models
 
         public IMongoCollection<BlockchainVoteRequest> blockchainvoterequests => Database.GetCollection<BlockchainVoteRequest>("blockchainvoterequests");
 
+        public IMongoCollection<ContractBlockchainAddresses> contractBlockchainAddresses => Database.GetCollection<ContractBlockchainAddresses>("contractblockchainaddresses");
+
         public IMongoCollection<Alert> alerts => Database.GetCollection<Alert>("alerts");
 
         public IMongoCollection<Custodian> custodians => Database.GetCollection<Custodian>("custodian");

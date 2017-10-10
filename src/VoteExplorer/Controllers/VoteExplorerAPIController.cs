@@ -849,8 +849,8 @@ namespace VoteExplorer.Controllers
 
         }
 
-        [HttpGet("_GetCompletedQuestions_Realtime/{UserType}")]
-        public ActionResult _GetCompletedQuestions_Realtime(string UserType)
+        [HttpPost("_GetCompletedQuestions_Realtime")]
+        public ActionResult _GetCompletedQuestions_Realtime([FromBody]Newtonsoft.Json.Linq.JArray voteCollections)
         {
             try
             {
@@ -862,9 +862,75 @@ namespace VoteExplorer.Controllers
 
                 decimal coinWeight = Convert.ToDecimal(Configuration["coinWeight"]);
 
-                string meetingId = HttpContext.Session.GetString("displayResultsContractAddress");
-                string controlNumber = HttpContext.Session.GetString("ControlNumber");
-                List<BlockchainAddress> blockchainAddresses = Context.blockchainaddresses.AsQueryable().Where(bc => bc.meetingId == meetingId && bc.currentTransaction == true && bc.isFirstTransaction == false).ToList();
+                List<Question> questions = _blockchainContext.questions.OrderBy(q => q.questionIndex).ToList();
+                List<Answer> answersContext = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Answer>>(HttpContext.Session.GetString("answers"));
+                string contractNumber = "0xD63b2c39F9b3a6E68B6fec69B1FeC886ceF49c2A";
+                List<BlockchainAddress> blockchainAddresses;
+                if (voteCollections[0]["index"].ToString() != "")
+                {
+                    List<IDictionary<string, Object>> lstRawResults = new List<IDictionary<string, object>>();
+                    for (int x = 0; x < voteCollections.Count(); x++)
+                    {
+                        string index = voteCollections[x]["index"].ToString();
+                        string senderAddress = voteCollections[x]["senderAddress"].ToString();
+                        string sessionId = voteCollections[x]["sessionId"].ToString();
+                        string voteSelections = voteCollections[x]["voteSelections"].ToString();
+                        string blockNumber = voteCollections[x]["blockNumber"].ToString();
+                        string balance = voteCollections[x]["balance"].ToString();
+
+                        var dynamicObjectVoteResults = new ExpandoObject() as IDictionary<string, Object>;
+                        dynamicObjectVoteResults.Add("index", index);
+                        dynamicObjectVoteResults.Add("senderAddress", senderAddress);
+                        dynamicObjectVoteResults.Add("sessionId", sessionId);
+                        dynamicObjectVoteResults.Add("blockNumber", blockNumber);
+                        dynamicObjectVoteResults.Add("balance", Convert.ToInt32(balance));
+
+                        for (int i = 0; i < questions.Count(); i++)
+                        {
+                            dynamicObjectVoteResults.Add(questions[i].quid, voteSelections.Substring(i, 1));
+                        }
+                        lstRawResults.Add(dynamicObjectVoteResults);
+                    }
+
+                    blockchainAddresses = new List<BlockchainAddress>();
+
+                    foreach (Question question in questions)
+                    {
+                        List<Answer> rawAnswers = answersContext.Where(a => a.quid == question.quid).ToList();
+                        foreach (Answer answer in rawAnswers)
+                        {
+                            var subQuery = lstRawResults.Where(rr => rr[question.quid].ToString() == answer.answid).ToList();
+                            foreach (IDictionary<string, object> rawVoter in subQuery)
+                            {
+                                BlockchainAddress blockChainAddress = new BlockchainAddress();
+                                blockChainAddress.quid = question.quid;
+                                blockChainAddress.ansid = answer.answid;
+                                blockChainAddress.account = rawVoter["senderAddress"].ToString();
+                                blockChainAddress.publicAddress = rawVoter["senderAddress"].ToString();
+                                blockChainAddress.blockNumber = rawVoter["blockNumber"].ToString();
+                                blockChainAddress.coins = rawVoter["balance"].ToString();
+                                blockChainAddress.contractNumber = contractNumber;
+                                if (blockChainAddress.coins != "0")
+                                {
+                                    blockchainAddresses.Add(blockChainAddress);
+                                }
+                            }
+                        }
+                    }
+                    ContractBlockchainAddresses contractBlockchainAddresses = new ContractBlockchainAddresses();
+                    contractBlockchainAddresses.contractNumber = contractNumber;
+                    contractBlockchainAddresses.blockchainAddreses = blockchainAddresses;
+                    contractBlockchainAddresses.lastModifiedDatetime = DateTime.Now.ToString();
+                    var filter = Builders<ContractBlockchainAddresses>.Filter.Eq("contractNumber", contractNumber);
+                    Context.contractBlockchainAddresses.DeleteMany(filter);
+                    Context.contractBlockchainAddresses.InsertOne(contractBlockchainAddresses);
+                }
+                else
+                {
+                    blockchainAddresses = Context.contractBlockchainAddresses.AsQueryable().Where(bc => bc.contractNumber == contractNumber).FirstOrDefault().blockchainAddreses;
+                }
+
+                string account = HttpContext.Session.GetString("account");
                 blockchainAddresses.ForEach(bc => bc.TotalVotes = Convert.ToDecimal(bc.coins) / coinWeight);
                 blockchainAddresses.ForEach(bc => bc.totalCoins = Convert.ToDecimal(bc.coins));
                 var voteCalculation = (from bc in blockchainAddresses
@@ -878,18 +944,16 @@ namespace VoteExplorer.Controllers
                                            totalCoins = grp.Sum(t => t.totalCoins)
                                        }).ToList();
 
-                List<Question> questions = _blockchainContext.questions;
-
                 List<Question> completedQuestions = questions.ToList();
-
                 foreach (Question question in completedQuestions)
                 {
-                    var answers = (from a1 in _blockchainContext.answers
+                    var answers = (from a1 in answersContext
                                    join a2 in voteCalculation on a1.answid equals a2.ansid into a3
                                    from a2 in a3.DefaultIfEmpty()
+                                   where a1.quid == question.quid && (a2 == null || a2.quid == question.quid)
                                    select new
                                    {
-                                       quid = question.quid,
+                                       quid = a1.quid,
                                        answid = a1.answid,
                                        test = a1.test,
                                        TotalVotes = (a2 == null) ? 0 : a2.TotalVotes,
@@ -927,60 +991,38 @@ namespace VoteExplorer.Controllers
                             break;
                     }
 
-                    if (UserType == "SH")
+                    List<BlockchainAddress> proxyChouce = Context.contractBlockchainAddresses.AsQueryable().Where(bca => bca.contractNumber == contractNumber).FirstOrDefault().blockchainAddreses.AsQueryable().Where(bc => bc.contractNumber == contractNumber && bc.account == account && bc.quid == question.quid).ToList();
+                    if (proxyChouce.Any())
                     {
-                        List<BlockchainAddress> proxyChouce = Context.blockchainaddresses.AsQueryable().Where(bc => bc.meetingId == meetingId && bc.controlNumber == controlNumber && bc.quid == question.quid && bc.currentTransaction == true && bc.isFirstTransaction == false).ToList();
-                        if (proxyChouce.Any())
+                        switch (proxyChouce.FirstOrDefault().ansid.ToUpper())
                         {
-                            switch (proxyChouce.FirstOrDefault().ansid.ToUpper())
-                            {
-                                case "A":
-                                    question.ProxyChoice = "FOR";
-                                    question.ProxyChoice_ru = "за";
-                                    break;
-                                case "B":
-                                    question.ProxyChoice = "AGAINST";
-                                    question.ProxyChoice_ru = "против";
-                                    break;
-                                default:
-                                    question.ProxyChoice = "ABSTAIN";
-                                    question.ProxyChoice_ru = "воздержался";
-                                    break;
-                            }
-
+                            case "A":
+                                question.ProxyChoice = "FOR";
+                                question.ProxyChoice_ru = "за";
+                                break;
+                            case "B":
+                                question.ProxyChoice = "AGAINST";
+                                question.ProxyChoice_ru = "против";
+                                break;
+                            default:
+                                question.ProxyChoice = "ABSTAIN";
+                                question.ProxyChoice_ru = "воздержался";
+                                break;
                         }
+
                     }
                     else
                     {
-                        question.ProxyChoice = "FOR";
-                        question.ProxyChoice_ru = "за";
+                        question.ProxyChoice = "N/A";
+                        question.ProxyChoice_ru = "N/A";
                     }
-
                     question.text = question.text.ToUpper();
                     question.WinningPercentage = (Convert.ToDecimal(winningAnswer.TotalVotes) / allAnswerVotesTotal).ToString("0.0%");
 
                 }
-
-                //var answersWinnerTotal = (from a in answers
-                //                    group a by a.quid into q
-                //                    select new { q.First().quid,
-                //                                TotalVotes = q.Max(e=>e.TotalVotes) }).ToList();
-
-
-
-                //var completedQuestions = (from q in questions
-                //                                where q.state == 2
-                //                                select new
-                //                                {
-                //                                    quid = q.quid,
-                //                                    text = q.text,
-                //                                    block = q.block,
-                //                                    keyid = q.quid + "|"
-                //                                }
-                //                                                   ).ToList();
-
+                completedQuestions.ForEach(q => q.questionIndex = (Convert.ToInt32(q.questionIndex) + 1));
+                completedQuestions = completedQuestions.OrderBy(q => q.questionIndex).ToList();
                 return Json(completedQuestions);
-
             }
             catch (Exception ex)
             {
@@ -1063,19 +1105,20 @@ namespace VoteExplorer.Controllers
             decimal coinWeight = Convert.ToDecimal(Configuration["coinWeight"]);
 
 
-            string meetingId = HttpContext.Session.GetString("displayResultsContractAddress");
+            string contractNumber = "0xD63b2c39F9b3a6E68B6fec69B1FeC886ceF49c2A";
             List<Question> questions = _blockchainContext.questions;
             var question = (from q in questions
                             where q.quid == quid
                             select new
                             {
+                                questionIndex = q.questionIndex,
                                 questionText = q.text,
                                 questionText_ru = q.text_ru
                             }).FirstOrDefault();
-            string questionText = question.questionText;
+            string questionText = string.Format("{0}: {1}", (Convert.ToInt32(question.questionIndex) + 1).ToString(), question.questionText);
             string questionText_ru = question.questionText_ru;
 
-            List<BlockchainAddress> blockchainAddresses = Context.blockchainaddresses.AsQueryable().Where(bc => bc.meetingId == meetingId && bc.quid == quid && bc.currentTransaction == true && bc.isFirstTransaction == false).ToList();
+            List<BlockchainAddress> blockchainAddresses = Context.contractBlockchainAddresses.AsQueryable().Where(bca => bca.contractNumber == contractNumber).FirstOrDefault().blockchainAddreses.AsQueryable().Where(bc => bc.contractNumber == contractNumber && bc.quid == quid).ToList();
             blockchainAddresses.ForEach(bc => bc.TotalVotes = Convert.ToDecimal(bc.coins) / coinWeight);
             blockchainAddresses.ForEach(bc => bc.totalCoins = Convert.ToDecimal(bc.coins));
             var voteCalculation = (from bc in blockchainAddresses
@@ -1090,12 +1133,14 @@ namespace VoteExplorer.Controllers
                                    }).ToList();
 
             //IMongoQueryable<Answer> answers = Context.answers.AsQueryable();
-            var answers = (from a1 in _blockchainContext.answers
+            List<Answer> answersContext = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Answer>>(HttpContext.Session.GetString("answers"));
+            var answers = (from a1 in answersContext
                            join a2 in voteCalculation on a1.answid equals a2.ansid into a3
                            from a2 in a3.DefaultIfEmpty()
+                           where a1.quid == quid && (a2 == null || a2.quid == quid)
                            select new
                            {
-                               quid = quid,
+                               quid = a1.quid,
                                answid = a1.answid,
                                test = a1.test,
                                TotalVotes = (a2 == null) ? 0 : a2.TotalVotes,

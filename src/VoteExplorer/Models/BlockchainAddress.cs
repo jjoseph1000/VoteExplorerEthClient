@@ -34,6 +34,12 @@ namespace VoteExplorer.Models
         public string generalFundCoins { get; set; }
 
         [BsonIgnoreIfNull]
+        public string contractNumber { get; set; }
+
+        [BsonIgnoreIfNull]
+        public string account { get; set; }
+
+        [BsonIgnoreIfNull]
         public string meetingId { get; set; }
 
         [BsonIgnoreIfNull]
@@ -47,7 +53,10 @@ namespace VoteExplorer.Models
 
         [BsonIgnoreIfNull]
         public string coins { get; set; }
-        
+
+        [BsonIgnoreIfNull]
+        public string blockNumber { get; set; }
+
         [BsonIgnoreIfNull]
         public string transactionId { get; set; }
 

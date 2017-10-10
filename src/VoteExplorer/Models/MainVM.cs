@@ -18,6 +18,10 @@ namespace VoteExplorer.Models
 
         public DateTime dateSubmitted { get; set; }
 
+        public string contractNumber { get; set; }
+
+        public string refreshDataFromBlockchain { get; set; }
+
         public VoteSubmissionStatus voteSubmissionStatus { get; set; }
 
         public Meeting meeting { get; set; }

@@ -317,6 +317,28 @@ namespace VoteExplorer.Controllers
             HttpContext.Session.SetString("ControlNumber", controlNumber);
             SHOAccount shoAccount = _context.shoaccounts.AsQueryable().FirstOrDefault(a => a.ControlNumber == controlNumber);
             HttpContext.Session.SetString("AvailableShares", shoAccount.AvailableShares.ToString());
+            List<Question> questions = _blockchainContext.questions;
+            List<Answer> answers = new List<Answer>();
+            foreach (Question question in questions)
+            {
+                Answer answer = new Answer();
+                answer.quid = question.quid;
+                answer.answid = "A";
+                answer.test = "FOR";
+                answers.Add(answer);
+                answer = new Answer();
+                answer.quid = question.quid;
+                answer.answid = "B";
+                answer.test = "AGAINST";
+                answers.Add(answer);
+                answer = new Answer();
+                answer.quid = question.quid;
+                answer.answid = "Z";
+                answer.test = "ABSTAIN";
+                answers.Add(answer);
+            }
+            HttpContext.Session.SetString("answers", Newtonsoft.Json.JsonConvert.SerializeObject(answers));
+
             if (languagePreference == LanguagePreference.Russian)
             {
                 return await Task.Run<IActionResult>(() => { return RedirectToAction("Index_Russian", new { revote = "0" }); });                
