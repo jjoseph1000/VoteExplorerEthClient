@@ -11,16 +11,18 @@ namespace VoteExplorer.Models
     public class Voter
     {
         [Parameter("uint256", 1)]
-        public long indexVoter { get; set; }
+        public long index { get; set; }
 
         [Parameter("string", 2)]
+        public string senderAddress { get; set; }
+
         public string voterId { get; set; }
 
         [Parameter("string", 3)]
-        public string voteSessionId { get; set; }
+        public string sessionId { get; set; }
 
         [Parameter("string", 4)]
-        public string voteAnswers { get; set; }
+        public string voteSelections { get; set; }
 
         [Parameter("uint", 5)]
         public int blockNumber { get; set; }

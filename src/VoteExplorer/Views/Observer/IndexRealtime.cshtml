@@ -161,8 +161,24 @@
                     var refreshDataFromBlockchain = "true";
 
                     $(document).ready(function () {
-                        votes = JSON.parse("[{\"index\":\"0\",\"senderAddress\":\"0x4c3b38f3085a17c1fc8396a3b4b3015abbc6a2cd\",\"sessionId\":\"asdf\",\"voteSelections\":\"BBBAAAZZZ\",\"blockNumber\":\"3835784\",\"balance\":\"999995\"},{\"index\":\"1\",\"senderAddress\":\"0x13bfa0e110ee8807c8946254f7b08927a451a693\",\"sessionId\":\"59a30251f6df06444f638e69\",\"voteSelections\":\"AAAAAAAAA\",\"blockNumber\":\"3438811\",\"balance\":\"1000000\"},{\"index\":\"2\",\"senderAddress\":\"0x234908057ce3317f12b950a0baa9f3e8fd8dd16f\",\"sessionId\":\"59ac1ae4d3eced5a5b52b18a\",\"voteSelections\":\"ZZZZZZZZZ\",\"blockNumber\":\"3571252\",\"balance\":\"5005\"},{\"index\":\"3\",\"senderAddress\":\"0xc5f7b0e2dc9fadead417354e79e206a5127f884d\",\"sessionId\":\"59ac1b25d3eced5a5b52b18c\",\"voteSelections\":\"AAAAAAAAA\",\"blockNumber\":\"3571264\",\"balance\":\"24258\"},{\"index\":\"6\",\"senderAddress\":\"0xe4383f0422d5e3b1ca85dd9fc5e48f6047d4c311\",\"sessionId\":\"59ac1bc3d3eced5a5b52b192\",\"voteSelections\":\"BBBBBBBBB\",\"blockNumber\":\"3571299\",\"balance\":\"3333333\"},{\"index\":\"8\",\"senderAddress\":\"0x1318a6636d86cc0b47f9a654ba868d3882bc67ea\",\"sessionId\":\"59ac1c33d3eced5a5b52b196\",\"voteSelections\":\"AAAAAAAAA\",\"blockNumber\":\"3571324\",\"balance\":\"3906222\"},{\"index\":\"9\",\"senderAddress\":\"0x530dfe22f957ff63e8bda3f35b25dd6955993752\",\"sessionId\":\"59b96752d3eced5a5b52b1b8\",\"voteSelections\":\"ABBABBBAA\",\"blockNumber\":\"3761524\",\"balance\":\"20046\"},{\"index\":\"5\",\"senderAddress\":\"0xbd4f84221ca6183928938dedc3cc2f018398c017\",\"sessionId\":\"59bb04f9d3eced5a5b52b1c2\",\"voteSelections\":\"BBZABAAAB\",\"blockNumber\":\"3787763\",\"balance\":\"250111\"},{\"index\":\"4\",\"senderAddress\":\"0x1ef716198291e860430c9152f326197920743112\",\"sessionId\":\"59ac1b5cd3eced5a5b52b18e\",\"voteSelections\":\"AAAAAAAAA\",\"blockNumber\":\"3571277\",\"balance\":\"60505\"},{\"index\":\"7\",\"senderAddress\":\"0x342d16378853c409e87cb012fbbfec60f6f89c4b\",\"sessionId\":\"59ac1c04d3eced5a5b52b194\",\"voteSelections\":\"AAAAAAAAA\",\"blockNumber\":\"3571314\",\"balance\":\"400525\"}]");
-                        CompileResults(votes, "1");
+
+                        var serviceURL1 = '/api/_GetVoteResults';
+
+                        $.ajax({
+                            type: "GET",
+                            url: serviceURL1,
+                            contentType: "application/json; charset=utf-8",
+                            dataType: "json",
+                            success: function (data, status) {
+                                console.log(data);
+
+                                CompileResults(data, "1");
+                            },
+                            error: errorFunc
+                        });
+
+
+
                     });
 
                     function CompileResults(v, recompile) {

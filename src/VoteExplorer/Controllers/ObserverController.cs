@@ -95,7 +95,7 @@ namespace VoteExplorer.Controllers
             return View(viewModel);
         }
 
-        public IActionResult IndexRealtime_Codebehind(string UserType, LanguagePreference languagePreference)
+        public async Task<IActionResult> IndexRealtime_Codebehind(string UserType, LanguagePreference languagePreference)
         {
             if (HttpContext.Session.GetString("ControlNumber") == null)
             {
@@ -111,7 +111,7 @@ namespace VoteExplorer.Controllers
 
             int refreshBlockchainDataInSeconds = Convert.ToInt32(Configuration["refreshBlockchainDataInSeconds"]);
 
-            string contractNumber = "0xD63b2c39F9b3a6E68B6fec69B1FeC886ceF49c2A";
+            string contractNumber = _blockchainContext.ContractAddress;
             List<ContractBlockchainAddresses> contractBlockchainAddresses = Context.contractBlockchainAddresses.AsQueryable().ToList();
 
             MainVM viewModel = new MainVM();
@@ -127,7 +127,7 @@ namespace VoteExplorer.Controllers
             viewModel.contractNumber = contractNumber;
             ViewBag.UserType = UserType;
 
-            return View(viewModel);
+            return await Task.Run<IActionResult>(() => { return View(viewModel); });
         }
 
         public IActionResult Question_Codebehind(string quidAndUserType, LanguagePreference languagePreference)
@@ -218,17 +218,17 @@ namespace VoteExplorer.Controllers
         }
 
         [HttpGet("en/IndexRealtime/{UserType}")]
-        public IActionResult IndexRealtime(string UserType)
+        public async Task<IActionResult> IndexRealtime(string UserType)
         {
             try
             {
-                return IndexRealtime_Codebehind(UserType, LanguagePreference.English);
+                return await IndexRealtime_Codebehind(UserType, LanguagePreference.English);
             }
             catch (Exception ex)
             {
             }
 
-            return View();
+            return await Task.Run<IActionResult>(() => { return View(); });
         }
 
         [HttpGet("ru/Index/{UserType}")]
@@ -246,17 +246,17 @@ namespace VoteExplorer.Controllers
         }
 
         [HttpGet("ru/IndexRealtime/{UserType}")]
-        public IActionResult IndexRealtime_Russian(string UserType)
+        public async Task<IActionResult> IndexRealtime_Russian(string UserType)
         {
             try
             {
-                return IndexRealtime_Codebehind(UserType, LanguagePreference.Russian);
+                return await IndexRealtime_Codebehind(UserType, LanguagePreference.Russian);
             }
             catch (Exception ex)
             {
             }
 
-            return View();
+            return await Task.Run<IActionResult>(() => { return View(); });
         }
 
         [HttpGet("en/Question/{quidAndUserType}")]

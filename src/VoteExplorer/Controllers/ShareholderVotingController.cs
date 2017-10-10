@@ -60,8 +60,8 @@ namespace VoteExplorer.Controllers
                 {
                     VoteMask voteMask = shoaccount.maskedVoters[x];
                     Voter voter1 = await _blockchainContext.getVoteAnswersByVoterId(voteMask.voterId);
-                    voteAnswerChoices = voter1.voteAnswers;
-                    string voteSessionId1 = voter1.voteSessionId;
+                    voteAnswerChoices = voter1.voteSelections;
+                    string voteSessionId1 = voter1.sessionId;
                     voteSessionIds.Add(voteSessionId1);
                     if (x==0)
                     {
@@ -281,7 +281,7 @@ namespace VoteExplorer.Controllers
                 viewModel.VoteSubmissionId = id;
                 SHOAccount shoaccount = _context.shoaccounts.AsQueryable().Where(sho => sho.ControlNumber == controlNumber).FirstOrDefault();
                 Voter voter1 = await _blockchainContext.getVoteAnswersByVoterId(shoaccount.maskedVoters[0].voterId);
-                string voteString = voter1.voteAnswers;
+                string voteString = voter1.voteSelections;
                 List<Question> questions = _blockchainContext.questions;
 
                 viewModel.activeQuestions = (from q in questions

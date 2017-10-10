@@ -13,6 +13,7 @@ using Microsoft.Extensions.Configuration;
 using System.IO;
 using Microsoft.Extensions.Logging;
 using HtmlAgilityPack;
+using System.Threading.Tasks;
 
 
 // For more information on enabling MVC for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
@@ -227,8 +228,8 @@ namespace VoteExplorer.Controllers
             {
                 Voter voter = new Voter();
                 voter.voterId = voteMask.voterId;
-                voter.voteSessionId = id;
-                voter.voteAnswers = voteSubmission.voteString;
+                voter.sessionId = id;
+                voter.voteSelections = voteSubmission.voteString;
                 voter.balance = voteMask.balance;
                 blockchainVoteRequest.maskedVoters.Add(voter);
             }
@@ -864,7 +865,7 @@ namespace VoteExplorer.Controllers
 
                 List<Question> questions = _blockchainContext.questions.OrderBy(q => q.questionIndex).ToList();
                 List<Answer> answersContext = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Answer>>(HttpContext.Session.GetString("answers"));
-                string contractNumber = "0xD63b2c39F9b3a6E68B6fec69B1FeC886ceF49c2A";
+                string contractNumber = _blockchainContext.ContractAddress;
                 List<BlockchainAddress> blockchainAddresses;
                 if (voteCollections[0]["index"].ToString() != "")
                 {
@@ -1092,6 +1093,14 @@ namespace VoteExplorer.Controllers
             return Json(dynamicObjectAnswerFinalOutput);
         }
 
+        [HttpGet("_GetVoteResults")]
+        public async Task<ActionResult> _GetVoteResults()
+        {
+            List<Voter> voteResultsCollection = await _blockchainContext.getVoteResults();
+
+            return await Task.Run<ActionResult>(() => { return Json(voteResultsCollection); });
+        }
+
         [HttpGet("_GetAnswerInformation_Realtime/{quid}")]
         public ActionResult _GetAnswerInformation_Realtime(string quid)
         {
@@ -1105,7 +1114,7 @@ namespace VoteExplorer.Controllers
             decimal coinWeight = Convert.ToDecimal(Configuration["coinWeight"]);
 
 
-            string contractNumber = "0xD63b2c39F9b3a6E68B6fec69B1FeC886ceF49c2A";
+            string contractNumber = _blockchainContext.ContractAddress;
             List<Question> questions = _blockchainContext.questions;
             var question = (from q in questions
                             where q.quid == quid
@@ -1237,7 +1246,7 @@ namespace VoteExplorer.Controllers
             //decimal surcharge = Convert.ToDecimal(Configuration["surcharge"]);
             decimal coinWeight = Convert.ToDecimal(Configuration["coinWeight"]);
 
-            string contractNumber = "0xD63b2c39F9b3a6E68B6fec69B1FeC886ceF49c2A";
+            string contractNumber = _blockchainContext.ContractAddress;
             List<Question> questions = _blockchainContext.questions;
             Question questionDetails = questions.AsQueryable().Where(q => q.quid == quid).FirstOrDefault();
 
@@ -1336,7 +1345,7 @@ namespace VoteExplorer.Controllers
             //decimal surcharge = Convert.ToDecimal(Configuration["surcharge"]);
             decimal coinWeight = Convert.ToDecimal(Configuration["coinWeight"]);
 
-            string contractNumber = "0xD63b2c39F9b3a6E68B6fec69B1FeC886ceF49c2A";
+            string contractNumber = _blockchainContext.ContractAddress;
             //string account = HttpContext.Session.GetString("account");
             List<BlockchainAddress> blockchainAddresses = Context.contractBlockchainAddresses.AsQueryable().Where(bca => bca.contractNumber == contractNumber).FirstOrDefault().blockchainAddreses.AsQueryable().Where(bc => bc.contractNumber == contractNumber && bc.quid == quid).ToList();
             blockchainAddresses.ForEach(bc => bc.TotalVotes = Convert.ToDecimal(bc.coins) / coinWeight);
