@@ -163,7 +163,7 @@
                     $(document).ready(function () {
 
                         var serviceURL1 = '/api/_GetVoteResults';
-
+                        displayLoadingOn(document.body);
                         $.ajax({
                             type: "GET",
                             url: serviceURL1,
@@ -171,7 +171,7 @@
                             dataType: "json",
                             success: function (data, status) {
                                 console.log(data);
-
+                                displayLoadingOff(document.body);
                                 CompileResults(data, "1");
                             },
                             error: errorFunc
@@ -304,6 +304,16 @@
 
                     function getAnsText(value) {
                         return value.split(')')[1];
+                    }
+
+                    function displayLoadingOn(target) {
+                        var element = $(target);
+                        kendo.ui.progress(element, true);
+                    }
+
+                    function displayLoadingOff(target) {
+                        var element = $(target);
+                        kendo.ui.progress(element, false);
                     }
 
                 </script>

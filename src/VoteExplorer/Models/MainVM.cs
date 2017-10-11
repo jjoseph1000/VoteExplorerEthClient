@@ -63,6 +63,8 @@ namespace VoteExplorer.Models
 
         public int questionIndex { get; set; }
         public string blockchainExplorerUrl { get; set; }
+
+        public string smartContractAddress { get; set; }
         public int orderNum { get; set; }
 
         public string block { get; set; }

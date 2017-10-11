@@ -196,6 +196,7 @@ namespace VoteExplorer.Controllers
             questionVM.quid = quid;
             questionVM.text = question.text;
             questionVM.blockchainExplorerUrl = Configuration["blockchainExplorerUrl"].ToString();
+            questionVM.smartContractAddress = _blockchainContext.ContractAddress;
 
             ViewBag.UserType = UserType;
 

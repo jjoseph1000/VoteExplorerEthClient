@@ -42,6 +42,7 @@
                 <div id="dgAnswer"></div>
             </div>
         </div>
+        <div><strong>Smart Contract Address: </strong><a href="@Model.blockchainExplorerUrl/address/@Model.smartContractAddress" target="_blank">@Model.smartContractAddress</a></div>
         <div id="dgAddress"></div>
         <div id="window">
         </div>
@@ -293,7 +294,7 @@
                                                 return $(item).text();
                                             });
 
-                                            window.open(blockchainExplorerUrl + selected[0].split('|')[0]);
+                                            window.open(blockchainExplorerUrl + "/txs?block=" + selected[0].split('|')[0]);
                                         },
                                         filterable: true,
                                         selectable: "multiple",
@@ -304,9 +305,9 @@
                                         columns: [
                                             { field: "keyvalue", title: "keyvalue", hidden: true },
                                             { field: "id", title: "#", width: "80px" },
-                                            { field: "address", title: "From" },
+                                            { field: "address", title: "Voter Id" },
                                             { field: "blockNumber", title: "Block", width: "130px" },
-                                            { field: "totalCoins", title: "Tokens", width: "130px" }
+                                            { field: "totalCoins", title: "Shares", width: "130px" }
                                         ]
                                     });
                                 },
@@ -321,7 +322,7 @@
                             { field: "keyvalue", title: "keyvalue", hidden: true },
                             { field: "answid", title: "Answer", width: "110px" },
                             { field: "text", title: "Description" },
-                            { field: "totalCoins", title: "Tokens", width: "130px" }
+                            { field: "totalCoins", title: "Shares", width: "130px" }
                         ]
                     });
                 },
@@ -340,7 +341,6 @@
         function getAnsText(value) {
             return value.split(')')[1];
         }
-
 
 
 
