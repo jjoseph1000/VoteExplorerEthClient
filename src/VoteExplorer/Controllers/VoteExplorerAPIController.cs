@@ -102,10 +102,13 @@ namespace VoteExplorer.Controllers
         public ActionResult GetVoteSubmissionStatus(string id)
         {
             VoteSubmission voteSubmission = new VoteSubmission();
-            var voteSubmissions = Context.votesubmission.AsQueryable().Where(vs => vs._id == id);
-            if (voteSubmissions.Any())
+            if (id != "0")
             {
-                voteSubmission = voteSubmissions.FirstOrDefault();
+                var voteSubmissions = Context.votesubmission.AsQueryable().Where(vs => vs._id == id);
+                if (voteSubmissions.Any())
+                {
+                    voteSubmission = voteSubmissions.FirstOrDefault();
+                }
             }
 
             return Json(voteSubmission);
